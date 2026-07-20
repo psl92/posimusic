@@ -2,170 +2,285 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>波斯斯音乐</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            color: #fff;
             font-family: system-ui;
         }
         body {
-            background: #121212;
-            color: #fff;
-            max-width: 900px;
+            background: #000;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 40px 20px;
         }
-        .header {
+        .title-box {
             text-align: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #333;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
-        .count-box {
-            background: #222;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            text-align: center;
+        h1 {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        .play-total {
+            color: #aaa;
+            font-size: 18px;
         }
         .upload-area {
-            background: #1e1e1e;
             border: 2px dashed #666;
-            border-radius: 10px;
-            padding: 40px 20px;
+            border-radius: 12px;
+            padding: 60px 20px;
             text-align: center;
+            margin-bottom: 40px;
             cursor: pointer;
-            margin-bottom: 30px;
         }
         .upload-area:hover {
-            border-color: #1ed760;
-        }
-        audio {
-            width: 100%;
-            margin: 20px 0;
+            border-color: #ccc;
         }
         .lyric-box {
             background: #1a1a1a;
-            padding: 20px;
-            border-radius: 10px;
-            min-height: 120px;
-            white-space: pre-line;
-            line-height: 2;
-            color: #ccc;
+            border-radius: 12px;
+            padding: 30px;
+            min-height: 200px;
+            text-align: center;
+            white-space: pre-wrap;
+            font-size: 18px;
+            color: #ddd;
+            margin-bottom: 40px;
+            overflow-y: auto;
+            max-height: 260px;
         }
-        .song-list {
-            margin-top: 30px;
-        }
-        .song-item {
-            padding: 12px 16px;
+        .player-bar {
             background: #222;
-            border-radius: 6px;
-            margin: 8px 0;
+            border-radius: 999px;
+            padding: 16px 24px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 16px;
+            margin-bottom: 50px;
         }
         .play-btn {
-            background: #1ed760;
+            font-size: 22px;
+            background: transparent;
             border: none;
-            color: #000;
-            padding: 6px 14px;
-            border-radius: 20px;
+            width: 40px;
+            height: 40px;
             cursor: pointer;
-            font-weight: bold;
+        }
+        .time-text {
+            color: #aaa;
+            min-width: 80px;
+        }
+        .progress {
+            flex: 1;
+            height: 4px;
+        }
+        select {
+            background: #333;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .song-list-box h2 {
+            font-size: 24px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .song-item {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .empty-tip {
+            color: #666;
+            text-align: center;
+            padding: 40px 0;
+        }
+        .tool-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 60px;
+        }
+        .tool-btn {
+            border: 1px solid #666;
+            padding: 12px 24px;
+            border-radius: 8px;
+            background: transparent;
+            cursor: pointer;
+        }
+        .tool-btn:hover {
+            background: #1a1a1a;
+        }
+        input[type="file"] {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="title-box">
         <h1>波斯斯音乐</h1>
-        <div class="count-box">
-            全站总播放次数：<span id="totalPlay">0</span>
+        <div class="play-total">全站总播放次数：<span id="totalCount">0</span></div>
+    </div>
+
+    <!-- 上传区域 -->
+    <label class="upload-area" id="uploadWrap">
+        <p>点击或拖拽上传 MP3 音乐 / LRC 歌词文件</p>
+        <input type="file" id="audioUpload" accept=".mp3">
+        <input type="file" id="lrcUpload" accept=".lrc">
+    </label>
+
+    <!-- 歌词展示 -->
+    <div class="lyric-box" id="lyricBox">上传LRC歌词文件，歌词将在此处展示</div>
+
+    <!-- 播放器 -->
+    <div class="player-bar">
+        <button class="play-btn" id="playBtn">▶</button>
+        <span class="time-text" id="timeShow">00:00 / 00:00</span>
+        <input type="range" class="progress" id="progressBar">
+        <select id="speedSelect">
+            <option value="0.75">0.75x</option>
+            <option value="1" selected>1.0x</option>
+            <option value="1.25">1.25x</option>
+            <option value="1.5">1.5x</option>
+            <option value="2">2.0x</option>
+        </select>
+        <span>🔊</span>
+    </div>
+
+    <!-- 歌曲库 -->
+    <div class="song-list-box">
+        <h2>我的歌曲库</h2>
+        <div id="songList">
+            <div class="empty-tip">暂无上传歌曲，上传音乐后显示在这里</div>
         </div>
     </div>
 
-    <div class="upload-area" id="dropBox">
-        <p>点击或拖拽上传 MP3 音乐 / LRC 歌词文件</p>
-        <input type="file" id="fileInput" multiple hidden accept=".mp3,.lrc">
+    <!-- 底部工具 -->
+    <div class="tool-buttons">
+        <button class="tool-btn">在线编辑歌词</button>
+        <button class="tool-btn">音频截取工具</button>
+        <button class="tool-btn">生成分享链接</button>
     </div>
 
-    <audio id="player" controls>
-
-    <h3>歌词</h3>
-    <div class="lyric-box" id="lyricBox">暂无歌词</div>
-
-    <div class="song-list">
-        <h3>本地歌曲列表</h3>
-        <div id="songListWrap"></div>
-    </div>
+    <audio id="audioPlayer">
 
     <script>
-        const playCountKey = "posimusic_total_play";
-        let totalPlay = Number(localStorage.getItem(playCountKey)) || 0;
-        document.getElementById("totalPlay").innerText = totalPlay;
+        // 全局变量
+        const audio = document.getElementById('audioPlayer');
+        const totalCountEl = document.getElementById('totalCount');
+        const playBtn = document.getElementById('playBtn');
+        const timeShow = document.getElementById('timeShow');
+        const progressBar = document.getElementById('progressBar');
+        const speedSelect = document.getElementById('speedSelect');
+        const lyricBox = document.getElementById('lyricBox');
+        const songListWrap = document.getElementById('songList');
+        const audioUpload = document.getElementById('audioUpload');
+        const lrcUpload = document.getElementById('lrcUpload');
 
-        const dropBox = document.getElementById("dropBox");
-        const fileInput = document.getElementById("fileInput");
-        const player = document.getElementById("player");
-        const lyricBox = document.getElementById("lyricBox");
-        const songListWrap = document.getElementById("songListWrap");
+        let totalPlayNum = 0;
+        let songArr = [];
+        let currentSongIndex = null;
+        let isPlay = false;
 
-        let audioList = JSON.parse(localStorage.getItem("musicList")) || [];
-        let currentLyric = "";
+        // 上传音乐
+        audioUpload.onchange = function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const url = URL.createObjectURL(file);
+            audio.src = url;
+            songArr.push({
+                name: file.name,
+                play: 0,
+                lrc: ''
+            })
+            currentSongIndex = songArr.length - 1;
+            renderSongList();
+        }
 
-        dropBox.onclick = () => fileInput.click();
-        dropBox.ondragover = e => e.preventDefault();
-        dropBox.ondrop = (e) => {
-            e.preventDefault();
-            handleFiles(e.dataTransfer.files);
-        };
-        fileInput.onchange = () => handleFiles(fileInput.files);
-
-        function handleFiles(files) {
-            for (let file of files) {
-                if (file.name.endsWith(".mp3")) {
-                    const url = URL.createObjectURL(file);
-                    audioList.push({ name: file.name, src: url });
-                    localStorage.setItem("musicList", JSON.stringify(audioList));
-                    renderSongList();
-                }
-                if (file.name.endsWith(".lrc")) {
-                    const reader = new FileReader();
-                    reader.readAsText(file);
-                    reader.onload = () => {
-                        currentLyric = reader.result;
-                        lyricBox.innerText = currentLyric;
-                    }
+        // 上传歌词
+        lrcUpload.onchange = function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function(res) {
+                const text = res.target.result;
+                lyricBox.innerText = text;
+                if(currentSongIndex !== null) {
+                    songArr[currentSongIndex].lrc = text;
                 }
             }
         }
 
+        // 渲染歌曲列表
         function renderSongList() {
-            songListWrap.innerHTML = "";
-            audioList.forEach((item, idx) => {
-                const div = document.createElement("div");
-                div.className = "song-item";
-                div.innerHTML = `
-                    <span>${item.name}</span>
-                    <button class="play-btn" data-idx="${idx}">播放</button>
-                `;
-                songListWrap.appendChild(div);
+            if(songArr.length === 0) {
+                songListWrap.innerHTML = '<div class="empty-tip">暂无上传歌曲，上传音乐后显示在这里</div>';
+                return;
+            }
+            let html = '';
+            songArr.forEach((item, idx) => {
+                html += `
+                    <div class="song-item">
+                        <span>${item.name}</span>
+                        <span>播放次数：${item.play}</span>
+                    </div>
+                `
             })
-            document.querySelectorAll(".play-btn").forEach(btn => {
-                btn.onclick = () => {
-                    const idx = btn.dataset.idx;
-                    player.src = audioList[idx].src;
-                    player.play();
-                    totalPlay++;
-                    localStorage.setItem(playCountKey, totalPlay);
-                    document.getElementById("totalPlay").innerText = totalPlay;
-                }
-            })
+            songListWrap.innerHTML = html;
         }
-        renderSongList();
+
+        // 播放暂停切换
+        playBtn.onclick = function() {
+            if(!audio.src) return;
+            if(isPlay) {
+                audio.pause();
+                playBtn.innerText = '▶';
+            } else {
+                audio.play();
+                playBtn.innerText = '⏸';
+                totalPlayNum++;
+                totalCountEl.innerText = totalPlayNum;
+                if(currentSongIndex !== null) {
+                    songArr[currentSongIndex].play += 1;
+                    renderSongList();
+                }
+            }
+            isPlay = !isPlay;
+        }
+
+        // 倍速切换
+        speedSelect.onchange = function() {
+            audio.playbackRate = Number(this.value);
+        }
+
+        // 进度条同步时间
+        audio.ontimeupdate = function() {
+            const cur = formatTime(audio.currentTime);
+            const dur = formatTime(audio.duration || 0);
+            timeShow.innerText = `${cur} / ${dur}`;
+            progressBar.value = audio.currentTime / audio.duration * 100 || 0;
+        }
+
+        // 拖动进度条跳转
+        progressBar.oninput = function() {
+            audio.currentTime = audio.duration * (this.value / 100);
+        }
+
+        // 时间格式化 秒 → 分:秒
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec < 10 ? '0' + sec : sec}`;
+        }
     </script>
 </body>
 </html>
