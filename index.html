@@ -1,35 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>波斯斯K歌</title>
-    <style>
-        body {
-            background: #000;
-            color: #fff;
-            font-family: system-ui;
-            text-align: center;
-            padding: 50px 20px;
-        }
-        h1 {
-            color: #ff3366;
-            font-size: 36px;
-        }
-        .btn {
-            background: #ff3366;
-            color: #fff;
-            border: none;
-            padding: 14px 30px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>步丝丝的歌</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;padding:30px;text-align:center}
+h1{color:#ff3660;margin-bottom:20px}
+.login-box{margin:40px auto;max-width:360px}
+.btn{display:block;width:100%;padding:15px;margin:10px 0;border:none;border-radius:8px;font-size:16px;cursor:pointer}
+.guest{background:#444;color:#fff}
+.user{background:#ff3660;color:#fff}
+.admin{background:#900;color:#fff}
+.upload{border:2px dashed #ff3660;padding:40px;margin:30px 0;border-radius:12px}
+.lyric{background:#111;height:300px;padding:20px;margin:20px 0;white-space:pre;color:#888;overflow:auto}
+.ctrl{display:flex;gap:10px;justify-content:center;margin:30px 0}
+.ctrl button{padding:12px 20px;border-radius:6px;border:none;background:#ff3660;color:#fff}
+.hide{display:none}
+</style>
 </head>
 <body>
-    <h1>波斯斯K歌</h1>
-    <p>如果你看到这句话，说明网站已经正常运行了。</p>
-    <button class="btn" onclick="alert('功能正常！')">测试按钮</button>
+<div id="login">
+    <h1>步丝丝的歌</h1>
+    <div class="login-box">
+        <button class="btn guest" onclick="login('guest')">游客试听</button>
+        <button class="btn user" onclick="showUserForm()">用户登录</button>
+        <button class="btn admin" onclick="showAdminForm()">管理员登录</button>
+        <div id="userForm" class="hide">
+            <input type="text" id="u" placeholder="账号 user"><br>
+            <input type="password" id="p" placeholder="密码 123456"><br>
+            <button class="btn user" onclick="loginUser()">确认登录</button>
+        </div>
+        <div id="adminForm" class="hide">
+            <input type="text" id="au" placeholder="账号 admin"><br>
+            <input type="password" id="ap" placeholder="密码 admin888"><br>
+            <button class="btn admin" onclick="loginAdmin()">确认登录</button>
+        </div>
+    </div>
+</div>
+
+<div id="main" class="hide">
+    <button onclick="logout()">退出登录</button>
+    <div class="upload">
+        <p>上传伴奏MP3</p>
+        <input type="file" id="audio" accept=".mp3">
+        <p>上传LRC歌词</p>
+        <input type="file" id="lrc">
+    </div>
+    <div class="lyric" id="lyricBox">歌词展示区</div>
+    <div class="ctrl">
+        <button id="play">播放/暂停</button>
+        <button id="record">录音</button>
+    </div>
+    <audio id="bgm">
+</div>
+
+<script>
+let type = ""
+const loginBox = document.getElementById("login")
+const mainBox = document.getElementById("main")
+const userForm = document.getElementById("userForm")
+const adminForm = document.getElementById("adminForm")
+const bgm = document.getElementById("bgm")
+const playBtn = document.getElementById("play")
+
+function login(t){
+    type = t
+    openMain()
+}
+function showUserForm(){
+    userForm.classList.remove("hide")
+    adminForm.classList.add("hide")
+}
+function showAdminForm(){
+    adminForm.classList.remove("hide")
+    userForm.classList.add("hide")
+}
+function loginUser(){
+    let u = document.getElementById("u").value
+    let p = document.getElementById("p").value
+    if(u=="user"&&p=="123456"){
+        type="user"
+        openMain()
+    }else alert("账号user 密码123456")
+}
+function loginAdmin(){
+    let u = document.getElementById("au").value
+    let p = document.getElementById("ap").value
+    if(u=="admin"&&p=="admin888"){
+        type="admin"
+        openMain()
+    }else alert("账号admin 密码admin888")
+}
+function openMain(){
+    loginBox.classList.add("hide")
+    mainBox.classList.remove("hide")
+}
+function logout(){
+    type=""
+    loginBox.classList.remove("hide")
+    mainBox.classList.add("hide")
+}
+document.getElementById("audio").onchange=e=>{
+    let f = e.target.files[0]
+    bgm.src = URL.createObjectURL(f)
+}
+document.getElementById("lrc").onchange=e=>{
+    let f = e.target.files[0]
+    let r = new FileReader()
+    r.readAsText(f)
+    r.onload=res=>document.getElementById("lyricBox").innerText=res.target.result
+}
+let playing = false
+playBtn.onclick=()=>{
+    if(!bgm.src)return
+    if(playing){bgm.pause();playBtn.innerText="播放"}
+    else {bgm.play();playBtn.innerText="暂停"}
+    playing=!playing
+}
+</script>
 </body>
 </html>
