@@ -2,184 +2,233 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>步丝丝的歌</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>步丝丝的歌 - 电脑端</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#000;color:#fff;padding:30px;text-align:center}
-h1{color:#ff3660;margin-bottom:20px}
-.login-box{margin:40px auto;max-width:360px}
-.btn{display:block;width:100%;padding:15px;margin:10px 0;border:none;border-radius:8px;font-size:16px;cursor:pointer}
-.guest{background:#444;color:#fff}
-.user{background:#ff3660;color:#fff}
-.admin{background:#900;color:#fff}
-.upload{border:2px dashed #ff3660;padding:40px;margin:30px 0;border-radius:12px}
-.lyric{background:#111;height:300px;padding:20px;margin:20px 0;white-space:pre;color:#888;overflow:auto}
-.ctrl{display:flex;gap:10px;justify-content:center;margin:30px 0}
-.ctrl button{padding:12px 20px;border-radius:6px;border:none;background:#ff3660;color:#fff}
-.hide{display:none}
-.tip{color:#aaa;margin:10px 0}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Microsoft Yahei}
+body{background:#000;color:#fff;height:100vh;overflow:hidden}
+.hide{display:none !important}
+
+/* 登录页面 */
+#login{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+#login h1{font-size:42px;color:#ff2442;margin-bottom:50px}
+.login-card{width:400px;padding:30px;border:1px solid #333;border-radius:12px;background:#111}
+.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:16px;margin:10px 0;cursor:pointer}
+.guest{background:#333;color:#fff}
+.user{background:#ff2442;color:#fff}
+.admin{background:#990000;color:#fff}
+input{width:100%;padding:13px;background:#222;border:1px solid #444;border-radius:6px;color:#fff;margin:8px 0;font-size:15px}
+
+/* 电脑主界面布局 */
+#main{width:100vw;height:100vh;display:flex}
+/* 左侧导航栏 */
+.left-nav{width:260px;background:#0a0a0a;padding:30px 15px}
+.logo{font-size:26px;color:#ff2442;font-weight:bold;margin-bottom:40px}
+.nav-list{display:flex;flex-direction:column;gap:18px}
+.nav-item{padding:12px 16px;border-radius:8px;cursor:pointer;font-size:16px}
+.nav-item:hover{background:#222}
+.nav-item.active{background:#ff2442;color:#000}
+.logout-btn{margin-top:60px;background:#222;color:#fff}
+
+/* 中间播放区（仿抖音滚轮滑动） */
+.center-box{flex:1;height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}
+.center-box::-webkit-scrollbar{width:4px}
+.center-box::-webkit-scrollbar-thumb{background:#555;border-radius:2px}
+.work-item{width:100%;height:100vh;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center}
+.media-box{width:480px;height:85vh;position:relative;border-radius:12px;overflow:hidden;background:#000}
+video, audio{width:100%;height:100%;object-fit:cover}
+
+/* 右侧互动栏 */
+.right-act{position:absolute;right:-70px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:25px}
+.act-icon{font-size:26px;text-align:center;cursor:pointer}
+
+/* 底部歌曲信息 */
+.work-info{position:absolute;bottom:20px;left:20px;right:20px}
+.song-title{font-size:20px;font-weight:bold;margin-bottom:8px}
+.lyric{color:#ccc;font-size:14px;max-height:80px;overflow-y:auto}
+
+/* 管理员上传悬浮按钮 */
+.upload-float{position:fixed;bottom:30px;left:280px;width:56px;height:56px;border-radius:50%;background:#ff2442;border:none;color:#fff;font-size:30px;cursor:pointer;z-index:10}
+
+/* 上传弹窗 */
+.upload-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:99;display:flex;align-items:center;justify-content:center}
+.modal-inner{background:#111;padding:35px;border-radius:12px;width:420px}
+.modal-inner h3{color:#ff2442;margin-bottom:20px;text-align:center}
+.upload-line{margin:12px 0}
+.close-modal{margin-top:20px;width:100%;padding:12px;background:#333;border:none;color:#fff;border-radius:6px;cursor:pointer}
 </style>
 </head>
 <body>
-<!-- 登录弹窗 -->
+<!-- 登录界面 -->
 <div id="login">
     <h1>步丝丝的歌</h1>
-    <div class="login-box">
-        <button class="btn guest" onclick="login('guest')">游客试听（仅观看播放）</button>
-        <button class="btn user" onclick="showUserForm()">普通用户登录（仅听歌看视频）</button>
-        <button class="btn admin" onclick="showAdminForm()">管理员登录（上传音视频）</button>
-        <!-- 用户登录表单 -->
+    <div class="login-card">
+        <button class="btn guest" onclick="login('guest')">游客浏览</button>
+        <button class="btn user" onclick="showUserForm()">普通用户登录</button>
+        <button class="btn admin" onclick="showAdminForm()">管理员登录</button>
+
         <div id="userForm" class="hide">
-            <input type="text" id="u" placeholder="账号 user"><br>
-            <input type="password" id="p" placeholder="密码 123456"><br>
+            <input type="text" id="u" placeholder="">
+            <input type="password" id="p" placeholder="">
             <button class="btn user" onclick="loginUser()">确认登录</button>
         </div>
-        <!-- 管理员登录表单 -->
         <div id="adminForm" class="hide">
-            <input type="text" id="au" placeholder="账号 admin"><br>
-            <input type="password" id="ap" placeholder="密码 admin888"><br>
+            <input type="text" id="au" placeholder="">
+            <input type="password" id="ap" placeholder="">
             <button class="btn admin" onclick="loginAdmin()">确认登录</button>
         </div>
     </div>
 </div>
 
-<!-- 主页面 -->
+<!-- 电脑主页面 -->
 <div id="main" class="hide">
-    <button onclick="logout()">退出登录</button>
-    <p class="tip" id="roleTip"></p>
-
-    <!-- 仅管理员可见：音乐、视频、歌词上传区域 -->
-    <div id="uploadArea" class="hide upload">
-        <h3>管理员上传区（音乐/视频/歌词）</h3>
-        <p>上传音乐 MP3</p>
-        <input type="file" id="audio" accept=".mp3">
-        <p>上传视频 MP4</p>
-        <input type="file" id="video" accept=".mp4">
-        <p>上传歌词 LRC</p>
-        <input type="file" id="lrc">
+    <!-- 左侧侧边栏 -->
+    <div class="left-nav">
+        <div class="logo">步丝丝的歌</div>
+        <div class="nav-list">
+            <div class="nav-item active">首页推荐</div>
+            <div class="nav-item">热门歌曲</div>
+            <div class="nav-item">收藏作品</div>
+            <div class="nav-item">我的喜欢</div>
+        </div>
+        <button class="btn logout-btn" onclick="logout()">退出登录</button>
     </div>
 
-    <!-- 歌词展示 -->
-    <div class="lyric" id="lyricBox">歌词展示区</div>
-
-    <!-- 播放控制 -->
-    <div class="ctrl">
-        <button id="play">播放/暂停音频</button>
-        <button id="record">录音</button>
+    <!-- 中间滚轮播放区域 -->
+    <div class="center-box" id="scrollWrap">
+        <div class="work-item">
+            <div class="media-box">
+                <video class="videoPlay" loop muted playsinline></video>
+                <audio class="audioPlay" loop>
+                <!-- 右侧点赞评论 -->
+                <div class="right-act">
+                    <div class="act-icon">❤️</div>
+                    <div class="act-icon">💬</div>
+                    <div class="act-icon">↗分享</div>
+                </div>
+                <!-- 歌词信息 -->
+                <div class="work-info">
+                    <div class="song-title">步丝丝原创作品</div>
+                    <div class="lyric" id="lyricText">暂无歌词，管理员上传后展示</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 视频播放窗口 -->
-    <div id="videoBox" class="hide">
-        <h3>视频播放</h3>
-        <video id="myVideo" controls style="max-width:90%;max-height:400px;"></video>
-    </div>
+    <!-- 管理员上传按钮 -->
+    <button class="upload-float hide" id="uploadBtn" onclick="openUpload()">+</button>
 
-    <audio id="bgm">
+    <!-- 上传弹窗 -->
+    <div class="upload-modal hide" id="uploadWindow">
+        <div class="modal-inner">
+            <h3>上传音视频与歌词</h3>
+            <div class="upload-line">
+                <p>背景音乐 MP3</p>
+                <input type="file" id="upAudio" accept=".mp3">
+            </div>
+            <div class="upload-line">
+                <p>视频画面 MP4</p>
+                <input type="file" id="upVideo" accept=".mp4">
+            </div>
+            <div class="upload-line">
+                <p>歌词文件 LRC</p>
+                <input type="file" id="upLrc" accept=".lrc">
+            </div>
+            <button class="close-modal" onclick="closeUpload()">完成上传</button>
+        </div>
+    </div>
 </div>
 
 <script>
 let userType = ""
-const loginBox = document.getElementById("login")
-const mainBox = document.getElementById("main")
-const userForm = document.getElementById("userForm")
-const adminForm = document.getElementById("adminForm")
-const uploadArea = document.getElementById("uploadArea")
-const roleTip = document.getElementById("roleTip")
-const bgm = document.getElementById("bgm")
-const playBtn = document.getElementById("play")
-const myVideo = document.getElementById("myVideo")
-const videoBox = document.getElementById("videoBox")
+const loginDom = document.getElementById("login")
+const mainDom = document.getElementById("main")
+const uploadBtn = document.getElementById("uploadBtn")
+const uploadWindow = document.getElementById("uploadWindow")
 
-// 游客一键登录
-function login(t){
-    userType = t
-    openMain()
+// 游客直接进入
+function login(type){
+    userType = type
+    enterPage()
 }
 
-// 切换普通用户登录框
+// 切换登录输入框
 function showUserForm(){
-    userForm.classList.remove("hide")
-    adminForm.classList.add("hide")
+    document.getElementById("userForm").classList.remove("hide")
+    document.getElementById("adminForm").classList.add("hide")
 }
-
-// 切换管理员登录框
 function showAdminForm(){
-    adminForm.classList.remove("hide")
-    userForm.classList.add("hide")
+    document.getElementById("adminForm").classList.remove("hide")
+    document.getElementById("userForm").classList.add("hide")
 }
 
-// 普通用户账号校验
+// 普通用户登录校验
 function loginUser(){
-    let u = document.getElementById("u").value
-    let p = document.getElementById("p").value
-    if(u=="user"&&p=="123456"){
-        userType="user"
-        openMain()
-    }else alert("账号：user 密码：123456")
+    let acc = document.getElementById("u").value
+    let pwd = document.getElementById("p").value
+    if(acc === "user" && pwd === "123456"){
+        userType = "user"
+        enterPage()
+    }else alert("账号 user 密码 123456")
 }
 
-// 管理员账号校验
+// 管理员登录校验
 function loginAdmin(){
-    let u = document.getElementById("au").value
-    let p = document.getElementById("ap").value
-    if(u=="admin"&&p=="admin888"){
-        userType="admin"
-        openMain()
-    }else alert("管理员账号：admin 密码：admin888")
+    let acc = document.getElementById("au").value
+    let pwd = document.getElementById("ap").value
+    if(acc === "admin" && pwd === "admin888"){
+        userType = "admin"
+        enterPage()
+    }else alert("管理员账号 admin 密码 admin888")
 }
 
-// 登录成功打开主页，控制上传区域显示权限
-function openMain(){
-    loginBox.classList.add("hide")
-    mainBox.classList.remove("hide")
-    // 权限判断：只有admin显示上传模块
+// 进入电脑主页面，权限控制上传按钮
+function enterPage(){
+    loginDom.classList.add("hide")
+    mainDom.classList.remove("hide")
     if(userType === "admin"){
-        uploadArea.classList.remove("hide")
-        roleTip.innerText = "当前身份：管理员，可上传音乐、视频、歌词"
+        uploadBtn.classList.remove("hide")
     }else{
-        uploadArea.classList.add("hide")
-        if(userType === "user") roleTip.innerText = "当前身份：普通用户，仅播放，无上传权限"
-        if(userType === "guest") roleTip.innerText = "当前身份：游客，仅播放，无上传权限"
+        uploadBtn.classList.add("hide")
     }
+}
+
+// 打开/关闭上传弹窗
+function openUpload(){
+    uploadWindow.classList.remove("hide")
+}
+function closeUpload(){
+    uploadWindow.classList.add("hide")
 }
 
 // 退出登录
 function logout(){
-    userType=""
-    loginBox.classList.remove("hide")
-    mainBox.classList.add("hide")
-    uploadArea.classList.add("hide")
-    videoBox.classList.add("hide")
+    userType = ""
+    loginDom.classList.remove("hide")
+    mainDom.classList.add("hide")
+    uploadBtn.classList.add("hide")
 }
 
-// 音频上传监听
-document.getElementById("audio").onchange=e=>{
-    let f = e.target.files[0]
-    bgm.src = URL.createObjectURL(f)
+// 文件上传渲染到播放器
+document.getElementById("upVideo").onchange = e=>{
+    let file = e.target.files[0]
+    let vDom = document.querySelector(".videoPlay")
+    vDom.src = URL.createObjectURL(file)
+    vDom.play()
 }
-
-// 视频上传监听
-document.getElementById("video").onchange=e=>{
-    let f = e.target.files[0]
-    myVideo.src = URL.createObjectURL(f)
-    videoBox.classList.remove("hide")
+document.getElementById("upAudio").onchange = e=>{
+    let file = e.target.files[0]
+    let aDom = document.querySelector(".audioPlay")
+    aDom.src = URL.createObjectURL(file)
+    aDom.play()
 }
-
-// 歌词上传监听
-document.getElementById("lrc").onchange=e=>{
-    let f = e.target.files[0]
-    let r = new FileReader()
-    r.readAsText(f)
-    r.onload=res=>document.getElementById("lyricBox").innerText=res.target.result
-}
-
-// 音频播放切换
-let playing = false
-playBtn.onclick=()=>{
-    if(!bgm.src)return alert("请管理员先上传音频文件！")
-    if(playing){bgm.pause();playBtn.innerText="播放音频"}
-    else {bgm.play();playBtn.innerText="暂停音频"}
-    playing=!playing
+document.getElementById("upLrc").onchange = e=>{
+    let file = e.target.files[0]
+    let reader = new FileReader()
+    reader.readAsText(file)
+    reader.onload = res=>{
+        document.getElementById("lyricText").innerText = res.target.result
+    }
 }
 </script>
 </body>
