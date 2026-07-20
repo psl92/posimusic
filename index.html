@@ -17,20 +17,24 @@ h1{color:#ff3660;margin-bottom:20px}
 .ctrl{display:flex;gap:10px;justify-content:center;margin:30px 0}
 .ctrl button{padding:12px 20px;border-radius:6px;border:none;background:#ff3660;color:#fff}
 .hide{display:none}
+.tip{color:#aaa;margin:10px 0}
 </style>
 </head>
 <body>
+<!-- 登录弹窗 -->
 <div id="login">
     <h1>步丝丝的歌</h1>
     <div class="login-box">
-        <button class="btn guest" onclick="login('guest')">游客试听</button>
-        <button class="btn user" onclick="showUserForm()">用户登录</button>
-        <button class="btn admin" onclick="showAdminForm()">管理员登录</button>
+        <button class="btn guest" onclick="login('guest')">游客试听（仅观看播放）</button>
+        <button class="btn user" onclick="showUserForm()">普通用户登录（仅听歌看视频）</button>
+        <button class="btn admin" onclick="showAdminForm()">管理员登录（上传音视频）</button>
+        <!-- 用户登录表单 -->
         <div id="userForm" class="hide">
             <input type="text" id="u" placeholder="账号 user"><br>
             <input type="password" id="p" placeholder="密码 123456"><br>
             <button class="btn user" onclick="loginUser()">确认登录</button>
         </div>
+        <!-- 管理员登录表单 -->
         <div id="adminForm" class="hide">
             <input type="text" id="au" placeholder="账号 admin"><br>
             <input type="password" id="ap" placeholder="密码 admin888"><br>
@@ -39,83 +43,142 @@ h1{color:#ff3660;margin-bottom:20px}
     </div>
 </div>
 
+<!-- 主页面 -->
 <div id="main" class="hide">
     <button onclick="logout()">退出登录</button>
-    <div class="upload">
-        <p>上传伴奏MP3</p>
+    <p class="tip" id="roleTip"></p>
+
+    <!-- 仅管理员可见：音乐、视频、歌词上传区域 -->
+    <div id="uploadArea" class="hide upload">
+        <h3>管理员上传区（音乐/视频/歌词）</h3>
+        <p>上传音乐 MP3</p>
         <input type="file" id="audio" accept=".mp3">
-        <p>上传LRC歌词</p>
+        <p>上传视频 MP4</p>
+        <input type="file" id="video" accept=".mp4">
+        <p>上传歌词 LRC</p>
         <input type="file" id="lrc">
     </div>
+
+    <!-- 歌词展示 -->
     <div class="lyric" id="lyricBox">歌词展示区</div>
+
+    <!-- 播放控制 -->
     <div class="ctrl">
-        <button id="play">播放/暂停</button>
+        <button id="play">播放/暂停音频</button>
         <button id="record">录音</button>
     </div>
+
+    <!-- 视频播放窗口 -->
+    <div id="videoBox" class="hide">
+        <h3>视频播放</h3>
+        <video id="myVideo" controls style="max-width:90%;max-height:400px;"></video>
+    </div>
+
     <audio id="bgm">
 </div>
 
 <script>
-let type = ""
+let userType = ""
 const loginBox = document.getElementById("login")
 const mainBox = document.getElementById("main")
 const userForm = document.getElementById("userForm")
 const adminForm = document.getElementById("adminForm")
+const uploadArea = document.getElementById("uploadArea")
+const roleTip = document.getElementById("roleTip")
 const bgm = document.getElementById("bgm")
 const playBtn = document.getElementById("play")
+const myVideo = document.getElementById("myVideo")
+const videoBox = document.getElementById("videoBox")
 
+// 游客一键登录
 function login(t){
-    type = t
+    userType = t
     openMain()
 }
+
+// 切换普通用户登录框
 function showUserForm(){
     userForm.classList.remove("hide")
     adminForm.classList.add("hide")
 }
+
+// 切换管理员登录框
 function showAdminForm(){
     adminForm.classList.remove("hide")
     userForm.classList.add("hide")
 }
+
+// 普通用户账号校验
 function loginUser(){
     let u = document.getElementById("u").value
     let p = document.getElementById("p").value
     if(u=="user"&&p=="123456"){
-        type="user"
+        userType="user"
         openMain()
-    }else alert("账号user 密码123456")
+    }else alert("账号：user 密码：123456")
 }
+
+// 管理员账号校验
 function loginAdmin(){
     let u = document.getElementById("au").value
     let p = document.getElementById("ap").value
     if(u=="admin"&&p=="admin888"){
-        type="admin"
+        userType="admin"
         openMain()
-    }else alert("账号admin 密码admin888")
+    }else alert("管理员账号：admin 密码：admin888")
 }
+
+// 登录成功打开主页，控制上传区域显示权限
 function openMain(){
     loginBox.classList.add("hide")
     mainBox.classList.remove("hide")
+    // 权限判断：只有admin显示上传模块
+    if(userType === "admin"){
+        uploadArea.classList.remove("hide")
+        roleTip.innerText = "当前身份：管理员，可上传音乐、视频、歌词"
+    }else{
+        uploadArea.classList.add("hide")
+        if(userType === "user") roleTip.innerText = "当前身份：普通用户，仅播放，无上传权限"
+        if(userType === "guest") roleTip.innerText = "当前身份：游客，仅播放，无上传权限"
+    }
 }
+
+// 退出登录
 function logout(){
-    type=""
+    userType=""
     loginBox.classList.remove("hide")
     mainBox.classList.add("hide")
+    uploadArea.classList.add("hide")
+    videoBox.classList.add("hide")
 }
+
+// 音频上传监听
 document.getElementById("audio").onchange=e=>{
     let f = e.target.files[0]
     bgm.src = URL.createObjectURL(f)
 }
+
+// 视频上传监听
+document.getElementById("video").onchange=e=>{
+    let f = e.target.files[0]
+    myVideo.src = URL.createObjectURL(f)
+    videoBox.classList.remove("hide")
+}
+
+// 歌词上传监听
 document.getElementById("lrc").onchange=e=>{
     let f = e.target.files[0]
     let r = new FileReader()
     r.readAsText(f)
     r.onload=res=>document.getElementById("lyricBox").innerText=res.target.result
 }
+
+// 音频播放切换
 let playing = false
 playBtn.onclick=()=>{
-    if(!bgm.src)return
-    if(playing){bgm.pause();playBtn.innerText="播放"}
-    else {bgm.play();playBtn.innerText="暂停"}
+    if(!bgm.src)return alert("请管理员先上传音频文件！")
+    if(playing){bgm.pause();playBtn.innerText="播放音频"}
+    else {bgm.play();playBtn.innerText="暂停音频"}
     playing=!playing
 }
 </script>
