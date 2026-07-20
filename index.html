@@ -9,18 +9,36 @@
 body{background:#000;color:#fff;height:100vh;overflow:hidden}
 .hide{display:none !important}
 
-/* 登录页面 */
-#login{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
-#login h1{font-size:42px;color:#ff2442;margin-bottom:50px}
-.login-card{width:400px;padding:30px;border:1px solid #333;border-radius:12px;background:#111}
+/* 登录页面 自带音乐背景图样式 */
+#login{
+    width:100vw;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    /* 背景图配置，后续放图即可生效 */
+    background: 
+        linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.9)),
+        url("images/music_bg.jpg") center center / cover no-repeat;
+}
+#login h1{font-size:42px;color:#ff2442;margin-bottom:50px;text-shadow:0 0 8px #000}
+.login-card{width:400px;padding:30px;border:1px solid #333;border-radius:12px;background:rgba(10,10,10,0.75)}
 .btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:16px;margin:10px 0;cursor:pointer}
 .guest{background:#333;color:#fff}
-.user{background:#ff2442;color:#fff}
+.user{background:#ff2442;color:#000}
 .admin{background:#990000;color:#fff}
 input{width:100%;padding:13px;background:#222;border:1px solid #444;border-radius:6px;color:#fff;margin:8px 0;font-size:15px}
 
 /* 电脑主界面布局 */
-#main{width:100vw;height:100vh;display:flex}
+#main{width:100vw;height:100vh;display:flex;flex-direction:column}
+/* 顶部搜索栏 */
+.top-search{width:100%;height:70px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 30px}
+.search-input{width:500px;height:42px;padding:0 16px;background:#222;border:1px solid #444;border-radius:22px;color:#fff;font-size:15px;outline:none}
+.search-btn{height:42px;padding:0 22px;background:#ff2442;border:none;border-radius:22px;color:#000;font-weight:bold;cursor:pointer}
+
+/* 主体左右布局容器 */
+.main-body{display:flex;flex:1;overflow:hidden}
 /* 左侧导航栏 */
 .left-nav{width:260px;background:#0a0a0a;padding:30px 15px}
 .logo{font-size:26px;color:#ff2442;font-weight:bold;margin-bottom:40px}
@@ -31,11 +49,11 @@ input{width:100%;padding:13px;background:#222;border:1px solid #444;border-radiu
 .logout-btn{margin-top:60px;background:#222;color:#fff}
 
 /* 中间播放区（仿抖音滚轮滑动） */
-.center-box{flex:1;height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}
+.center-box{flex:1;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}
 .center-box::-webkit-scrollbar{width:4px}
 .center-box::-webkit-scrollbar-thumb{background:#555;border-radius:2px}
-.work-item{width:100%;height:100vh;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center}
-.media-box{width:480px;height:85vh;position:relative;border-radius:12px;overflow:hidden;background:#000}
+.work-item{width:100%;height:100%;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center}
+.media-box{width:480px;height:85vh;position:relative;border-radius:12px;overflow:hidden;background:#111}
 video, audio{width:100%;height:100%;object-fit:cover}
 
 /* 右侧互动栏 */
@@ -82,34 +100,42 @@ video, audio{width:100%;height:100%;object-fit:cover}
 
 <!-- 电脑主页面 -->
 <div id="main" class="hide">
-    <!-- 左侧侧边栏 -->
-    <div class="left-nav">
-        <div class="logo">步丝丝的歌</div>
-        <div class="nav-list">
-            <div class="nav-item active">首页推荐</div>
-            <div class="nav-item">热门歌曲</div>
-            <div class="nav-item">收藏作品</div>
-            <div class="nav-item">我的喜欢</div>
-        </div>
-        <button class="btn logout-btn" onclick="logout()">退出登录</button>
+    <!-- 顶部搜索框区域 -->
+    <div class="top-search">
+        <input class="search-input" id="searchInput" placeholder="搜索歌曲、歌词、作品名">
+        <button class="search-btn" onclick="searchSong()">搜索</button>
     </div>
 
-    <!-- 中间滚轮播放区域 -->
-    <div class="center-box" id="scrollWrap">
-        <div class="work-item">
-            <div class="media-box">
-                <video class="videoPlay" loop muted playsinline></video>
-                <audio class="audioPlay" loop>
-                <!-- 右侧点赞评论 -->
-                <div class="right-act">
-                    <div class="act-icon">❤️</div>
-                    <div class="act-icon">💬</div>
-                    <div class="act-icon">↗分享</div>
-                </div>
-                <!-- 歌词信息 -->
-                <div class="work-info">
-                    <div class="song-title">步丝丝原创作品</div>
-                    <div class="lyric" id="lyricText">暂无歌词，管理员上传后展示</div>
+    <div class="main-body">
+        <!-- 左侧侧边栏 -->
+        <div class="left-nav">
+            <div class="logo">步丝丝的歌</div>
+            <div class="nav-list">
+                <div class="nav-item active">首页推荐</div>
+                <div class="nav-item">热门歌曲</div>
+                <div class="nav-item">收藏作品</div>
+                <div class="nav-item">我的喜欢</div>
+            </div>
+            <button class="btn logout-btn" onclick="logout()">退出登录</button>
+        </div>
+
+        <!-- 中间滚轮播放区域 -->
+        <div class="center-box" id="scrollWrap">
+            <div class="work-item">
+                <div class="media-box">
+                    <video class="videoPlay" loop muted playsinline></video>
+                    <audio class="audioPlay" loop>
+                    <!-- 右侧点赞评论 -->
+                    <div class="right-act">
+                        <div class="act-icon">❤️</div>
+                        <div class="act-icon">💬</div>
+                        <div class="act-icon">↗分享</div>
+                    </div>
+                    <!-- 歌词信息 -->
+                    <div class="work-info">
+                        <div class="song-title" id="songName">步丝丝原创作品</div>
+                        <div class="lyric" id="lyricText">暂无歌词，管理员上传后展示</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -207,6 +233,16 @@ function logout(){
     loginDom.classList.remove("hide")
     mainDom.classList.add("hide")
     uploadBtn.classList.add("hide")
+}
+
+// 搜索歌曲功能
+function searchSong(){
+    let key = document.getElementById("searchInput").value.trim()
+    if(key === ""){
+        alert("请输入歌曲/歌词关键词")
+        return
+    }
+    alert("正在搜索：" + key + "\n（完整版可对接作品库筛选）")
 }
 
 // 文件上传渲染到播放器
