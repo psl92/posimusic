@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>波斯斯音乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui;
+        }
+        body {
+            background: #121212;
+            color: #fff;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+        .count-box {
+            background: #222;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .upload-area {
+            background: #1e1e1e;
+            border: 2px dashed #666;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+        .upload-area:hover {
+            border-color: #1ed760;
+        }
+        audio {
+            width: 100%;
+            margin: 20px 0;
+        }
+        .lyric-box {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 120px;
+            white-space: pre-line;
+            line-height: 2;
+            color: #ccc;
+        }
+        .song-list {
+            margin-top: 30px;
+        }
+        .song-item {
+            padding: 12px 16px;
+            background: #222;
+            border-radius: 6px;
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .play-btn {
+            background: #1ed760;
+            border: none;
+            color: #000;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>波斯斯音乐</h1>
+        <div class="count-box">
+            全站总播放次数：<span id="totalPlay">0</span>
+        </div>
+    </div>
+
+    <div class="upload-area" id="dropBox">
+        <p>点击或拖拽上传 MP3 音乐 / LRC 歌词文件</p>
+        <input type="file" id="fileInput" multiple hidden accept=".mp3,.lrc">
+    </div>
+
+    <audio id="player" controls>
+
+    <h3>歌词</h3>
+    <div class="lyric-box" id="lyricBox">暂无歌词</div>
+
+    <div class="song-list">
+        <h3>本地歌曲列表</h3>
+        <div id="songListWrap"></div>
+    </div>
+
+    <script>
+        const playCountKey = "posimusic_total_play";
+        let totalPlay = Number(localStorage.getItem(playCountKey)) || 0;
+        document.getElementById("totalPlay").innerText = totalPlay;
+
+        const dropBox = document.getElementById("dropBox");
+        const fileInput = document.getElementById("fileInput");
+        const player = document.getElementById("player");
+        const lyricBox = document.getElementById("lyricBox");
+        const songListWrap = document.getElementById("songListWrap");
+
+        let audioList = JSON.parse(localStorage.getItem("musicList")) || [];
+        let currentLyric = "";
+
+        dropBox.onclick = () => fileInput.click();
+        dropBox.ondragover = e => e.preventDefault();
+        dropBox.ondrop = (e) => {
+            e.preventDefault();
+            handleFiles(e.dataTransfer.files);
+        };
+        fileInput.onchange = () => handleFiles(fileInput.files);
+
+        function handleFiles(files) {
+            for (let file of files) {
+                if (file.name.endsWith(".mp3")) {
+                    const url = URL.createObjectURL(file);
+                    audioList.push({ name: file.name, src: url });
+                    localStorage.setItem("musicList", JSON.stringify(audioList));
+                    renderSongList();
+                }
+                if (file.name.endsWith(".lrc")) {
+                    const reader = new FileReader();
+                    reader.readAsText(file);
+                    reader.onload = () => {
+                        currentLyric = reader.result;
+                        lyricBox.innerText = currentLyric;
+                    }
+                }
+            }
+        }
+
+        function renderSongList() {
+            songListWrap.innerHTML = "";
+            audioList.forEach((item, idx) => {
+                const div = document.createElement("div");
+                div.className = "song-item";
+                div.innerHTML = `
+                    <span>${item.name}</span>
+                    <button class="play-btn" data-idx="${idx}">播放</button>
+                `;
+                songListWrap.appendChild(div);
+            })
+            document.querySelectorAll(".play-btn").forEach(btn => {
+                btn.onclick = () => {
+                    const idx = btn.dataset.idx;
+                    player.src = audioList[idx].src;
+                    player.play();
+                    totalPlay++;
+                    localStorage.setItem(playCountKey, totalPlay);
+                    document.getElementById("totalPlay").innerText = totalPlay;
+                }
+            })
+        }
+        renderSongList();
+    </script>
+</body>
+</html>
