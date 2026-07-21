@@ -54,7 +54,7 @@
             font-size: 20px;
             background: rgba(255,255,255,0.85);
         }
-        .login-btn {
+        .login-top-btn {
             margin-left: 12px;
             height: 56px;
             width: 100px;
@@ -200,7 +200,6 @@
             width: 80px;
             text-align: right;
         }
-        /* 基础播放按钮 */
         .base-btn {
             width: 40px;
             height: 40px;
@@ -209,7 +208,6 @@
             font-size: 36px;
             cursor: pointer;
         }
-        /* 右侧扩展功能按钮（你要的全套） */
         .func-group {
             display: flex;
             gap: 24px;
@@ -230,6 +228,100 @@
             font-size: 16px;
             color: #444;
         }
+        /* 弹窗遮罩层 */
+        .mask {
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.35);
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .pop-box {
+            width: 560px;
+            background: rgba(255,255,255,0.88);
+            border-radius: 24px;
+            padding: 32px;
+            position: relative;
+            backdrop-filter: blur(8px);
+        }
+        .close-pop {
+            position: absolute;
+            top:20px;
+            right:20px;
+            font-size:28px;
+            cursor:pointer;
+            border:none;
+            background:transparent;
+        }
+        .pop-title {
+            text-align:center;
+            font-size:48px;
+            font-weight:bold;
+            background:linear-gradient(90deg,#ff7cb8,#60c8ff);
+            -webkit-background-clip:text;
+            color:transparent;
+            margin-bottom:20px;
+        }
+        .tab-wrap {
+            display:flex;
+            gap:12px;
+            justify-content:center;
+            margin-bottom:28px;
+        }
+        .tab-btn {
+            width:130px;
+            height:44px;
+            border-radius:99px;
+            border:none;
+            font-size:20px;
+            cursor:pointer;
+        }
+        .tab-reg {
+            background:#ffb2cb;
+            color:#fff;
+        }
+        .tab-login {
+            background:#90c8ff;
+            color:#fff;
+        }
+        /* 统一通栏输入框 */
+        .input-item {
+            width:100%;
+            height:56px;
+            border-radius:12px;
+            border:none;
+            padding:0 20px;
+            font-size:20px;
+            background:rgba(255,255,255,0.75);
+            margin-bottom:18px;
+        }
+        .submit-btn {
+            width:100%;
+            height:64px;
+            border-radius:99px;
+            border:none;
+            font-size:30px;
+            color:#fff;
+            background:linear-gradient(90deg,#ff88bb,#62d0ff);
+            margin:12px 0 20px;
+            cursor:pointer;
+        }
+        .tip-text {
+            text-align:center;
+            font-size:18px;
+        }
+        .tip-text a {
+            color:#3088dd;
+            cursor:pointer;
+        }
+        /* 注册表单默认隐藏 */
+        .reg-form {
+            display:none;
+        }
     </style>
 </head>
 <body>
@@ -244,7 +336,7 @@
     <!-- 顶部搜索登录 -->
     <div class="search-box">
         <input class="search-input" placeholder="搜索歌曲、歌手、专辑">
-        <button class="login-btn">登录</button>
+        <button class="login-top-btn" onclick="openPop()">登录</button>
     </div>
 
     <!-- 模式切换按钮 -->
@@ -267,23 +359,19 @@
         <span>在悲伤的时候</span>
     </div>
 
-    <!-- 底部总控制栏（包含你需要的全部功能按钮） -->
+    <!-- 底部总控制栏 -->
     <div class="bottom-bar">
         <div class="time-text">01:28 / 03:46</div>
         <button class="base-btn">≫</button>
         <span class="prev-text">上首</span>
-        <!-- 进度条 -->
         <div class="progress">
             <div class="progress-fill"></div>
             <div class="progress-dot"></div>
         </div>
         <span class="next-text">下一首</span>
-        <!-- 基础播放按键 -->
         <button class="base-btn">◀◀</button>
         <button class="base-btn">▶</button>
-        <button class="base-btn">▶▶</button>
-
-        <!-- 你要求的全套功能按钮：循环、音量、高清、音效、伴奏、歌词、播放列表 -->
+        <button class="base-btn">▶▶</div>
         <div class="func-group">
             <div class="func-btn">
                 <div class="func-icon">🔁</div>
@@ -315,5 +403,58 @@
             </div>
         </div>
     </div>
+
+    <!-- 登录/注册弹窗 -->
+    <div class="mask" id="popMask">
+        <div class="pop-box">
+            <button class="close-pop" onclick="closePop()">×</button>
+            <div class="pop-title">注册/登录</div>
+            <div class="tab-wrap">
+                <button class="tab-btn tab-reg" onclick="switchTab('reg')">用户注册</button>
+                <button class="tab-btn tab-login" onclick="switchTab('login')">账号登录</button>
+            </div>
+            <!-- 登录表单 -->
+            <div class="login-form">
+                <input class="input-item" placeholder="输入账号">
+                <input class="input-item" placeholder="输入密码" type="password">
+                <button class="submit-btn">立即登录</button>
+                <div class="tip-text">还没有账号？<a onclick="switchTab('reg')">去注册</a></div>
+            </div>
+            <!-- 注册表单 -->
+            <div class="reg-form">
+                <input class="input-item" placeholder="设置账号">
+                <input class="input-item" placeholder="设置密码" type="password">
+                <input class="input-item" placeholder="确认密码" type="password">
+                <button class="submit-btn">立即注册</button>
+                <div class="tip-text">已有账号？<a onclick="switchTab('login')">去登录</a></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 管理员账号密码（仅写在代码内，界面不展示）
+        const adminUser = "admin";
+        const adminPwd = "bu4321";
+        // 打开弹窗
+        function openPop(){
+            document.getElementById("popMask").style.display = "flex";
+        }
+        // 关闭弹窗
+        function closePop(){
+            document.getElementById("popMask").style.display = "none";
+        }
+        // 切换登录/注册标签
+        function switchTab(type){
+            const loginDom = document.querySelector(".login-form");
+            const regDom = document.querySelector(".reg-form");
+            if(type == "login"){
+                loginDom.style.display = "block";
+                regDom.style.display = "none";
+            }else{
+                loginDom.style.display = "none";
+                regDom.style.display = "block";
+            }
+        }
+    </script>
 </body>
 </html>
