@@ -1,271 +1,319 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>步丝丝的歌 - 电脑端</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Microsoft Yahei}
-body{background:#000;color:#fff;height:100vh;overflow:hidden}
-.hide{display:none !important}
-
-/* 登录页面 自带音乐背景图样式 */
-#login{
-    width:100vw;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    /* 背景图配置，后续放图即可生效 */
-    background: 
-        linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.9)),
-        url("images/music_bg.jpg") center center / cover no-repeat;
-}
-#login h1{font-size:42px;color:#ff2442;margin-bottom:50px;text-shadow:0 0 8px #000}
-.login-card{width:400px;padding:30px;border:1px solid #333;border-radius:12px;background:rgba(10,10,10,0.75)}
-.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:16px;margin:10px 0;cursor:pointer}
-.guest{background:#333;color:#fff}
-.user{background:#ff2442;color:#000}
-.admin{background:#990000;color:#fff}
-input{width:100%;padding:13px;background:#222;border:1px solid #444;border-radius:6px;color:#fff;margin:8px 0;font-size:15px}
-
-/* 电脑主界面布局 */
-#main{width:100vw;height:100vh;display:flex;flex-direction:column}
-/* 顶部搜索栏 */
-.top-search{width:100%;height:70px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 30px}
-.search-input{width:500px;height:42px;padding:0 16px;background:#222;border:1px solid #444;border-radius:22px;color:#fff;font-size:15px;outline:none}
-.search-btn{height:42px;padding:0 22px;background:#ff2442;border:none;border-radius:22px;color:#000;font-weight:bold;cursor:pointer}
-
-/* 主体左右布局容器 */
-.main-body{display:flex;flex:1;overflow:hidden}
-/* 左侧导航栏 */
-.left-nav{width:260px;background:#0a0a0a;padding:30px 15px}
-.logo{font-size:26px;color:#ff2442;font-weight:bold;margin-bottom:40px}
-.nav-list{display:flex;flex-direction:column;gap:18px}
-.nav-item{padding:12px 16px;border-radius:8px;cursor:pointer;font-size:16px}
-.nav-item:hover{background:#222}
-.nav-item.active{background:#ff2442;color:#000}
-.logout-btn{margin-top:60px;background:#222;color:#fff}
-
-/* 中间播放区（仿抖音滚轮滑动） */
-.center-box{flex:1;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}
-.center-box::-webkit-scrollbar{width:4px}
-.center-box::-webkit-scrollbar-thumb{background:#555;border-radius:2px}
-.work-item{width:100%;height:100%;scroll-snap-align:start;position:relative;display:flex;align-items:center;justify-content:center}
-.media-box{width:480px;height:85vh;position:relative;border-radius:12px;overflow:hidden;background:#111}
-video, audio{width:100%;height:100%;object-fit:cover}
-
-/* 右侧互动栏 */
-.right-act{position:absolute;right:-70px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:25px}
-.act-icon{font-size:26px;text-align:center;cursor:pointer}
-
-/* 底部歌曲信息 */
-.work-info{position:absolute;bottom:20px;left:20px;right:20px}
-.song-title{font-size:20px;font-weight:bold;margin-bottom:8px}
-.lyric{color:#ccc;font-size:14px;max-height:80px;overflow-y:auto}
-
-/* 管理员上传悬浮按钮 */
-.upload-float{position:fixed;bottom:30px;left:280px;width:56px;height:56px;border-radius:50%;background:#ff2442;border:none;color:#fff;font-size:30px;cursor:pointer;z-index:10}
-
-/* 上传弹窗 */
-.upload-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:99;display:flex;align-items:center;justify-content:center}
-.modal-inner{background:#111;padding:35px;border-radius:12px;width:420px}
-.modal-inner h3{color:#ff2442;margin-bottom:20px;text-align:center}
-.upload-line{margin:12px 0}
-.close-modal{margin-top:20px;width:100%;padding:12px;background:#333;border:none;color:#fff;border-radius:6px;cursor:pointer}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>步丝丝的歌</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            width: 1709px;
+            height: 960px;
+            background: linear-gradient(180deg, #74b8ff 0%, #ffc8e0 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        /* 花瓣装饰 */
+        .petal {
+            position: absolute;
+            color: #ffb8d2;
+            font-size: 120px;
+            opacity: 0.7;
+        }
+        .p1 {top: 30px; right: 80px; rotate: 20deg;}
+        .p2 {top: 480px; left: 180px; font-size: 80px;}
+        .p3 {top: 420px; right: 90px; font-size: 60px;}
+        /* 顶部logo */
+        .logo {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            font-size: 46px;
+            color: white;
+            font-weight: bold;
+        }
+        /* 顶部搜索栏 */
+        .search-box {
+            position: absolute;
+            top: 40px;
+            left: 35%;
+            display: flex;
+            align-items: center;
+        }
+        .search-input {
+            width: 420px;
+            height: 56px;
+            border-radius: 99px;
+            border: none;
+            padding: 0 24px;
+            font-size: 20px;
+            background: rgba(255,255,255,0.85);
+        }
+        .login-btn {
+            margin-left: 12px;
+            height: 56px;
+            width: 100px;
+            border-radius: 99px;
+            border: none;
+            background: white;
+            font-size: 20px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        /* 模式按钮 */
+        .mode-btn {
+            width: 220px;
+            height: 80px;
+            border-radius: 99px;
+            border: none;
+            font-size: 32px;
+            font-weight: 500;
+            position: absolute;
+            background: linear-gradient(90deg, #90d0ff, #f8b8e8);
+            color: white;
+        }
+        .music-mode {
+            top: 220px;
+            left: 200px;
+        }
+        .video-mode {
+            top: 220px;
+            right: 200px;
+        }
+        /* 中间唱片封面 */
+        .cover-box {
+            width: 320px;
+            height: 420px;
+            background: #ffd8e4;
+            border-radius: 24px;
+            position: absolute;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(255,120,180,0.3);
+        }
+        .disc {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff7eb8, #ffc060);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .disc-center {
+            width: 90px;
+            height: 90px;
+            background: #ffd8e8;
+            border-radius: 50%;
+        }
+        .song-name {
+            font-size: 64px;
+            color: white;
+            font-weight: bold;
+            position: absolute;
+        }
+        .singer-name {
+            margin-top: 20px;
+            font-size: 36px;
+            color: #222;
+        }
+        /* 歌词框 */
+        .lyric-box {
+            width: 820px;
+            height: 110px;
+            background: rgba(255,255,255,0.75);
+            border-radius: 16px;
+            position: absolute;
+            top: 680px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            font-size: 36px;
+            color: #222;
+        }
+        .split-line {
+            width: 2px;
+            height: 60px;
+            background: #ccc;
+        }
+        /* 底部播放控制栏 */
+        .bottom-bar {
+            width: 100%;
+            height: 140px;
+            background: rgba(255,255,255,0.6);
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            gap: 20px;
+        }
+        .time-text {
+            font-size: 30px;
+            color: #333;
+            width: 140px;
+        }
+        .prev-text {
+            font-size: 28px;
+            color: #333;
+            width: 80px;
+        }
+        .progress {
+            flex: 1;
+            height: 8px;
+            background: #ddd;
+            border-radius: 4px;
+            position: relative;
+        }
+        .progress-fill {
+            width: 35%;
+            height: 100%;
+            background: #ff70b0;
+            border-radius: 4px;
+        }
+        .progress-dot {
+            width: 26px;
+            height: 26px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            left: 35%;
+            top: -9px;
+            border: 2px solid #ff70b0;
+        }
+        .next-text {
+            font-size: 28px;
+            color: #333;
+            width: 80px;
+            text-align: right;
+        }
+        /* 基础播放按钮 */
+        .base-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            font-size: 36px;
+            cursor: pointer;
+        }
+        /* 右侧扩展功能按钮（你要的全套） */
+        .func-group {
+            display: flex;
+            gap: 24px;
+            margin-left: 30px;
+        }
+        .func-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .func-icon {
+            font-size: 32px;
+            color: #333;
+        }
+        .func-text {
+            font-size: 16px;
+            color: #444;
+        }
+    </style>
 </head>
 <body>
-<!-- 登录界面 -->
-<div id="login">
-    <h1>步丝丝的歌</h1>
-    <div class="login-card">
-        <button class="btn guest" onclick="login('guest')">游客浏览</button>
-        <button class="btn user" onclick="showUserForm()">普通用户登录</button>
-        <button class="btn admin" onclick="showAdminForm()">管理员登录</button>
+    <!-- 花瓣装饰 -->
+    <div class="petal p1">❀</div>
+    <div class="petal p2">❀</div>
+    <div class="petal p3">❀</div>
 
-        <div id="userForm" class="hide">
-            <input type="text" id="u" placeholder="">
-            <input type="password" id="p" placeholder="">
-            <button class="btn user" onclick="loginUser()">确认登录</button>
-        </div>
-        <div id="adminForm" class="hide">
-            <input type="text" id="au" placeholder="">
-            <input type="password" id="ap" placeholder="">
-            <button class="btn admin" onclick="loginAdmin()">确认登录</button>
-        </div>
-    </div>
-</div>
+    <!-- 顶部logo -->
+    <div class="logo">步丝丝的歌</div>
 
-<!-- 电脑主页面 -->
-<div id="main" class="hide">
-    <!-- 顶部搜索框区域 -->
-    <div class="top-search">
-        <input class="search-input" id="searchInput" placeholder="搜索歌曲、歌词、作品名">
-        <button class="search-btn" onclick="searchSong()">搜索</button>
+    <!-- 顶部搜索登录 -->
+    <div class="search-box">
+        <input class="search-input" placeholder="搜索歌曲、歌手、专辑">
+        <button class="login-btn">登录</button>
     </div>
 
-    <div class="main-body">
-        <!-- 左侧侧边栏 -->
-        <div class="left-nav">
-            <div class="logo">步丝丝的歌</div>
-            <div class="nav-list">
-                <div class="nav-item active">首页推荐</div>
-                <div class="nav-item">热门歌曲</div>
-                <div class="nav-item">收藏作品</div>
-                <div class="nav-item">我的喜欢</div>
-            </div>
-            <button class="btn logout-btn" onclick="logout()">退出登录</button>
-        </div>
+    <!-- 模式切换按钮 -->
+    <button class="mode-btn music-mode">音乐模式</button>
+    <button class="mode-btn video-mode">视频模式</button>
 
-        <!-- 中间滚轮播放区域 -->
-        <div class="center-box" id="scrollWrap">
-            <div class="work-item">
-                <div class="media-box">
-                    <video class="videoPlay" loop muted playsinline></video>
-                    <audio class="audioPlay" loop>
-                    <!-- 右侧点赞评论 -->
-                    <div class="right-act">
-                        <div class="act-icon">❤️</div>
-                        <div class="act-icon">💬</div>
-                        <div class="act-icon">↗分享</div>
-                    </div>
-                    <!-- 歌词信息 -->
-                    <div class="work-info">
-                        <div class="song-title" id="songName">步丝丝原创作品</div>
-                        <div class="lyric" id="lyricText">暂无歌词，管理员上传后展示</div>
-                    </div>
-                </div>
+    <!-- 中间唱片封面 -->
+    <div class="cover-box">
+        <div class="disc">
+            <div class="disc-center"></div>
+            <div class="song-name">不负流年</div>
+        </div>
+        <div class="singer-name">步丝丝</div>
+    </div>
+
+    <!-- 歌词栏 -->
+    <div class="lyric-box">
+        <span>不怕夜更迭</span>
+        <div class="split-line"></div>
+        <span>在悲伤的时候</span>
+    </div>
+
+    <!-- 底部总控制栏（包含你需要的全部功能按钮） -->
+    <div class="bottom-bar">
+        <div class="time-text">01:28 / 03:46</div>
+        <button class="base-btn">≫</button>
+        <span class="prev-text">上首</span>
+        <!-- 进度条 -->
+        <div class="progress">
+            <div class="progress-fill"></div>
+            <div class="progress-dot"></div>
+        </div>
+        <span class="next-text">下一首</span>
+        <!-- 基础播放按键 -->
+        <button class="base-btn">◀◀</button>
+        <button class="base-btn">▶</button>
+        <button class="base-btn">▶▶</button>
+
+        <!-- 你要求的全套功能按钮：循环、音量、高清、音效、伴奏、歌词、播放列表 -->
+        <div class="func-group">
+            <div class="func-btn">
+                <div class="func-icon">🔁</div>
+                <div class="func-text">循环</div>
+            </div>
+            <div class="func-btn">
+                <div class="func-icon">🔊</div>
+                <div class="func-text">音量</div>
+            </div>
+            <div class="func-btn">
+                <div class="func-icon">📺</div>
+                <div class="func-text">高清</div>
+            </div>
+            <div class="func-btn">
+                <div class="func-icon">🎛️</div>
+                <div class="func-text">音效</div>
+            </div>
+            <div class="func-btn">
+                <div class="func-icon">🎤</div>
+                <div class="func-text">伴奏</div>
+            </div>
+            <div class="func-btn">
+                <div class="func-icon">📝</div>
+                <div class="func-text">歌词</div>
+            </div>
+            <div class="func-btn">
+                <div class="func-icon">📃</div>
+                <div class="func-text">播放列表</div>
             </div>
         </div>
     </div>
-
-    <!-- 管理员上传按钮 -->
-    <button class="upload-float hide" id="uploadBtn" onclick="openUpload()">+</button>
-
-    <!-- 上传弹窗 -->
-    <div class="upload-modal hide" id="uploadWindow">
-        <div class="modal-inner">
-            <h3>上传音视频与歌词</h3>
-            <div class="upload-line">
-                <p>背景音乐 MP3</p>
-                <input type="file" id="upAudio" accept=".mp3">
-            </div>
-            <div class="upload-line">
-                <p>视频画面 MP4</p>
-                <input type="file" id="upVideo" accept=".mp4">
-            </div>
-            <div class="upload-line">
-                <p>歌词文件 LRC</p>
-                <input type="file" id="upLrc" accept=".lrc">
-            </div>
-            <button class="close-modal" onclick="closeUpload()">完成上传</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let userType = ""
-const loginDom = document.getElementById("login")
-const mainDom = document.getElementById("main")
-const uploadBtn = document.getElementById("uploadBtn")
-const uploadWindow = document.getElementById("uploadWindow")
-
-// 游客直接进入
-function login(type){
-    userType = type
-    enterPage()
-}
-
-// 切换登录输入框
-function showUserForm(){
-    document.getElementById("userForm").classList.remove("hide")
-    document.getElementById("adminForm").classList.add("hide")
-}
-function showAdminForm(){
-    document.getElementById("adminForm").classList.remove("hide")
-    document.getElementById("userForm").classList.add("hide")
-}
-
-// 普通用户登录校验
-function loginUser(){
-    let acc = document.getElementById("u").value
-    let pwd = document.getElementById("p").value
-    if(acc === "user" && pwd === "123456"){
-        userType = "user"
-        enterPage()
-    }else alert("账号 user 密码 123456")
-}
-
-// 管理员登录校验
-function loginAdmin(){
-    let acc = document.getElementById("au").value
-    let pwd = document.getElementById("ap").value
-    if(acc === "admin" && pwd === "admin888"){
-        userType = "admin"
-        enterPage()
-    }else alert("管理员账号 admin 密码 admin888")
-}
-
-// 进入电脑主页面，权限控制上传按钮
-function enterPage(){
-    loginDom.classList.add("hide")
-    mainDom.classList.remove("hide")
-    if(userType === "admin"){
-        uploadBtn.classList.remove("hide")
-    }else{
-        uploadBtn.classList.add("hide")
-    }
-}
-
-// 打开/关闭上传弹窗
-function openUpload(){
-    uploadWindow.classList.remove("hide")
-}
-function closeUpload(){
-    uploadWindow.classList.add("hide")
-}
-
-// 退出登录
-function logout(){
-    userType = ""
-    loginDom.classList.remove("hide")
-    mainDom.classList.add("hide")
-    uploadBtn.classList.add("hide")
-}
-
-// 搜索歌曲功能
-function searchSong(){
-    let key = document.getElementById("searchInput").value.trim()
-    if(key === ""){
-        alert("请输入歌曲/歌词关键词")
-        return
-    }
-    alert("正在搜索：" + key + "\n（完整版可对接作品库筛选）")
-}
-
-// 文件上传渲染到播放器
-document.getElementById("upVideo").onchange = e=>{
-    let file = e.target.files[0]
-    let vDom = document.querySelector(".videoPlay")
-    vDom.src = URL.createObjectURL(file)
-    vDom.play()
-}
-document.getElementById("upAudio").onchange = e=>{
-    let file = e.target.files[0]
-    let aDom = document.querySelector(".audioPlay")
-    aDom.src = URL.createObjectURL(file)
-    aDom.play()
-}
-document.getElementById("upLrc").onchange = e=>{
-    let file = e.target.files[0]
-    let reader = new FileReader()
-    reader.readAsText(file)
-    reader.onload = res=>{
-        document.getElementById("lyricText").innerText = res.target.result
-    }
-}
-</script>
 </body>
 </html>
