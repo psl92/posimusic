@@ -630,6 +630,7 @@ function getItemKey(item) {
 function saveHistory(){
     localStorage.setItem("historyData",JSON.stringify(playHistoryList));
 }
+
 // 全局通用请求函数（核心：自动携带管理员Token、统一错误处理、403自动退出登录）
 async function apiFetch(path, body) {
     const headers = {"Content-Type":"application/json"};
@@ -665,24 +666,25 @@ async function apiFetch(path, body) {
         return null;
     }
 }
-// 加载云端素材仓库【修复：增加try-catch捕获异常】
+
+// 加载云端素材仓库 + 自动根据云端展示字段填充showList（核心改动）
 async function loadWarehouse(){
-    try {
-        const res = await apiFetch("/getResourceList");
-        if(Array.isArray(res)){
-            resourceWarehouse = res;
-        }else{
-            resourceWarehouse = [];
-            console.log("素材接口返回非数组，无数据");
-        }
-    } catch (e) {
+    const res = await apiFetch("/getResourceList");
+    if(Array.isArray(res)){
+        resourceWarehouse = res;
+    }else{
         resourceWarehouse = [];
-        console.error("加载素材接口失败：", e);
     }
+    // 每次加载重新按照云端状态划分三个展示列表
+    showList.home = resourceWarehouse.filter(item => item.showHome === true);
+    showList.music = resourceWarehouse.filter(item => item.showMusic === true && item.type === "music");
+    showList.video = resourceWarehouse.filter(item => item.showVideo === true && item.type === "video");
+
     renderWarehouse();
     renderAllCards();
 }
-// 搜索功能（修复原变量不存在报错）
+
+// 搜索功能（完全沿用原有逻辑，无需改动）
 const searchInput = document.getElementById("searchInput");
 const searchBtn = document.getElementById("searchBtn");
 function doSearch(){
@@ -695,7 +697,7 @@ function doSearch(){
     if(currentView === "home") targetArr = showList.home;
     else if(currentView === "music") targetArr = showList.music;
     else targetArr = showList.video;
-    let result = target.filter(item=>{
+    let result = targetArr.filter(item=>{
         return item.name.toLowerCase().includes(key) || (item.singer && item.singer.toLowerCase().includes(key));
     })
     const wrapId = currentView + "CardWrap";
@@ -709,6 +711,7 @@ searchBtn.onclick = doSearch;
 searchInput.onkeydown = (e)=>{
     if(e.key === "Enter") doSearch();
 }
+
 // 底部导航切换
 const navBtns = document.querySelectorAll(".nav-switch");
 const viewDom = {
@@ -868,50 +871,78 @@ function hasItemInList(list, targetItem) {
     const targetKey = getItemKey(targetItem);
     return list.some(i=>getItemKey(i) === targetKey);
 }
-// 后台素材仓库渲染
+// 后台素材仓库渲染（对接云端持久展示状态，按钮统一调用后端接口）
 function renderWarehouse(){
     if(!Array.isArray(resourceWarehouse)) resourceWarehouse = [];
     const wrap = document.getElementById("dbWrap");
     wrap.innerHTML = "";
+
+    // 分类筛选逻辑
     let filterList = resourceWarehouse;
-    if(dbFilter === "music") filterList = resourceWarehouse.filter(i=>i.type === "music");
-    if(dbFilter === "video") filterList = resourceWarehouse.filter(i=>i.type === "video");
-    filterList.forEach((item)=>{
+    if(dbFilter === "music") filterList = resourceWarehouse.filter(item => item.type === "music");
+    if(dbFilter === "video") filterList = resourceWarehouse.filter(item => item.type === "video");
+
+    filterList.forEach((item) => {
         const div = document.createElement("div");
         div.className = "db-item";
-        const h = hasItemInList(showList, item);
-        const m = hasItemInList(showList.music, item);
-        const v = hasItemInList(showList.video, item);
+
+        // 兜底：字段为空默认关闭展示
+        const isHome = item.showHome ?? false;
+        const isMusic = item.showMusic ?? false;
+        const isVideo = item.showVideo ?? false;
+
         div.innerHTML = `
             <div>${item.name}</div>
             <div class="db-btn-group">
-                <button class="db-btn db-btn-home">${h ? '取消首页' : '展示首页'}</button>
-                <button class="db-btn btn-music">${m ? '取消音乐' : '展示音乐'}</button>
-                <button class="db-btn btn-video">${v ? '取消视频' : '展示视频'}</button>
+                <button class="db-btn db-btn-home">${isHome ? '取消首页' : '展示首页'}</button>
+                <button class="db-btn btn-music">${isMusic ? '取消音乐' : '展示音乐'}</button>
+                <button class="db-btn btn-video">${isVideo ? '取消视频' : '展示视频'}</button>
                 <button class="db-btn btn-del">删除</button>
             </div>
         `;
-        div.querySelector(".db-btn-home").onclick = ()=>{
-            if(h) showList.home = showList.filter(i=>getItemKey(i)!==getItemKey(item));
-            else showList.home.push(item);
-            renderWarehouse();renderAllCards();
-        }
-        div.querySelector(".btn-music").onclick = ()=>{
-            if(m) showList.music = showList.filter(i=>getItemKey(i)!==getItemKey(item));
-            else showList.music.push(item);
-            renderWarehouse();renderAllCards();
-        }
-        div.querySelector(".btn-video").onclick = ()=>{
-            if(v) showList.video = showList.filter(i=>getItemKey(i)!==getItemKey(item));
-            else showList.video.push(item);
-            renderWarehouse();renderAllCards();
-        }
-        div.querySelector(".btn-del").onclick = async ()=>{
-            await apiFetch("/delResource",{id:item.id});
-            loadWarehouse();
-        }
+
+        // 首页展示开关
+        div.querySelector(".db-btn-home").onclick = async () => {
+            const newStatus = !item.showHome;
+            await apiFetch("/setShowState", {
+                id: item.id,
+                type: "home",
+                status: newStatus
+            });
+            await loadWarehouse();
+        };
+
+        // 音乐分类页开关
+        div.querySelector(".btn-music").onclick = async () => {
+            const newStatus = !item.showMusic;
+            await apiFetch("/setShowState", {
+                id: item.id,
+                type: "music",
+                status: newStatus
+            });
+            await loadWarehouse();
+        };
+
+        // 视频分类页开关
+        div.querySelector(".btn-video").onclick = async () => {
+            const newStatus = !item.showVideo;
+            await apiFetch("/setShowState", {
+                id: item.id,
+                type: "video",
+                status: newStatus
+            });
+            await loadWarehouse();
+        };
+
+        // 删除作品（二次确认，防止误触）
+        div.querySelector(".btn-del").onclick = async () => {
+            if (!confirm("确定永久删除该作品？删除后数据无法找回！")) return;
+            await apiFetch("/delResource", { id: item.id });
+            await loadWarehouse();
+        };
+
         wrap.appendChild(div);
-    })
+    });
 }
 // LRC解析函数
 function parseLrcFull(lrcText) {
