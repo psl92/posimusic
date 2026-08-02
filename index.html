@@ -17,7 +17,6 @@ body{
     overflow-x: hidden;
     padding-bottom: 360px;
 }
-/* 标题 */
 .main-title{
     text-align: center;
     padding: 20px 0 12px;
@@ -25,10 +24,9 @@ body{
     font-family: "KaiTi","STKaiti",serif;
     background: linear-gradient(135deg,#204080,#3a6fc9);
     -webkit-background-clip: text;
-    color: transparent;
+    -webkit-text-fill-color: transparent;
     letter-spacing: 3px;
 }
-/* 导航栏 */
 .nav-bar{
     width: 94%;
     max-width: 1200px;
@@ -53,7 +51,6 @@ body{
 .nav-btn:hover:not(.active){
     background:#e6f0fc;
 }
-/* 搜索 */
 .search-bar{
     width: 94%;
     max-width: 1200px;
@@ -76,7 +73,6 @@ body{
     border-radius: 0 999px 999px 0;
     cursor: pointer;
 }
-/* 卡片容器 */
 .card-wrap{
     width: 96%;
     max-width: 1400px;
@@ -85,7 +81,6 @@ body{
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 16px;
 }
-/* 歌曲卡片 */
 .music-card{
     background: #fff;
     border-radius: 12px;
@@ -95,6 +90,8 @@ body{
     display: flex;
     flex-direction: column;
     gap: 8px;
+    position: relative;
+    z-index: 1;
 }
 .music-card:hover{
     transform: translateY(-4px);
@@ -124,14 +121,12 @@ body{
     overflow: hidden;
     text-overflow: ellipsis;
 }
-/* 加载提示 */
 .load-tip{
     text-align: center;
     font-size: 16px;
     color: #204080;
     padding: 40px 0;
 }
-/* 悬浮播放器 */
 .player-box{
     position: fixed;
     bottom: 20px;
@@ -152,7 +147,13 @@ body{
     color: #fff;
     font-size: 22px;
     cursor: pointer;
-    z-index: 5;
+    z-index: 10;
+    background: rgba(0,0,0,0.4);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
 }
 .play-cover{
     width: 120px;
@@ -191,6 +192,7 @@ body{
     border-radius: 6px;
     white-space: nowrap;
     font-size: 13px;
+    cursor: pointer;
 }
 .del-btn{
     position: absolute;
@@ -219,14 +221,14 @@ body{
 <div class="main-title">步丝丝《朝歌》</div>
 
 <div class="nav-bar">
-    <button class="nav-btn active" data-type="all">首页</button>
-    <button class="nav-btn" data-type="music">音乐</button>
-    <button class="nav-btn" data-type="video">视频</button>
+    <button class="nav-btn active" data-type="all">首页 Home</button>
+    <button class="nav-btn" data-type="music">音乐 Music</button>
+    <button class="nav-btn" data-type="video">视频 Video</button>
 </div>
 
 <div class="search-bar">
     <input id="searchInput" placeholder="搜索歌曲名、歌手">
-    <button id="searchBtn">搜索</button>
+    <button id="searchBtn">搜索 Search</button>
 </div>
 
 <div class="card-wrap" id="cardContainer">
@@ -246,54 +248,65 @@ body{
 </div>
 
 <script>
-// 后端域名，和Worker自定义域名保持一致
 const API_BASE = "https://api.busisi.com";
 let currentPlayList = [];
 let currentTabType = "all";
 let allResourceList = [];
 
+// DOM元素统一获取（避免重复查询导致绑定失效）
+const dom = {
+    cardContainer: document.getElementById("cardContainer"),
+    searchInput: document.getElementById("searchInput"),
+    searchBtn: document.getElementById("searchBtn"),
+    navBtns: document.querySelectorAll(".nav-btn"),
+    fullBtn: document.getElementById("fullBtn"),
+    mainVideo: document.getElementById("mainVideo"),
+    playCoverBox: document.getElementById("playCoverBox"),
+    playCoverImg: document.getElementById("playCoverImg"),
+    playListBox: document.getElementById("playListBox"),
+    lyricBox: document.getElementById("lyricBox")
+};
+
 // 页面初始化
-window.onload = async function(){
-    // 判断本地文件打开直接提示跨域
+window.addEventListener("load", async ()=>{
     if(location.protocol === "file:"){
-        alert("禁止本地打开HTML！会出现跨域无法连接接口，请上传网页托管访问");
+        dom.cardContainer.innerHTML = `<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
+    // 导航按钮事件绑定（修复按键失灵核心：统一addEventListener）
+    dom.navBtns.forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            dom.navBtns.forEach(b=>b.classList.remove("active"));
+            btn.classList.add("active");
+            currentTabType = btn.dataset.type;
+            renderFilterList();
+        })
+    })
+    // 搜索按钮绑定
+    dom.searchBtn.addEventListener("click",searchResource);
+    // 全屏按钮绑定
+    dom.fullBtn.addEventListener("click",toggleFullScreen);
+
     try{
         const res = await fetch(`${API_BASE}/getResourceList`);
-        if(!res.ok) throw new Error(`接口返回异常：${res.status}`);
+        if(!res.ok) throw new Error(`接口状态异常：${res.status}`);
         allResourceList = await res.json();
-        filterAndRender();
-        bindTabSwitch();
+        renderFilterList();
     }catch(err){
-        document.getElementById("cardContainer").innerHTML = `
+        dom.cardContainer.innerHTML = `
             <div class="load-tip" style="color:red">
                 连接后端失败！<br>
-                1.检查Worker是否完整部署<br>
-                2.确认域名api.busisi.com已生效<br>
-                3.R2桶已绑定、文件夹已创建<br>
-                错误信息：${err.message}
+                1.确认Worker已部署+R2已绑定<br>
+                2.等待api.busisi.com域名生效<br>
+                错误详情：${err.message}
             </div>
         `;
-        console.error("加载资源列表失败：",err);
+        console.error("资源加载失败：",err);
     }
-}
+})
 
-// 导航切换
-function bindTabSwitch(){
-    const tabs = document.querySelectorAll(".nav-btn");
-    tabs.forEach(tab=>{
-        tab.onclick = function(){
-            tabs.forEach(t=>t.classList.remove("active"));
-            this.classList.add("active");
-            currentTabType = this.dataset.type;
-            filterAndRender();
-        }
-    })
-}
-
-// 分类筛选
-function filterAndRender(){
+// 分类筛选渲染
+function renderFilterList(){
     let list = allResourceList;
     if(currentTabType !== "all"){
         list = list.filter(item=>item.type === currentTabType);
@@ -301,128 +314,113 @@ function filterAndRender(){
     renderCard(list);
 }
 
-// 渲染卡片（带封面）
+// 渲染卡片
 function renderCard(list){
-    const container = document.getElementById("cardContainer");
-    container.innerHTML = "";
+    dom.cardContainer.innerHTML = "";
     if(list.length === 0){
-        container.innerHTML = '<div class="load-tip">暂无匹配资源</div>';
+        dom.cardContainer.innerHTML = '<div class="load-tip">暂无匹配资源</div>';
         return;
     }
     list.forEach(item=>{
-        const div = document.createElement("div");
-        div.className = "music-card";
-        let coverHtml = "";
-        if(item.coverImg){
-            coverHtml = `<div class="cover-box"><img src="${item.coverImg}" alt="封面"></div>`;
-        }else{
-            coverHtml = `<div class="cover-box">无封面</div>`;
-        }
-        div.innerHTML = `
-            ${coverHtml}
-            <div class="card-text">${item.singer || "未知歌手"} - ${item.name}</div>
-        `;
-        div.onclick = ()=>{
-            addToPlayList(item);
+        const card = document.createElement("div");
+        card.className = "music-card";
+        let coverHtml = item.coverImg
+            ? `<div class="cover-box"><img src="${item.coverImg}" alt="封面"></div>`
+            : `<div class="cover-box">无封面</div>`;
+        card.innerHTML = `${coverHtml}<div class="card-text">${item.singer||"未知歌手"} - ${item.name}</div>`;
+        // 卡片点击事件
+        card.addEventListener("click",()=>{
+            addPlaylist(item);
             playMedia(item);
-        }
-        container.appendChild(div);
+        })
+        dom.cardContainer.appendChild(card);
     })
 }
 
-// 添加到播放列表（去重）
-function addToPlayList(item){
-    const exist = currentPlayList.find(v=>v.id === item.id);
+// 加入播放列表去重
+function addPlaylist(item){
+    const exist = currentPlayList.some(i=>i.id === item.id);
     if(exist) return;
     currentPlayList.push(item);
-    renderPlayList();
+    renderPlaylist();
 }
 
-// 渲染播放列表
-function renderPlayList(){
-    const box = document.getElementById("playListBox");
-    box.innerHTML = "";
+// 渲染横向可滑动播放列表
+function renderPlaylist(){
+    dom.playListBox.innerHTML = "";
     currentPlayList.forEach(item=>{
-        const dom = document.createElement("div");
-        dom.className = "list-item";
-        dom.innerHTML = `
-            ${item.singer} - ${item.name}
-            <span class="del-btn">×</span>
-        `;
-        // 切换播放
-        dom.onclick = e=>{
-            if(e.target.className === "del-btn") return;
+        const li = document.createElement("div");
+        li.className = "list-item";
+        li.innerHTML = `${item.singer||"未知歌手"} - ${item.name}<span class="del-btn">×</span>`;
+        // 点击切换播放
+        li.addEventListener("click",e=>{
+            if(e.target.classList.contains("del-btn")) return;
             playMedia(item);
-        }
-        // 删除歌曲
-        dom.querySelector(".del-btn").onclick = e=>{
+        })
+        // 删除单条
+        li.querySelector(".del-btn").addEventListener("click",(e)=>{
             e.stopPropagation();
-            currentPlayList = currentPlayList.filter(v=>v.id !== item.id);
-            renderPlayList();
-        }
-        box.appendChild(dom);
+            currentPlayList = currentPlayList.filter(i=>i.id!==item.id);
+            renderPlaylist();
+        })
+        dom.playListBox.appendChild(li);
     })
 }
 
-// 播放媒体+加载歌词+更新封面
+// 播放音视频+加载歌词+封面展示
 async function playMedia(item){
-    const video = document.getElementById("mainVideo");
-    const coverBox = document.getElementById("playCoverBox");
-    const coverImg = document.getElementById("playCoverImg");
-    const lyricBox = document.getElementById("lyricBox");
+    dom.mainVideo.pause();
+    dom.mainVideo.src = "";
+    dom.lyricBox.innerText = "加载歌词中...";
 
-    video.pause();
-    video.src = "";
-    lyricBox.innerText = "加载歌词中...";
-
-    // 赋值播放地址
+    // 赋值播放源
     if(item.type === "video" && item.videoLink){
-        video.src = item.videoLink;
+        dom.mainVideo.src = item.videoLink;
     }else if(item.audioLink){
-        video.src = item.audioLink;
+        dom.mainVideo.src = item.audioLink;
     }
-    if(video.src) video.play().catch(e=>console.log("播放拦截：",e));
+    dom.mainVideo.play().catch(e=>console.log("浏览器自动播放限制：",e));
 
-    // 播放器封面
+    // 封面切换
     if(item.coverImg){
-        coverBox.style.display = "block";
-        coverImg.src = item.coverImg;
+        dom.playCoverBox.style.display = "block";
+        dom.playCoverImg.src = item.coverImg;
     }else{
-        coverBox.style.display = "none";
+        dom.playCoverBox.style.display = "none";
     }
 
-    // 请求歌词接口
+    // 请求歌词容错
     try{
         const lyricRes = await fetch(`${API_BASE}/getLyric?name=${item.lyricName}`);
         if(lyricRes.ok){
-            const text = await lyricRes.text();
-            lyricBox.innerText = text.slice(0,130)+"...";
+            const lyricText = await lyricRes.text();
+            dom.lyricBox.innerText = lyricText.slice(0,130)+"...";
         }else{
-            lyricBox.innerText = "暂无匹配歌词";
+            dom.lyricBox.innerText = "暂无匹配歌词";
         }
     }catch{
-        lyricBox.innerText = "歌词加载失败";
+        dom.lyricBox.innerText = "歌词加载失败";
     }
 }
 
-// 全屏控制
-document.getElementById("fullBtn").onclick = function(){
-    const video = document.getElementById("mainVideo");
+// 全屏切换逻辑
+function toggleFullScreen(){
+    const video = dom.mainVideo;
     if(document.fullscreenElement){
         document.exitFullscreen();
-        this.innerText = "⛶";
+        dom.fullBtn.innerText = "⛶";
     }else{
         video.requestFullscreen?.();
-        this.innerText = "⊡";
+        dom.fullBtn.innerText = "⊡";
     }
 }
 
 // 搜索功能
-document.getElementById("searchBtn").onclick = function(){
-    const key = document.getElementById("searchInput").value.trim().toLowerCase();
-    if(!key) return filterAndRender();
+function searchResource(){
+    const key = dom.searchInput.value.trim().toLowerCase();
+    if(!key) return renderFilterList();
     let source = allResourceList;
-    if(currentTabType !== "all") source = source.filter(i=>i.type === currentTabType);
+    if(currentTabType !== "all") source = source.filter(i=>i.type===currentTabType);
     const result = source.filter(v=>{
         const n = (v.name||"").toLowerCase();
         const s = (v.singer||"").toLowerCase();
