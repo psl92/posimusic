@@ -12,15 +12,8 @@
     font-family: "Microsoft Yahei", sans-serif;
 }
 body{
-    /* 玄幻星空底层渐变 */
-    background:
-        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.8) 0%, transparent 8%),
-        radial-gradient(circle at 30% 10%, rgba(180,140,255,0.6) 0%, transparent 10%),
-        radial-gradient(circle at 70% 15%, rgba(100,180,255,0.6) 0%, transparent 12%),
-        radial-gradient(circle at 50% 50%, rgba(255,210,255,0.5) 0%, transparent 16%),
-        radial-gradient(circle at 80% 60%, rgba(140,110,220,0.6) 0%, transparent 10%),
-        radial-gradient(circle at 20% 80%, rgba(100,200,255,0.5) 0%, transparent 12%),
-        linear-gradient(160deg, #0f172a 0%, #1e293b 45%, #312e81 100%);
+    /* 替换为效果图 粉→浅蓝渐变，色彩适度加重 */
+    background: linear-gradient(160deg, #ffd8ee 0%, #d0edff 100%);
     min-height: 100vh;
     overflow-x: hidden;
     padding-bottom: 160px;
@@ -37,24 +30,15 @@ body::before{
     pointer-events: none;
     z-index: 0;
     background-image:
-        radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px);
+        radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px);
     background-size: 20px 20px, 35px 35px, 50px 50px;
     background-position: 0 0, 10px 10px, 25px 25px;
     animation: twinkle 8s infinite ease-in-out;
 }
-/* 顶部星云紫光光晕 */
 body::after{
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-    background: radial-gradient(circle at 50% 0%, rgba(160,110,255,0.18), transparent 35%);
+    display:none;
 }
 @keyframes twinkle{
     0%{ opacity: 0.6; }
@@ -66,8 +50,8 @@ body::after{
     padding: 20px 0 12px;
     font-size: 42px;
     font-family: "KaiTi","STKaiti",serif;
-    /* 钻石粉晶文字渐变 */
-    background: linear-gradient(135deg,#ffc6e8,#c3b2ff,#90d8ff);
+    /* 彩虹渐变标题文字 */
+    background: linear-gradient(135deg,#ff88bb,#ffdd77,#88ddff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 3px;
@@ -91,22 +75,23 @@ body::after{
     font-size: 15px;
     cursor: pointer;
     transition: 0.2s;
-    /* 水晶玻璃质感 */
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    color:#f0dfff;
-    border: 1px solid rgba(255,220,250,0.25);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -5px 12px rgba(180,140,255,0.25), 0 4px 0 rgba(90,60,180,0.25), 0 8px 18px rgba(30,60,150,0.18);
+    background: rgba(255,255,255,0.65);
+    color:#333344;
+    /* 彩虹细边框 */
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 12px rgba(160,190,230,0.15);
     backdrop-filter: blur(6px);
 }
 .nav-btn.active{
-    background: linear-gradient(145deg, #d888ff, #7298ff);
-    color:#fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -6px 14px rgba(90,60,180,0.45), 0 4px 0 #422d88, 0 8px 20px rgba(190,130,255,0.35);
+    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    color:#222;
+    border-image:linear-gradient(90deg,#ff88c2,#ffd280,#80c8ff) 1;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 6px 16px rgba(170,200,240,0.22);
 }
 .nav-btn:hover:not(.active){
-    transform: translateY(1px);
-    background: linear-gradient(145deg, rgba(255,230,250,0.35), rgba(190,210,255,0.25));
+    transform: translateY(-1px);
+    background: rgba(255,255,255,0.8);
 }
 .search-bar{
     width: 94%;
@@ -119,26 +104,29 @@ body::after{
 .search-bar input{
     flex: 1;
     padding: 12px 16px;
-    border: 1px solid rgba(255,220,250,0.25);
     border-radius: 999px 0 0 999px;
     outline: none;
     font-size: 15px;
-    background: rgba(255,255,255,0.08);
-    color:#fff;
+    background: rgba(255,255,255,0.6);
+    color:#222;
     backdrop-filter: blur(6px);
-    box-shadow: inset 0 2px 6px rgba(150,120,220,0.15);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    border-right:none;
 }
 .search-bar input::placeholder{
-    color:rgba(255,255,255,0.55);
+    color:#666;
 }
 .search-bar button{
     padding: 0 22px;
     border: none;
-    background: linear-gradient(145deg, #d888ff, #7298ff);
-    color: #fff;
+    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    color: #222;
     border-radius: 0 999px 999px 0;
     cursor: pointer;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), 0 4px 0 #422d88, 0 8px 20px rgba(190,130,255,0.35);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    border-left:none;
 }
 .main-wrap{
     width: 94%;
@@ -159,8 +147,7 @@ body::after{
     gap: 16px;
 }
 .music-card{
-    background: rgba(255,255,255,0.06);
-    border:1px solid rgba(230,200,255,0.22);
+    background: rgba(255,255,255,0.55);
     border-radius: 16px;
     padding: 12px;
     cursor: pointer;
@@ -169,23 +156,24 @@ body::after{
     flex-direction: column;
     gap: 8px;
     backdrop-filter: blur(8px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 4px 12px rgba(150,110,220,0.12);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 12px rgba(160,190,230,0.12);
 }
 .music-card:hover{
     transform: translateY(-4px);
-    border-color: rgba(220,170,255,0.45);
-    box-shadow: 0 6px 18px rgba(180,120,255,0.25);
+    box-shadow: 0 6px 18px rgba(150,180,220,0.2);
 }
 .cover-box{
     width: 100%;
     aspect-ratio: 1/1;
     border-radius: 12px;
     overflow: hidden;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.7);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #e8d6ff;
+    color: #555;
     font-size: 16px;
 }
 .cover-box img{
@@ -196,7 +184,7 @@ body::after{
 .card-text{
     font-size: 13px;
     text-align: center;
-    color:#e8d6ff;
+    color:#333;
 }
 .card-text small{
     font-size:11px;
@@ -205,7 +193,7 @@ body::after{
 .load-tip{
     text-align: center;
     font-size: 16px;
-    color: #e8d6ff;
+    color: #444;
     padding: 40px 0;
     grid-column:1/-1;
 }
@@ -219,15 +207,16 @@ body::after{
     height:300px;
     min-width:360px;
     min-height:280px;
-    background:rgba(25,15,45,0.55);
-    border:1px solid rgba(220,180,255,0.25);
+    background:rgba(255,255,255,0.58);
     border-radius:20px;
     overflow:hidden;
     display:flex;
     z-index:99;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 10px 28px rgba(120,80,200,0.25);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 10px 28px rgba(140,170,210,0.18);
 }
 .right-big-container.minimize-state{
     display:none;
@@ -250,13 +239,13 @@ body::after{
     height:22px;
     border:none;
     border-radius:999px;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    color:#e8d6ff;
-    border: 1px solid rgba(255,220,250,0.25);
+    background: rgba(255,255,255,0.65);
+    color:#333;
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     font-weight:bold;
     cursor:pointer;
     backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
 }
 .resize-handle{
     position:absolute;
@@ -273,10 +262,10 @@ body::after{
 
 .playlist-sidebar{
     width:38%;
-    border-right:1px solid rgba(220,180,255,0.22);
+    border-right:1px solid rgba(180,200,230,0.35);
     display:flex;
     flex-direction:column;
-    background:rgba(40,20,60,0.35);
+    background:rgba(255,255,255,0.35);
 }
 .player-window{
     flex:1;
@@ -289,23 +278,23 @@ body::after{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    border-bottom:1px solid rgba(220,180,255,0.22);
+    border-bottom:1px solid rgba(180,200,230,0.35);
     margin-top:28px;
 }
 .sidebar-head h4{
     font-size:18px;
-    color:#e8d6ff;
+    color:#333;
 }
 .hideSideBtn{
     border:none;
     border-radius:999px;
     padding:4px 10px;
     cursor:pointer;
-    color:#e8d6ff;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    border: 1px solid rgba(255,220,250,0.25);
+    color:#333;
+    background: rgba(255,255,255,0.65);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
 }
 .playlist-scroll{
     flex:1;
@@ -316,35 +305,32 @@ body::after{
     width:4px;
 }
 .playlist-scroll::-webkit-scrollbar-thumb{
-    background:rgba(210,160,255,0.35);
+    background:rgba(160,190,220,0.45);
     border-radius:4px;
 }
 .playlist-item{
     padding:8px 10px;
     border-radius:12px;
     margin-bottom:6px;
-    background:rgba(255,255,255,0.06);
+    background:rgba(255,255,255,0.6);
     font-size:13px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     cursor:pointer;
-    color:#e8d6ff;
+    color:#333;
     transition:0.15s;
     border: 1px solid transparent;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
 }
 .playlist-item.active{
-    background: linear-gradient(145deg, #d888ff, #7298ff);
-    color:#fff;
-    border-color:rgba(255,255,255,0.3);
+    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    color:#111;
 }
 .playlist-item:hover{
-    background:rgba(255,255,255,0.12);
-    border-color:rgba(220,180,255,0.35);
+    background:rgba(255,255,255,0.85);
 }
 .playlist-item.active:hover{
-    background: linear-gradient(145deg, #c670ee, #6088ee);
+    background: linear-gradient(145deg, #ffb6da, #a6d4f8);
 }
 .item-name{
     overflow:hidden;
@@ -362,7 +348,6 @@ body::after{
     font-size:12px;
     cursor:pointer;
     flex-shrink:0;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.4),0 2px 6px rgba(220,80,130,0.25);
 }
 
 .video-container{
@@ -385,13 +370,13 @@ body::after{
     padding:4px 10px;
     border:none;
     border-radius:999px;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    color:#e8d6ff;
-    border: 1px solid rgba(255,220,250,0.25);
+    background: rgba(255,255,255,0.65);
+    color:#333;
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     cursor:pointer;
     font-size:12px;
     backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
 }
 
 /* ========== 底部播放器布局 ========== */
@@ -400,9 +385,10 @@ body::after{
     left:0;
     bottom:0;
     width:100%;
-    background: linear-gradient(180deg, rgba(45,25,75,0.65), rgba(25,12,45,0.75));
+    background: rgba(255,255,255,0.62);
     backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(220,180,255,0.22);
+    border-top: 1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     padding:12px 20px 18px;
     z-index:999;
 }
@@ -435,23 +421,21 @@ body::after{
 .progress-wrap{
     width:100%;
     height:10px;
-    background:rgba(255,255,255,0.08);
+    background:rgba(200,220,245,0.5);
     border-radius:999px;
     cursor:pointer;
-    border: 1px solid rgba(220,180,255,0.15);
-    box-shadow: inset 0 2px 5px rgba(140,100,210,0.15);
 }
 .progress-bar{
     height:100%;
     width:0%;
-    background: linear-gradient(90deg,#d888ff,#7298ff);
+    background: linear-gradient(90deg,#ff98cc,#82c2ff);
     border-radius:999px;
 }
 .time-row{
     display:flex;
     justify-content:space-between;
     font-size:13px;
-    color:#e8d6ff;
+    color:#333;
 }
 .player-control-row{
     display:flex;
@@ -463,60 +447,38 @@ body::after{
 .control-btn{
     border: none;
     border-radius: 999px;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    border: 1px solid rgba(255,220,250,0.25);
-    color:#e8d6ff;
+    background: rgba(255,255,255,0.65);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    color:#333;
     font-size:16px;
     cursor:pointer;
     padding:8px 14px;
     backdrop-filter: blur(4px);
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.35),
-        inset 0 -5px 12px rgba(180,140,255,0.25),
-        0 4px 0 rgba(90,60,180,0.25),
-        0 8px 18px rgba(30,60,150,0.18);
     transition: all 0.12s ease;
 }
 .control-btn:active{
     transform: translateY(2px);
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.35),
-        inset 0 -3px 8px rgba(180,140,255,0.25),
-        0 2px 0 rgba(90,60,180,0.25),
-        0 4px 10px rgba(30,60,150,0.12);
 }
 .control-btn.play-main{
     padding:8px 22px;
-    background: linear-gradient(145deg, #d888ff, #7298ff);
-    color:#fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.45),
-        inset 0 -6px 14px rgba(90,60,180,0.45),
-        0 4px 0 #422d88,
-        0 8px 20px rgba(190,130,255,0.35);
-}
-.control-btn.play-main:active{
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.45),
-        inset 0 -3px 8px rgba(90,60,180,0.45),
-        0 2px 0 #422d88,
-        0 4px 12px rgba(190,130,255,0.25);
+    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    color:#111;
 }
 
 .lyric-area{
     text-align: center;
     font-size: 16px;
-    color: #e8d6ff;
+    color: #333;
     margin-top: 8px;
     line-height: 1.8;
     padding:8px;
     min-height:80px;
 }
-.lyric-normal{color:#b8a2dd;}
-.lyric-active{color:#ffb8ee;font-weight:bold;}
+.lyric-normal{color:#666;}
+.lyric-active{color:#ff68aa;font-weight:bold;}
 
-/* =========【已修改：酷狗样式悬浮歌词】========= */
+/* =========【酷狗样式悬浮歌词】========= */
 .float-lyric-wrap{
     position: fixed;
     bottom: 170px;
@@ -531,15 +493,14 @@ body::after{
     display:block;
     padding:10px 14px;
     border-radius:14px;
-    /* 默认：透明，无背景无边框，只显示文字 */
     background: transparent;
     border:1px solid transparent;
     transition: all 0.25s ease;
 }
-/* 鼠标移入才显示拖拽外框 */
 .float-lyric-wrap:hover{
-    background:rgba(40,20,70,0.22);
-    border: 1px solid rgba(210,170,255,0.35);
+    background:rgba(255,255,255,0.35);
+    border:1px solid;
+    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     backdrop-filter: blur(4px);
 }
 .lyric-line{
@@ -549,10 +510,10 @@ body::after{
     background:transparent;
     font-size:clamp(16px,2vw,26px);
     letter-spacing:2px;
-    text-shadow:0 0 6px rgba(240,180,255,0.55);
+    text-shadow:0 0 6px rgba(255,180,220,0.55);
 }
 .prev-line{
-    color:#ffffff;
+    color:#222;
     opacity:0.55;
     text-align:left;
 }
@@ -977,7 +938,7 @@ document.addEventListener("keydown",e=>{
 
 window.addEventListener("load", async () => {
     if(location.protocol==="file:"){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">禁止本地双击打开HTML，必须网页托管访问</div>`;
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#444">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
     dom.navBtns.forEach(btn=>{
@@ -1005,7 +966,7 @@ window.addEventListener("load", async () => {
         allResourceList=await res.json();
         renderFilterList();
     }catch(err){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#444">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
         console.error(err);
     }
 });
@@ -1049,7 +1010,7 @@ function addPlaylist(item){
 function renderPlaylist(){
     dom.playlistScroll.innerHTML="";
     if(currentPlayList.length===0){
-        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#b8a2dd">播放目录为空</div>';
+        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#555">播放目录为空</div>';
         return;
     }
     currentPlayList.forEach((item,index)=>{
