@@ -234,6 +234,7 @@ body{
     margin-top: 8px;
     line-height: 1.5;
 }
+/* 核心修改：默认显示悬浮歌词 */
 .float-lyric-wrap{
     position: absolute;
     top: 60px;
@@ -246,7 +247,7 @@ body{
     user-select:none;
     resize:both;
     overflow:hidden;
-    display:none;
+    display:block;
 }
 .float-lyric-wrap::-webkit-scrollbar{
     display:none;
@@ -295,7 +296,7 @@ body{
     <div class="fullscreen-btn" id="fullBtn">⛶</div>
     <div class="float-lyric-wrap" id="floatLyricWrap">
         <div class="lyric-line prev-line" id="prevLyric"></div>
-        <div class="lyric-line curr-line" id="currLyric"></div>
+        <div class="lyric-line curr-line" id="currLyric">暂无歌词</div>
     </div>
 
     <div class="play-cover" id="playCoverBox">
@@ -493,33 +494,43 @@ async function playMedia(item){
     dom.mainVideo.pause();dom.mainVideo.src="";
     dom.mainAudio.pause();dom.mainAudio.src="";
     dom.lyricBox.innerText="加载歌词中...";
-    parsedLyricList=[];dom.prevLyric.innerText="";dom.currLyric.innerText="";
+    parsedLyricList=[];
+    dom.prevLyric.innerText="";
+    dom.currLyric.innerText="暂无歌词";
 
-    // 媒体后缀精准区分音视频
+    // 移除多余encodeURI，解决双重编码路径404
     const isVideo = /\.(mp4|mov|m4v)$/i.test(item.name||"");
     if(isVideo && item.videoLink){
         dom.mainVideo.style.display="block";
         dom.playCoverBox.style.display="none";
-        dom.mainVideo.src=encodeURI(item.videoLink);
+        dom.mainVideo.src = item.videoLink;
         dom.mainVideo.play().catch(e=>console.log("播放需手动触发：",e));
     }else if(item.audioLink){
         dom.mainVideo.style.display="none";
         dom.playCoverBox.style.display="flex";
-        dom.mainAudio.src=encodeURI(item.audioLink);
+        dom.mainAudio.src = item.audioLink;
         dom.mainAudio.play().catch(e=>console.log("播放需手动触发：",e));
     }
     if(item.coverImg) dom.playCoverImg.src=item.coverImg;
 
     try{
         // 固定去children文件夹读取歌词
-        const lyricName=item.lyricName||item.id;
+        const lyricName=item.lyricName;
         const lyricRes=await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(lyricName)}`);
         if(lyricRes.ok){
             const txt=await lyricRes.text();
             dom.lyricBox.innerText=txt;
             parsedLyricList=parseLyric(txt);
-        }else dom.lyricBox.innerText="暂无匹配歌词";
-    }catch{dom.lyricBox.innerText="歌词加载失败";}
+            // 加载歌词立刻渲染第一行
+            updateFloatLyric(0);
+        }else {
+            dom.lyricBox.innerText="暂无匹配歌词";
+            dom.currLyric.innerText="暂无匹配歌词";
+        }
+    }catch{
+        dom.lyricBox.innerText="歌词加载失败";
+        dom.currLyric.innerText="歌词加载失败";
+    }
 }
 
 function toggleFullScreen(){
