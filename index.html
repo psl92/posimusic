@@ -156,23 +156,27 @@ body{
     place-items: center;
 }
 .play-cover{
-    width: 120px;
-    height: 120px;
-    margin: 10px auto;
-    border-radius: 12px;
+    width: 100%;
+    height: 58%;
+    margin: 0 auto;
+    border-radius: 0;
     overflow: hidden;
     background: #eee;
     display: none;
+    align-items: center;
+    justify-content:center;
 }
 .play-cover img{
-    width: 100%;
-    height: 100%;
+    width: 120px;
+    height:120px;
+    border-radius:12px;
     object-fit: cover;
 }
 .video-view{
     width: 100%;
     height: 58%;
     background: #000;
+    display:block;
 }
 .control-bar{
     padding: 10px;
@@ -246,14 +250,18 @@ body{
         <div class="lyric-area" id="lyricBox">暂无播放内容</div>
     </div>
 </div>
+<!-- 新增：音频播放器，专门播放音乐mp3（隐藏） -->
+<audio id="mainAudio">
 
 <script>
+// 后端接口地址，固定绑定
 const API_BASE = "https://api.busisi.com";
 let currentPlayList = [];
 let currentTabType = "all";
 let allResourceList = [];
+let nowPlayingItem = null;
 
-// DOM元素统一获取（避免重复查询导致绑定失效）
+// 页面元素缓存
 const dom = {
     cardContainer: document.getElementById("cardContainer"),
     searchInput: document.getElementById("searchInput"),
@@ -261,171 +269,217 @@ const dom = {
     navBtns: document.querySelectorAll(".nav-btn"),
     fullBtn: document.getElementById("fullBtn"),
     mainVideo: document.getElementById("mainVideo"),
+    mainAudio: document.getElementById("mainAudio"),
     playCoverBox: document.getElementById("playCoverBox"),
     playCoverImg: document.getElementById("playCoverImg"),
     playListBox: document.getElementById("playListBox"),
     lyricBox: document.getElementById("lyricBox")
 };
 
-// 页面初始化
-window.addEventListener("load", async ()=>{
+window.addEventListener("load", async () => {
+    // 禁止本地直接打开HTML运行
     if(location.protocol === "file:"){
-        dom.cardContainer.innerHTML = `<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须网页托管访问</div>`;
+        dom.cardContainer.innerHTML = `<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须托管网页访问</div>`;
         return;
     }
-    // 导航按钮事件绑定（修复按键失灵核心：统一addEventListener）
-    dom.navBtns.forEach(btn=>{
-        btn.addEventListener("click",()=>{
-            dom.navBtns.forEach(b=>b.classList.remove("active"));
+
+    // 顶部导航切换事件
+    dom.navBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            dom.navBtns.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentTabType = btn.dataset.type;
             renderFilterList();
         })
-    })
-    // 搜索按钮绑定
-    dom.searchBtn.addEventListener("click",searchResource);
-    // 全屏按钮绑定
-    dom.fullBtn.addEventListener("click",toggleFullScreen);
+    });
 
-    try{
+    // 搜索按钮点击
+    dom.searchBtn.addEventListener("click", searchResource);
+    // 回车快捷搜索
+    dom.searchInput.addEventListener("keydown", e => {
+        if(e.key === "Enter") searchResource();
+    });
+    // 全屏按钮
+    dom.fullBtn.addEventListener("click", toggleFullScreen);
+
+    // 请求后端拉取全部音乐视频资源
+    try {
         const res = await fetch(`${API_BASE}/getResourceList`);
-        if(!res.ok) throw new Error(`接口状态异常：${res.status}`);
+        if(!res.ok) throw new Error(`接口请求失败：${res.status}`);
         allResourceList = await res.json();
         renderFilterList();
-    }catch(err){
+    } catch(err) {
         dom.cardContainer.innerHTML = `
             <div class="load-tip" style="color:red">
-                连接后端失败！<br>
-                1.确认Worker已部署+R2已绑定<br>
-                2.等待api.busisi.com域名生效<br>
-                错误详情：${err.message}
+                连接后端接口失败<br>
+                1.检查Worker是否部署完成<br>
+                2.等待域名解析生效<br>
+                错误信息：${err.message}
             </div>
         `;
-        console.error("资源加载失败：",err);
+        console.error("资源加载报错：", err);
     }
-})
+});
 
-// 分类筛选渲染
-function renderFilterList(){
+// 根据分类筛选渲染列表
+function renderFilterList() {
     let list = allResourceList;
-    if(currentTabType !== "all"){
-        list = list.filter(item=>item.type === currentTabType);
+    if(currentTabType !== "all") {
+        list = list.filter(item => item.type === currentTabType);
     }
     renderCard(list);
 }
 
-// 渲染卡片
-function renderCard(list){
+// 渲染歌曲卡片
+function renderCard(list) {
     dom.cardContainer.innerHTML = "";
-    if(list.length === 0){
+    if(list.length === 0) {
         dom.cardContainer.innerHTML = '<div class="load-tip">暂无匹配资源</div>';
         return;
     }
-    list.forEach(item=>{
+    list.forEach(item => {
         const card = document.createElement("div");
         card.className = "music-card";
         let coverHtml = item.coverImg
             ? `<div class="cover-box"><img src="${item.coverImg}" alt="封面"></div>`
             : `<div class="cover-box">无封面</div>`;
         card.innerHTML = `${coverHtml}<div class="card-text">${item.singer||"未知歌手"} - ${item.name}</div>`;
-        // 卡片点击事件
-        card.addEventListener("click",()=>{
+
+        // 点击卡片播放音视频
+        card.addEventListener("click", () => {
             addPlaylist(item);
             playMedia(item);
-        })
+        });
         dom.cardContainer.appendChild(card);
     })
 }
 
-// 加入播放列表去重
-function addPlaylist(item){
-    const exist = currentPlayList.some(i=>i.id === item.id);
-    if(exist) return;
+// 添加进播放列表（去重）
+function addPlaylist(item) {
+    const isExist = currentPlayList.some(i => i.id === item.id);
+    if(isExist) return;
     currentPlayList.push(item);
     renderPlaylist();
 }
 
-// 渲染横向可滑动播放列表
-function renderPlaylist(){
+// 渲染底部横向播放列表
+function renderPlaylist() {
     dom.playListBox.innerHTML = "";
-    currentPlayList.forEach(item=>{
+    currentPlayList.forEach(item => {
         const li = document.createElement("div");
         li.className = "list-item";
         li.innerHTML = `${item.singer||"未知歌手"} - ${item.name}<span class="del-btn">×</span>`;
+
         // 点击切换播放
-        li.addEventListener("click",e=>{
+        li.addEventListener("click", e => {
             if(e.target.classList.contains("del-btn")) return;
             playMedia(item);
-        })
-        // 删除单条
-        li.querySelector(".del-btn").addEventListener("click",(e)=>{
+        });
+
+        // 删除单条播放记录
+        li.querySelector(".del-btn").addEventListener("click", e => {
             e.stopPropagation();
-            currentPlayList = currentPlayList.filter(i=>i.id!==item.id);
+            currentPlayList = currentPlayList.filter(i => i.id !== item.id);
             renderPlaylist();
-        })
+        });
         dom.playListBox.appendChild(li);
     })
 }
 
-// 播放音视频+加载歌词+封面展示
-async function playMedia(item){
+// 播放音频/视频
+async function playMedia(item) {
+    nowPlayingItem = item;
+    // 先停止全部媒体
     dom.mainVideo.pause();
     dom.mainVideo.src = "";
+    dom.mainAudio.pause();
+    dom.mainAudio.src = "";
     dom.lyricBox.innerText = "加载歌词中...";
 
-    // 赋值播放源
-    if(item.type === "video" && item.videoLink){
-        dom.mainVideo.src = item.videoLink;
-    }else if(item.audioLink){
-        dom.mainVideo.src = item.audioLink;
-    }
-    dom.mainVideo.play().catch(e=>console.log("浏览器自动播放限制：",e));
-
-    // 封面切换
-    if(item.coverImg){
-        dom.playCoverBox.style.display = "block";
-        dom.playCoverImg.src = item.coverImg;
-    }else{
+    // 区分音乐/视频，分开播放器
+    if(item.type === "video" && item.videoLink) {
+        // 视频：使用video标签，显示视频画面，隐藏封面
+        dom.mainVideo.style.display = "block";
         dom.playCoverBox.style.display = "none";
+        dom.mainVideo.src = item.videoLink;
+        dom.mainVideo.play().catch(e => console.log("视频播放限制：", e));
+    } else if(item.audioLink) {
+        // 音乐：使用audio标签，隐藏video黑屏区域，展示封面
+        dom.mainVideo.style.display = "none";
+        dom.playCoverBox.style.display = "flex";
+        dom.mainAudio.src = item.audioLink;
+        dom.mainAudio.play().catch(e => console.log("音频播放限制：", e));
     }
 
-    // 请求歌词容错
-    try{
-        const lyricRes = await fetch(`${API_BASE}/getLyric?name=${item.lyricName}`);
-        if(lyricRes.ok){
+    // 封面赋值
+    if(item.coverImg) {
+        dom.playCoverImg.src = item.coverImg;
+    }
+
+    // 加载歌词（优先使用歌曲id，兼容没有lyricName字段情况，你可以根据后端字段调整）
+    try {
+        let lyricKey = item.lyricName || item.id;
+        const lyricRes = await fetch(`${API_BASE}/getLyric?name=${lyricKey}`);
+        if(lyricRes.ok) {
             const lyricText = await lyricRes.text();
-            dom.lyricBox.innerText = lyricText.slice(0,130)+"...";
-        }else{
+            dom.lyricBox.innerText = lyricText;
+        } else {
             dom.lyricBox.innerText = "暂无匹配歌词";
         }
-    }catch{
+    } catch {
         dom.lyricBox.innerText = "歌词加载失败";
     }
 }
 
-// 全屏切换逻辑
-function toggleFullScreen(){
-    const video = dom.mainVideo;
-    if(document.fullscreenElement){
-        document.exitFullscreen();
+// 视频全屏切换【修复浏览器兼容】
+function toggleFullScreen() {
+    const target = dom.mainVideo;
+    // 兼容多浏览器前缀
+    function enterFull(el){
+        if(el.requestFullscreen) el.requestFullscreen();
+        else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if(el.mozRequestFullScreen) el.mozRequestFullScreen();
+    }
+    function exitFull(){
+        if(document.exitFullscreen) document.exitFullscreen();
+        else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+
+    if(document.fullscreenElement || document.webkitFullscreenElement) {
+        exitFull();
         dom.fullBtn.innerText = "⛶";
-    }else{
-        video.requestFullscreen?.();
+    } else {
+        enterFull(target);
         dom.fullBtn.innerText = "⊡";
     }
 }
+// 监听全屏切换，自动更新图标
+document.addEventListener('fullscreenchange', updateFullIcon);
+document.addEventListener('webkitfullscreenchange', updateFullIcon);
+function updateFullIcon(){
+    if(document.fullscreenElement || document.webkitFullscreenElement){
+        dom.fullBtn.innerText = "⊡";
+    }else{
+        dom.fullBtn.innerText = "⛶";
+    }
+}
 
-// 搜索功能
-function searchResource(){
-    const key = dom.searchInput.value.trim().toLowerCase();
-    if(!key) return renderFilterList();
-    let source = allResourceList;
-    if(currentTabType !== "all") source = source.filter(i=>i.type===currentTabType);
-    const result = source.filter(v=>{
-        const n = (v.name||"").toLowerCase();
-        const s = (v.singer||"").toLowerCase();
-        return n.includes(key) || s.includes(key);
-    })
+// 搜索歌曲功能
+function searchResource() {
+    const keyword = dom.searchInput.value.trim().toLowerCase();
+    if(!keyword) {
+        renderFilterList();
+        return;
+    }
+    let sourceList = allResourceList;
+    if(currentTabType !== "all") {
+        sourceList = sourceList.filter(i => i.type === currentTabType);
+    }
+    const result = sourceList.filter(v => {
+        const songName = (v.name || "").toLowerCase();
+        const singerName = (v.singer || "").toLowerCase();
+        return songName.includes(keyword) || singerName.includes(keyword);
+    });
     renderCard(result);
 }
 </script>
