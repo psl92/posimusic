@@ -37,19 +37,22 @@ body{
 }
 .nav-btn{
     padding: 8px 18px;
-    background: #fff;
-    border-radius: 8px;
+    border-radius: 999px;
     border: none;
     font-size: 15px;
     cursor: pointer;
     transition: 0.2s;
+    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
+    color:#6a4abc;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -5px 12px rgba(180,140,255,0.35), 0 4px 0 rgba(90,60,180,0.25), 0 8px 18px rgba(30,60,150,0.18);
 }
 .nav-btn.active{
-    background:#4299e1;
+    background: linear-gradient(145deg, #9b5cff, #4a88ff);
     color:#fff;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -6px 14px rgba(90,60,180,0.45), 0 4px 0 #2d5aa8, 0 8px 20px rgba(74,136,255,0.35);
 }
 .nav-btn:hover:not(.active){
-    background:#e6f0fc;
+    transform: translateY(1px);
 }
 .search-bar{
     width: 94%;
@@ -64,14 +67,17 @@ body{
     border-radius: 999px 0 0 999px;
     outline: none;
     font-size: 15px;
+    background: rgba(240,245,255,0.9);
+    box-shadow: inset 0 2px 6px rgba(150,120,220,0.15);
 }
 .search-bar button{
     padding: 0 22px;
     border: none;
-    background: #4299e1;
+    background: linear-gradient(145deg, #9b5cff, #4a88ff);
     color: #fff;
     border-radius: 0 999px 999px 0;
     cursor: pointer;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), 0 4px 0 #2d5aa8, 0 8px 20px rgba(74,136,255,0.35);
 }
 .main-wrap{
     width: 94%;
@@ -91,29 +97,30 @@ body{
 }
 .music-card{
     background: rgba(255,255,255,0.65);
-    border:1px solid #b8d8f5;
-    border-radius: 12px;
+    border:1px solid #d4c8f5;
+    border-radius: 16px;
     padding: 12px;
     cursor: pointer;
     transition: transform 0.2s;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 12px rgba(150,110,220,0.12);
 }
 .music-card:hover{
     transform: translateY(-4px);
-    box-shadow: 0 6px 14px #b8d8f0;
+    box-shadow: 0 6px 18px rgba(150,110,220,0.2);
 }
 .cover-box{
     width: 100%;
     aspect-ratio: 1/1;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
     background: #eeeeee;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6688bb;
+    color: #6a4abc;
     font-size: 16px;
 }
 .cover-box img{
@@ -124,7 +131,7 @@ body{
 .card-text{
     font-size: 13px;
     text-align: center;
-    color:#1957a0;
+    color:#6a4abc;
 }
 .card-text small{
     font-size:11px;
@@ -133,12 +140,12 @@ body{
 .load-tip{
     text-align: center;
     font-size: 16px;
-    color: #204080;
+    color: #6a4abc;
     padding: 40px 0;
     grid-column:1/-1;
 }
 
-/* ===== 悬浮播放器窗口【初始化缩小 宽400 高300】 ===== */
+/* ===== 悬浮播放器窗口 ===== */
 .right-big-container{
     position: fixed;
     top:140px;
@@ -147,19 +154,18 @@ body{
     height:300px;
     min-width:360px;
     min-height:280px;
-    background:rgba(255,255,255,0.65);
-    border:1px solid #b8d8f5;
-    border-radius:16px;
+    background:rgba(242,238,255,0.72);
+    border:1px solid #d4c8f5;
+    border-radius:20px;
     overflow:hidden;
     display:flex;
     z-index:99;
     transition: all 0.3s ease;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 10px 28px rgba(120,80,200,0.18);
 }
-/* 最小化状态 */
 .right-big-container.minimize-state{
     display:none;
 }
-/* 拖拽头部区域 */
 .drag-handle{
     position:absolute;
     width:100%;
@@ -173,18 +179,17 @@ body{
     align-items:center;
     padding-right:8px;
 }
-/* 最小化减号按钮 */
 .minimize-win-btn{
-    width:24px;
-    height:20px;
+    width:28px;
+    height:22px;
     border:none;
-    background:rgba(140,200,245,0.5);
-    border-radius:6px;
-    cursor:pointer;
-    color:#1957a0;
+    border-radius:999px;
+    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
+    color:#6a4abc;
     font-weight:bold;
+    cursor:pointer;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -4px 10px rgba(180,140,255,0.35), 0 3px 8px rgba(90,60,180,0.2);
 }
-/* 四边四角缩放手柄 */
 .resize-handle{
     position:absolute;
     z-index:10;
@@ -200,9 +205,10 @@ body{
 
 .playlist-sidebar{
     width:38%;
-    border-right:1px solid #d4e6f7;
+    border-right:1px solid #d4c8f5;
     display:flex;
     flex-direction:column;
+    background:rgba(236,230,255,0.6);
 }
 .player-window{
     flex:1;
@@ -215,20 +221,21 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    border-bottom:1px solid #d4e6f7;
+    border-bottom:1px solid #d4c8f5;
     margin-top:28px;
 }
 .sidebar-head h4{
     font-size:18px;
-    color:#1957a0;
+    color:#6a4abc;
 }
 .hideSideBtn{
-    border:1px solid #b8d8f5;
-    background:rgba(180,225,255,0.3);
+    border:none;
     border-radius:999px;
     padding:4px 10px;
     cursor:pointer;
-    color:#1957a0;
+    color:#6a4abc;
+    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -4px 10px rgba(180,140,255,0.35), 0 3px 8px rgba(90,60,180,0.2);
 }
 .playlist-scroll{
     flex:1;
@@ -240,26 +247,27 @@ body{
 }
 .playlist-item{
     padding:8px 10px;
-    border-radius:8px;
+    border-radius:12px;
     margin-bottom:6px;
-    background:#e6f4fc;
+    background:rgba(225,215,255,0.7);
     font-size:13px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     cursor:pointer;
-    color:#1957a0;
+    color:#6a4abc;
     transition:0.15s;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6);
 }
 .playlist-item.active{
-    background:#4299e1;
+    background: linear-gradient(145deg, #9b5cff, #4a88ff);
     color:#fff;
 }
 .playlist-item:hover{
-    background:#d0e8f9;
+    background:rgba(210,195,255,0.85);
 }
 .playlist-item.active:hover{
-    background:#3487c9;
+    background: linear-gradient(145deg, #8b4cee, #3b78ee);
 }
 .item-name{
     overflow:hidden;
@@ -268,15 +276,16 @@ body{
     max-width:82%;
 }
 .item-del{
-    width:20px;
-    height:20px;
-    border-radius:50%;
-    background:#ff8888;
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    background: linear-gradient(145deg,#ff8fb3,#f05b8c);
     color:#fff;
     border:none;
     font-size:12px;
     cursor:pointer;
     flex-shrink:0;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.4),0 2px 6px rgba(220,80,130,0.25);
 }
 
 .video-container{
@@ -289,102 +298,139 @@ body{
     width:100%;
     height:100%;
     background:#000;
-    border-radius:8px;
+    border-radius:12px;
     object-fit:contain;
 }
 .fullscreen-video-btn{
     position:absolute;
     top:10px;
     right:10px;
-    padding:3px 8px;
-    background:rgba(0,0,0,0.45);
-    color:#fff;
+    padding:4px 10px;
     border:none;
-    border-radius:6px;
+    border-radius:999px;
+    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
+    color:#6a4abc;
     cursor:pointer;
     font-size:12px;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -4px 10px rgba(180,140,255,0.35), 0 3px 8px rgba(90,60,180,0.2);
 }
 
-/* ========== 底部播放器：胶囊3D立体按钮样式 ========== */
+/* ========== 底部播放器布局调整 ========== */
 .bottom-player{
     position:fixed;
     left:0;
     bottom:0;
     width:100%;
-    background: linear-gradient(180deg, rgba(180,225,255,0.6), rgba(140,200,245,0.8));
-    backdrop-filter: blur(10px);
-    padding:12px 30px 18px;
+    background: linear-gradient(180deg, rgba(226,218,255,0.65), rgba(200,185,250,0.75));
+    backdrop-filter: blur(12px);
+    padding:12px 20px 18px;
     z-index:999;
 }
 .bottom-player .inner-row{
     display:flex;
     align-items:center;
-    justify-content:center;
-    gap:18px;
+    justify-content:space-between;
+    gap:12px;
     width:100%;
 }
-.progress-wrap{
+.left-control-group{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-shrink:0;
+}
+.mid-progress-area{
     flex:1;
-    height:6px;
-    background:rgba(255,255,255,0.4);
-    border-radius:4px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0 16px;
+}
+.right-control-group{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-shrink:0;
+}
+.progress-wrap{
+    width:100%;
+    height:10px;
+    background:rgba(255,255,255,0.45);
+    border-radius:999px;
     cursor:pointer;
-    max-width:720px;
+    box-shadow: inset 0 2px 5px rgba(140,100,210,0.15);
 }
 .progress-bar{
     height:100%;
     width:0%;
-    background:#2596ff;
-    border-radius:4px;
+    background: linear-gradient(90deg,#9b5cff,#4a88ff);
+    border-radius:999px;
 }
 .time-row{
     display:flex;
     justify-content:space-between;
     font-size:13px;
-    color:#1957a0;
-    margin:6px auto 0;
-    max-width:calc(720px + 220px);
+    color:#6a4abc;
 }
 .player-control-row{
     display:flex;
     justify-content:center;
     gap:10px;
     align-items:center;
-    flex-shrink:0;
 }
-/* 胶囊3D按钮核心样式 */
+/* 水晶胶囊按钮核心样式 */
 .control-btn{
     border: none;
     border-radius: 999px;
-    background: linear-gradient(145deg, #e6f4ff, #b8e0fc);
-    color:#1957a0;
+    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
+    color:#6a4abc;
     font-size:16px;
     cursor:pointer;
-    padding:8px 16px;
-    box-shadow: 0 4px 0 #86b8e0, 0 6px 12px rgba(0,80,160,0.15);
-    transition: all 0.1s ease;
+    padding:8px 14px;
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.75),
+        inset 0 -5px 12px rgba(180,140,255,0.35),
+        0 4px 0 rgba(90,60,180,0.25),
+        0 8px 18px rgba(30,60,150,0.18);
+    transition: all 0.12s ease;
 }
 .control-btn:active{
     transform: translateY(2px);
-    box-shadow: 0 2px 0 #86b8e0, 0 3px 6px rgba(0,80,160,0.12);
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.75),
+        inset 0 -3px 8px rgba(180,140,255,0.35),
+        0 2px 0 rgba(90,60,180,0.25),
+        0 4px 10px rgba(30,60,150,0.12);
 }
 .control-btn.play-main{
-    padding:10px 26px;
-    background: linear-gradient(145deg,#60b8ff,#3487c9);
+    padding:8px 22px;
+    background: linear-gradient(145deg, #9b5cff, #4a88ff);
     color:#fff;
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.45),
+        inset 0 -6px 14px rgba(90,60,180,0.45),
+        0 4px 0 #2d5aa8,
+        0 8px 20px rgba(74,136,255,0.35);
+}
+.control-btn.play-main:active{
+    box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.45),
+        inset 0 -3px 8px rgba(90,60,180,0.45),
+        0 2px 0 #2d5aa8,
+        0 4px 12px rgba(74,136,255,0.25);
 }
 
 .lyric-area{
     text-align: center;
     font-size: 16px;
-    color: #333;
+    color: #6a4abc;
     margin-top: 8px;
     line-height: 1.8;
     padding:8px;
     min-height:80px;
 }
-.lyric-normal{color:#666;}
-.lyric-active{color:#2596ff;font-weight:bold;}
+.lyric-normal{color:#9988cc;}
+.lyric-active{color:#9b5cff;font-weight:bold;}
 .float-lyric-wrap{
     position: fixed;
     bottom: 170px;
@@ -403,8 +449,8 @@ body{
 .lyric-line{
     padding:8px 14px;
     margin:4px 0;
-    border-radius:8px;
-    background:rgba(0,0,0,0.38);
+    border-radius:12px;
+    background:rgba(120,80,200,0.32);
     backdrop-filter:blur(6px);
     font-size:clamp(16px,2vw,26px);
     letter-spacing:2px;
@@ -416,28 +462,6 @@ body{
 }
 .curr-line{
     text-align:right;
-}
-
-/* ===== 右下角唤起播放器按钮 ===== */
-.float-open-player{
-    position:fixed;
-    right:24px;
-    bottom:220px;
-    z-index:1000;
-    border-radius:999px;
-    padding:10px 16px;
-    border:none;
-    background:linear-gradient(145deg,#60b8ff,#3487c9);
-    color:#fff;
-    box-shadow:0 4px 12px rgba(40,120,200,0.3);
-    cursor:pointer;
-    transition:0.2s;
-}
-.float-open-player:hover{
-    transform:scale(1.05);
-}
-.float-open-player.hide-btn{
-    display:none;
 }
 </style>
 </head>
@@ -495,26 +519,34 @@ body{
     </div>
 </div>
 
-<!-- 右下角唤起播放器按钮 -->
-<button class="float-open-player hide-btn" id="openPlayerBtn">打开播放器</button>
-
-<!-- 底部播放器 -->
+<!-- 底部播放器：新布局 -->
 <div class="bottom-player">
     <div class="inner-row">
-        <div class="player-control-row">
-            <button class="control-btn" id="prevBtn">◀◀</button>
-            <button class="control-btn" id="rewindBtn">◀</button>
-            <button class="control-btn play-main" id="playPauseBtn">▶</button>
-            <button class="control-btn" id="forwardBtn">▶</button>
-            <button class="control-btn" id="nextBtn">▶▶</button>
+        <!-- 左侧：播放目录切换按钮 + 播放控制 -->
+        <div class="left-control-group">
+            <button class="control-btn" id="togglePlaylistBtn">目录</button>
+            <div class="player-control-row">
+                <button class="control-btn" id="prevBtn">◀◀</button>
+                <button class="control-btn" id="rewindBtn">◀</button>
+                <button class="control-btn play-main" id="playPauseBtn">▶</button>
+                <button class="control-btn" id="forwardBtn">▶</button>
+                <button class="control-btn" id="nextBtn">▶▶</button>
+            </div>
         </div>
-        <div class="progress-wrap" id="progressWrap">
-            <div class="progress-bar" id="progressBar"></div>
+        <!-- 中间：进度条+时间 -->
+        <div class="mid-progress-area">
+            <div class="progress-wrap" id="progressWrap">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="time-row">
+                <span id="currentTimeText">00:00</span>
+                <span id="totalTimeText">00:00</span>
+            </div>
         </div>
-    </div>
-    <div class="time-row">
-        <span id="currentTimeText">00:00</span>
-        <span id="totalTimeText">00:00</span>
+        <!-- 右侧：打开播放器按钮（和进度条水平平齐） -->
+        <div class="right-control-group">
+            <button class="control-btn play-main" id="openPlayerBtn">打开播放器</button>
+        </div>
     </div>
 </div>
 
@@ -549,6 +581,7 @@ const dom = {
     playlistSide:document.getElementById("playlistSide"),
     playlistScroll:document.getElementById("playlistScroll"),
     hideSideBtn:document.getElementById("hideSideBtn"),
+    togglePlaylistBtn:document.getElementById("togglePlaylistBtn"),
     prevBtn:document.getElementById("prevBtn"),
     rewindBtn:document.getElementById("rewindBtn"),
     forwardBtn:document.getElementById("forwardBtn"),
@@ -563,18 +596,23 @@ const dom = {
     openPlayerBtn:document.getElementById("openPlayerBtn")
 };
 
-// 最小化播放器
+// 最小化悬浮播放器
 dom.minWinBtn.onclick = ()=>{
     dom.floatWindow.classList.add("minimize-state");
-    dom.openPlayerBtn.classList.remove("hide-btn");
 }
-// 右下角按钮恢复播放器
+// 底部右侧按钮恢复悬浮播放器（进度条平齐位置）
 dom.openPlayerBtn.onclick = ()=>{
     dom.floatWindow.classList.remove("minimize-state");
-    dom.openPlayerBtn.classList.add("hide-btn");
+}
+// 底部左侧目录按钮：切换播放列表侧边栏显示隐藏
+dom.togglePlaylistBtn.onclick = ()=>{
+    dom.playlistSide.style.display = dom.playlistSide.style.display === "none" ? "flex" : "none";
+}
+dom.hideSideBtn.onclick = ()=>{
+    dom.playlistSide.style.display = "none";
 }
 
-// ========= 窗口【拖拽移动】逻辑 =========
+// ========= 窗口拖拽移动 =========
 (function initWindowDrag(){
     let dragging = false;
     let startX, startY, winStartLeft, winStartTop;
@@ -600,7 +638,7 @@ dom.openPlayerBtn.onclick = ()=>{
     })
 })();
 
-// ========= 窗口【四边四角拉伸缩放】逻辑 =========
+// ========= 窗口四边四角拉伸缩放 =========
 (function initWindowResize(){
     const handles = document.querySelectorAll(".resize-handle");
     let resizing = false;
@@ -685,17 +723,10 @@ dom.openPlayerBtn.onclick = ()=>{
     })
 })();
 
-// 视频区域全屏按钮
+// 视频全屏
 dom.videoFullBtn.onclick = ()=>{
-    if (dom.mainVideo.requestFullscreen) {
-        dom.mainVideo.requestFullscreen();
-    } else if (dom.mainVideo.webkitRequestFullscreen) {
-        dom.mainVideo.webkitRequestFullscreen();
-    }
-}
-
-dom.hideSideBtn.onclick = ()=>{
-    dom.playlistSide.style.display = dom.playlistSide.style.display === "none" ? "flex":"none";
+    if (dom.mainVideo.requestFullscreen) dom.mainVideo.requestFullscreen();
+    else if (dom.mainVideo.webkitRequestFullscreen) dom.mainVideo.webkitRequestFullscreen();
 }
 
 // 悬浮歌词拖拽
@@ -725,18 +756,15 @@ dom.hideSideBtn.onclick = ()=>{
     document.addEventListener("mouseup",()=>dragging=false);
 })();
 
-// 获取当前播放媒体
 function getCurrentMedia(){
     return nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
 }
-// 格式化时间
 function formatTime(s){
     const m = Math.floor(s / 60);
     const sec = Math.floor(s % 60);
     return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
 }
 
-// 控制按钮事件
 dom.rewindBtn.onclick = ()=>{
     const m = getCurrentMedia(); if(!m) return; m.currentTime -=10;
 }
@@ -761,7 +789,6 @@ dom.nextBtn.onclick = ()=>{
     if(idx >= currentPlayList.length) idx = 0;
     playMedia(currentPlayList[idx]);
 }
-// 更新播放按钮图标
 function syncPlayBtnStatus(){
     const m = getCurrentMedia();
     if(!m){
@@ -771,7 +798,6 @@ function syncPlayBtnStatus(){
     dom.playPauseBtn.innerText = m.paused ? "▶" : "⏸";
 }
 
-// 进度条点击跳转
 dom.progressWrap.onclick = function(e){
     const media = getCurrentMedia();
     if(!media || !media.duration) return;
@@ -780,7 +806,6 @@ dom.progressWrap.onclick = function(e){
     media.currentTime = percent * media.duration;
 }
 
-// LRC解析
 function parseLRC(text){
     const result = [];
     const reg = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/;
@@ -831,7 +856,6 @@ function updateFloatLyric(nowT){
     dom.currLyric.innerHTML = renderKaraokeLine(currLine.text, ratio);
 }
 
-//全局快捷键
 document.addEventListener("keydown",e=>{
     const targetTag = e.target.tagName;
     if(targetTag === "INPUT" || targetTag === "TEXTAREA") return;
@@ -856,7 +880,7 @@ document.addEventListener("keydown",e=>{
 
 window.addEventListener("load", async () => {
     if(location.protocol==="file:"){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须网页托管访问</div>`;
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#9b5cff">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
     dom.navBtns.forEach(btn=>{
@@ -884,7 +908,7 @@ window.addEventListener("load", async () => {
         allResourceList=await res.json();
         renderFilterList();
     }catch(err){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:red">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#9b5cff">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
         console.error(err);
     }
 });
@@ -928,7 +952,7 @@ function addPlaylist(item){
 function renderPlaylist(){
     dom.playlistScroll.innerHTML="";
     if(currentPlayList.length===0){
-        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#999">播放目录为空</div>';
+        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#9988cc">播放目录为空</div>';
         return;
     }
     currentPlayList.forEach((item,index)=>{
