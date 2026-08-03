@@ -10,9 +10,13 @@
     padding: 0;
     box-sizing: border-box;
     font-family: "Microsoft Yahei", sans-serif;
+    outline: none !important;
+}
+button{
+    border: none !important;
+    outline: none !important;
 }
 body{
-    /* 替换为效果图 粉→浅蓝渐变，色彩适度加重 */
     background: linear-gradient(160deg, #ffd8ee 0%, #d0edff 100%);
     min-height: 100vh;
     overflow-x: hidden;
@@ -50,7 +54,6 @@ body::after{
     padding: 20px 0 12px;
     font-size: 42px;
     font-family: "KaiTi","STKaiti",serif;
-    /* 彩虹渐变标题文字 */
     background: linear-gradient(135deg,#ff88bb,#ffdd77,#88ddff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -71,27 +74,22 @@ body::after{
 .nav-btn{
     padding: 8px 18px;
     border-radius: 999px;
-    border: none;
     font-size: 15px;
     cursor: pointer;
     transition: 0.2s;
-    background: rgba(255,255,255,0.65);
+    background: linear-gradient(135deg, #ffe6f2, #e6f4ff);
     color:#333344;
-    /* 彩虹细边框 */
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 12px rgba(160,190,230,0.15);
     backdrop-filter: blur(6px);
 }
 .nav-btn.active{
-    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    background: linear-gradient(145deg, #ffb4d8, #9cd4ff);
     color:#222;
-    border-image:linear-gradient(90deg,#ff88c2,#ffd280,#80c8ff) 1;
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 6px 16px rgba(170,200,240,0.22);
 }
 .nav-btn:hover:not(.active){
     transform: translateY(-1px);
-    background: rgba(255,255,255,0.8);
+    background: linear-gradient(135deg, #ffdcec, #d9ecff);
 }
 .search-bar{
     width: 94%;
@@ -105,28 +103,20 @@ body::after{
     flex: 1;
     padding: 12px 16px;
     border-radius: 999px 0 0 999px;
-    outline: none;
     font-size: 15px;
-    background: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.75);
     color:#222;
     backdrop-filter: blur(6px);
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
-    border-right:none;
 }
 .search-bar input::placeholder{
     color:#666;
 }
 .search-bar button{
     padding: 0 22px;
-    border: none;
-    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    background: linear-gradient(145deg, #ffb4d8, #9cd4ff);
     color: #222;
     border-radius: 0 999px 999px 0;
     cursor: pointer;
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
-    border-left:none;
 }
 .main-wrap{
     width: 94%;
@@ -147,7 +137,7 @@ body::after{
     gap: 16px;
 }
 .music-card{
-    background: rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.65);
     border-radius: 16px;
     padding: 12px;
     cursor: pointer;
@@ -156,8 +146,6 @@ body::after{
     flex-direction: column;
     gap: 8px;
     backdrop-filter: blur(8px);
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 12px rgba(160,190,230,0.12);
 }
 .music-card:hover{
@@ -204,18 +192,16 @@ body::after{
     top:140px;
     right:2%;
     width:400px;
-    height:300px;
+    height:340px;
     min-width:360px;
-    min-height:280px;
-    background:rgba(255,255,255,0.58);
+    min-height:300px;
+    background:rgba(255,255,255,0.65);
     border-radius:20px;
     overflow:hidden;
     display:flex;
     z-index:99;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 10px 28px rgba(140,170,210,0.18);
 }
 .right-big-container.minimize-state{
@@ -237,12 +223,9 @@ body::after{
 .minimize-win-btn{
     width:28px;
     height:22px;
-    border:none;
     border-radius:999px;
-    background: rgba(255,255,255,0.65);
+    background: linear-gradient(135deg, #ffe6f2, #e6f4ff);
     color:#333;
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     font-weight:bold;
     cursor:pointer;
     backdrop-filter: blur(4px);
@@ -286,14 +269,11 @@ body::after{
     color:#333;
 }
 .hideSideBtn{
-    border:none;
     border-radius:999px;
     padding:4px 10px;
     cursor:pointer;
     color:#333;
-    background: rgba(255,255,255,0.65);
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    background: linear-gradient(135deg, #ffe6f2, #e6f4ff);
     backdrop-filter: blur(4px);
 }
 .playlist-scroll{
@@ -320,17 +300,16 @@ body::after{
     cursor:pointer;
     color:#333;
     transition:0.15s;
-    border: 1px solid transparent;
 }
 .playlist-item.active{
-    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    background: linear-gradient(145deg, #ffb4d8, #9cd4ff);
     color:#111;
 }
 .playlist-item:hover{
     background:rgba(255,255,255,0.85);
 }
 .playlist-item.active:hover{
-    background: linear-gradient(145deg, #ffb6da, #a6d4f8);
+    background: linear-gradient(145deg, #ffaace, #8ecbfa);
 }
 .item-name{
     overflow:hidden;
@@ -344,7 +323,6 @@ body::after{
     border-radius:999px;
     background: linear-gradient(145deg,#ff8fb3,#f05b8c);
     color:#fff;
-    border:none;
     font-size:12px;
     cursor:pointer;
     flex-shrink:0;
@@ -368,12 +346,9 @@ body::after{
     top:10px;
     right:10px;
     padding:4px 10px;
-    border:none;
     border-radius:999px;
-    background: rgba(255,255,255,0.65);
+    background: linear-gradient(135deg, #ffe6f2, #e6f4ff);
     color:#333;
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     cursor:pointer;
     font-size:12px;
     backdrop-filter: blur(4px);
@@ -385,10 +360,8 @@ body::after{
     left:0;
     bottom:0;
     width:100%;
-    background: rgba(255,255,255,0.62);
+    background: rgba(255,255,255,0.72);
     backdrop-filter: blur(16px);
-    border-top: 1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     padding:12px 20px 18px;
     z-index:999;
 }
@@ -445,11 +418,8 @@ body::after{
 }
 /* 水晶钻石胶囊按钮 */
 .control-btn{
-    border: none;
     border-radius: 999px;
-    background: rgba(255,255,255,0.65);
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
+    background: linear-gradient(135deg, #ffe6f2, #e6f4ff);
     color:#333;
     font-size:16px;
     cursor:pointer;
@@ -462,21 +432,21 @@ body::after{
 }
 .control-btn.play-main{
     padding:8px 22px;
-    background: linear-gradient(145deg, #ffc7e4, #b8e0ff);
+    background: linear-gradient(145deg, #ffb4d8, #9cd4ff);
     color:#111;
 }
 
 .lyric-area{
     text-align: center;
-    font-size: 16px;
+    font-size: 18px;
     color: #333;
     margin-top: 8px;
-    line-height: 1.8;
-    padding:8px;
-    min-height:80px;
+    line-height: 2;
+    padding:10px;
+    min-height:110px;
 }
 .lyric-normal{color:#666;}
-.lyric-active{color:#ff68aa;font-weight:bold;}
+.lyric-active{color:#ff4488;font-weight:bold;}
 
 /* =========【酷狗样式悬浮歌词】========= */
 .float-lyric-wrap{
@@ -484,31 +454,28 @@ body::after{
     bottom: 170px;
     left: 30px;
     min-width:260px;
-    min-height:90px;
-    width:340px;
+    min-height:110px;
+    width:380px;
     z-index:9999;
     cursor:move;
     user-select:none;
     overflow:hidden;
     display:block;
-    padding:10px 14px;
+    padding:12px 16px;
     border-radius:14px;
     background: transparent;
-    border:1px solid transparent;
     transition: all 0.25s ease;
 }
 .float-lyric-wrap:hover{
     background:rgba(255,255,255,0.35);
-    border:1px solid;
-    border-image:linear-gradient(90deg,#ffb8dd,#ffe2aa,#b2e4ff) 1;
     backdrop-filter: blur(4px);
 }
 .lyric-line{
     padding:8px 14px;
-    margin:4px 0;
+    margin:6px 0;
     border-radius:12px;
     background:transparent;
-    font-size:clamp(16px,2vw,26px);
+    font-size:clamp(18px,2.2vw,28px);
     letter-spacing:2px;
     text-shadow:0 0 6px rgba(255,180,220,0.55);
 }
@@ -804,7 +771,6 @@ dom.videoFullBtn.onclick = ()=>{
         if(!dragging) return;
         const moveX = initLeft + (e.clientX - startX);
         const moveY = initTop + (e.clientY - startY);
-        // 边界限制，防止拖出屏幕
         wrap.style.left = `${Math.max(0, Math.min(moveX, window.innerWidth - wrap.offsetWidth))}px`;
         wrap.style.top = `${Math.max(0, Math.min(moveY, window.innerHeight - wrap.offsetHeight))}px`;
     });
