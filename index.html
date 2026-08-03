@@ -127,6 +127,7 @@ body{
     color: #204080;
     padding: 40px 0;
 }
+/*播放器浮动窗口 可拖动+拉伸*/
 .player-box{
     position: fixed;
     bottom: 20px;
@@ -141,6 +142,18 @@ body{
     z-index: 999;
     max-width: 95vw;
     max-height: 90vh;
+    min-width:340px;
+    min-height:420px;
+}
+/*拖拽顶部区域*/
+.player-drag-header{
+    width:100%;
+    height:44px;
+    position:absolute;
+    top:0;
+    left:0;
+    cursor:move;
+    z-index:8;
 }
 .fullscreen-btn{
     position: absolute;
@@ -217,6 +230,12 @@ body{
     white-space: nowrap;
     font-size: 13px;
     cursor: pointer;
+    transition:0.2s;
+}
+/*正在播放高亮样式*/
+.list-item.active{
+    background:#4299e1;
+    color:#fff;
 }
 .del-btn{
     position: absolute;
@@ -239,14 +258,15 @@ body{
     margin-top: 8px;
     line-height: 1.5;
 }
+/*悬浮歌词【层级最高，可以拖出播放器窗口】*/
 .float-lyric-wrap{
-    position: absolute;
-    top: 60px;
-    left: 16px;
+    position: fixed;
+    top: 120px;
+    left: 30px;
     min-width:260px;
     min-height:90px;
-    width:78%;
-    z-index:15;
+    width:32%;
+    z-index:9999;
     cursor:move;
     user-select:none;
     resize:both;
@@ -296,6 +316,9 @@ body{
 </div>
 
 <div class="player-box" id="playerWrap">
+    <!--播放器拖拽头部区域-->
+    <div class="player-drag-header" id="playerDragHead"></div>
+
     <button class="lyric-toggle-btn" id="lyricToggleBtn">悬浮歌词</button>
     <div class="fullscreen-btn" id="fullBtn">⛶</div>
     <div class="float-lyric-wrap" id="floatLyricWrap">
@@ -339,45 +362,63 @@ const dom = {
     prevLyric: document.getElementById("prevLyric"),
     currLyric: document.getElementById("currLyric"),
     lyricToggleBtn: document.getElementById("lyricToggleBtn"),
-    playerWrap: document.getElementById("playerWrap")
+    playerWrap: document.getElementById("playerWrap"),
+    playerDragHead:document.getElementById("playerDragHead")
 };
 
-// 悬浮歌词拖拽初始化
+// ========== 1.播放器窗口拖拽移动 ==========
+(function initPlayerDrag(){
+    const dragHead = dom.playerDragHead;
+    const player = dom.playerWrap;
+    let dragging = false,ox,oy;
+    dragHead.addEventListener("mousedown",e=>{
+        dragging=true;
+        ox = e.clientX - player.getBoundingClientRect().left;
+        oy = e.clientY - player.getBoundingClientRect().top;
+    })
+    document.addEventListener("mousemove",e=>{
+        if(!dragging) return;
+        let x = e.clientX - ox;
+        let y = e.clientY - oy;
+        x = Math.max(0, Math.min(x, window.innerWidth-player.offsetWidth));
+        y = Math.max(0, Math.min(y, window.innerHeight-player.offsetHeight));
+        player.style.left = `${x}px`;
+        player.style.bottom = "auto";
+        player.style.top = `${y}px`;
+    })
+    document.addEventListener("mouseup",()=>dragging=false);
+})();
+
+// ========== 2.悬浮歌词全局拖拽（可拖出播放器） ==========
 (function initLyricDrag(){
     const wrap = dom.floatLyricWrap;
     let dragging = false, ox, oy;
-    const edgeThreshold = 14;
     wrap.addEventListener("mousedown",e=>{
         const rect = wrap.getBoundingClientRect();
-        const pRect = dom.playerWrap.getBoundingClientRect();
+        const edgeThreshold =12;
         const isResizeEdge = e.clientX-rect.left<edgeThreshold||rect.right-e.clientX<edgeThreshold||e.clientY-rect.top<edgeThreshold||rect.bottom-e.clientY<edgeThreshold;
         if(isResizeEdge) return;
         dragging = true;
         ox = e.clientX - rect.left;
         oy = e.clientY - rect.top;
-        wrap.style.cursor = "grabbing";
     });
     document.addEventListener("mousemove",e=>{
         if(!dragging) return;
-        const pRect = dom.playerWrap.getBoundingClientRect();
-        let x = e.clientX-pRect.left-ox;
-        let y = e.clientY-pRect.top-oy;
-        x = Math.max(0, Math.min(x, dom.playerWrap.offsetWidth-wrap.offsetWidth));
-        y = Math.max(0, Math.min(y, dom.playerWrap.offsetHeight-wrap.offsetHeight));
+        let x = e.clientX-ox;
+        let y = e.clientY-oy;
+        x = Math.max(0, Math.min(x, window.innerWidth-wrap.offsetWidth));
+        y = Math.max(0, Math.min(y, window.innerHeight-wrap.offsetHeight));
         wrap.style.left = `${x}px`;
         wrap.style.top = `${y}px`;
     });
-    document.addEventListener("mouseup",()=>{
-        dragging = false;
-        wrap.style.cursor = "move";
-    });
+    document.addEventListener("mouseup",()=>dragging=false);
 })();
 
 dom.lyricToggleBtn.addEventListener("click",()=>{
     dom.floatLyricWrap.style.display = dom.floatLyricWrap.style.display==="none"?"block":"none";
 });
 
-// 歌词解析模块
+// ========== 歌词解析 ==========
 function parseLyric(rawText) {
     return rawText.includes("krcc")||rawText.includes("KRC") ? parseKRC(rawText) : parseLRC(rawText);
 }
@@ -409,7 +450,6 @@ function parseKRC(krcText){
     return list.sort((a,b)=>a.time-b.time);
 }
 
-// 更新悬浮歌词
 function updateFloatLyric(nowT){
     lastPlayTime = nowT;
     if(!parsedLyricList.length){
@@ -426,13 +466,45 @@ function updateFloatLyric(nowT){
     dom.currLyric.innerText=parsedLyricList[idx].text;
 }
 
-// 页面初始化入口
+// ========== 全局快捷键 ==========
+document.addEventListener("keydown",e=>{
+    //输入框内禁用快捷键
+    const tag = e.target.tagName;
+    if(tag==="INPUT"||tag==="TEXTAREA") return;
+
+    const media = nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
+    if(!media) return;
+
+    switch(e.code){
+        case "Space":
+            e.preventDefault();
+            media.paused ? media.play() : media.pause();
+            break;
+        case "ArrowLeft":
+            e.preventDefault();
+            media.currentTime -=10;
+            break;
+        case "ArrowRight":
+            e.preventDefault();
+            media.currentTime +=10;
+            break;
+        case "KeyF":
+            toggleFullScreen();
+            break;
+        case "Escape":
+            if(document.fullscreenElement||document.webkitFullscreenElement){
+                const exit=()=>document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen?.();
+                exit();
+            }
+            break;
+    }
+})
+
 window.addEventListener("load", async () => {
     if(location.protocol==="file:"){
         dom.cardContainer.innerHTML=`<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
-    // 导航切换绑定
     dom.navBtns.forEach(btn=>{
         btn.addEventListener("click",()=>{
             dom.navBtns.forEach(b=>b.classList.remove("active"));
@@ -441,21 +513,16 @@ window.addEventListener("load", async () => {
             renderFilterList();
         });
     });
-    // 搜索事件绑定
     dom.searchBtn.addEventListener("click",searchResource);
     dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
-    // 全屏按钮
     dom.fullBtn.addEventListener("click",toggleFullScreen);
 
-    // 音视频进度条统一回调
     const timeUpdateCallback = function(){
-        const currentTime = this.currentTime;
-        updateFloatLyric(currentTime);
+        updateFloatLyric(this.currentTime);
     }
     dom.mainVideo.ontimeupdate = timeUpdateCallback;
     dom.mainAudio.ontimeupdate = timeUpdateCallback;
 
-    // 加载全部资源列表
     try{
         const res=await fetch(`${API_BASE}/getResourceList`);
         if(!res.ok) throw new Error(`接口状态码:${res.status}`);
@@ -467,7 +534,6 @@ window.addEventListener("load", async () => {
     }
 });
 
-// 筛选渲染卡片
 function renderFilterList(){
     let list=allResourceList;
     if(currentTabType!=="all") list=list.filter(i=>i.type===currentTabType);
@@ -492,18 +558,17 @@ function renderCard(list){
     })
 }
 
-// 添加播放列表
 function addPlaylist(item){
     if(currentPlayList.some(i=>i.id===item.id))return;
     currentPlayList.push(item);
     renderPlaylist();
 }
-// 渲染底部横向播放列表
 function renderPlaylist(){
     dom.playListBox.innerHTML="";
     currentPlayList.forEach(item=>{
         const li=document.createElement("div");
         li.className="list-item";
+        if(nowPlayingItem && nowPlayingItem.id===item.id) li.classList.add("active");
         li.innerHTML=`${item.singer||"未知歌手"} - ${item.name}<span class="del-btn">×</span>`;
         li.onclick=e=>{
             if(!e.target.classList.contains("del-btn")) playMedia(item);
@@ -517,10 +582,8 @@ function renderPlaylist(){
     })
 }
 
-// 核心播放函数（播放器问题全部修复集中在此）
 async function playMedia(item){
     nowPlayingItem=item;
-    // 清空上一轮播放残留
     dom.mainVideo.pause();
     dom.mainVideo.src = "";
     dom.mainVideo.style.display = "none";
@@ -533,27 +596,24 @@ async function playMedia(item){
     dom.currLyric.innerText = "暂无歌词";
     dom.lyricBox.innerText = "加载歌词中...";
 
-    // 严格依靠type字段区分音视频，不再用后缀判断
     if(item.type === "video"){
         dom.mainVideo.style.display = "block";
         dom.mainVideo.src = item.videoLink;
-        // 视频加载完成后自动播放
         dom.mainVideo.onloadedmetadata = function(){
             dom.mainVideo.play().catch(()=>{});
         }
     }else if(item.type === "music"){
         dom.playCoverBox.style.display = "flex";
         dom.mainAudio.src = item.audioLink;
-        // WAV音频强制预加载，加载就绪后播放，解决无声问题
         dom.mainAudio.load();
         dom.mainAudio.oncanplaythrough = function(){
             dom.mainAudio.play().catch(()=>{});
         }
     }
-    // 封面图赋值
     if(item.coverImg) dom.playCoverImg.src=item.coverImg;
 
-    // 歌词请求容错：无歌词名直接跳过，杜绝400报错
+    renderPlaylist();
+
     if(!item.lyricName){
         dom.lyricBox.innerText = "暂无匹配歌词";
         dom.currLyric.innerText = "暂无匹配歌词";
@@ -576,7 +636,6 @@ async function playMedia(item){
     }
 }
 
-// 全屏切换兼容所有浏览器
 function toggleFullScreen(){
     const target=dom.mainVideo;
     const enterFull = (el)=>{
@@ -602,7 +661,6 @@ document.addEventListener('webkitfullscreenchange',()=>{
     dom.fullBtn.innerText=document.webkitFullscreenElement?"⊡":"⛶";
 });
 
-// 搜索资源过滤
 function searchResource(){
     const kw=dom.searchInput.value.trim().toLowerCase();
     if(!kw){
