@@ -12,20 +12,67 @@
     font-family: "Microsoft Yahei", sans-serif;
 }
 body{
-    background: linear-gradient(160deg, #a8e0ff 0%, #e0f4ff 100%);
+    /* 玄幻星空底层渐变 */
+    background:
+        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.8) 0%, transparent 8%),
+        radial-gradient(circle at 30% 10%, rgba(180,140,255,0.6) 0%, transparent 10%),
+        radial-gradient(circle at 70% 15%, rgba(100,180,255,0.6) 0%, transparent 12%),
+        radial-gradient(circle at 50% 50%, rgba(255,210,255,0.5) 0%, transparent 16%),
+        radial-gradient(circle at 80% 60%, rgba(140,110,220,0.6) 0%, transparent 10%),
+        radial-gradient(circle at 20% 80%, rgba(100,200,255,0.5) 0%, transparent 12%),
+        linear-gradient(160deg, #0f172a 0%, #1e293b 45%, #312e81 100%);
     min-height: 100vh;
     overflow-x: hidden;
     padding-bottom: 160px;
+    position: relative;
+}
+/* 星光闪烁层 */
+body::before{
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px);
+    background-size: 20px 20px, 35px 35px, 50px 50px;
+    background-position: 0 0, 10px 10px, 25px 25px;
+    animation: twinkle 8s infinite ease-in-out;
+}
+/* 顶部星云紫光光晕 */
+body::after{
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 0%, rgba(160,110,255,0.18), transparent 35%);
+}
+@keyframes twinkle{
+    0%{ opacity: 0.6; }
+    50%{ opacity: 1; }
+    100%{ opacity: 0.6; }
 }
 .main-title{
     text-align: center;
     padding: 20px 0 12px;
     font-size: 42px;
     font-family: "KaiTi","STKaiti",serif;
-    background: linear-gradient(135deg,#204080,#3a6fc9);
+    /* 钻石粉晶文字渐变 */
+    background: linear-gradient(135deg,#ffc6e8,#c3b2ff,#90d8ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 3px;
+    position: relative;
+    z-index: 2;
 }
 .nav-bar{
     width: 94%;
@@ -34,6 +81,8 @@ body{
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 2;
 }
 .nav-btn{
     padding: 8px 18px;
@@ -42,42 +91,54 @@ body{
     font-size: 15px;
     cursor: pointer;
     transition: 0.2s;
-    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
-    color:#6a4abc;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -5px 12px rgba(180,140,255,0.35), 0 4px 0 rgba(90,60,180,0.25), 0 8px 18px rgba(30,60,150,0.18);
+    /* 水晶玻璃质感 */
+    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
+    color:#f0dfff;
+    border: 1px solid rgba(255,220,250,0.25);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -5px 12px rgba(180,140,255,0.25), 0 4px 0 rgba(90,60,180,0.25), 0 8px 18px rgba(30,60,150,0.18);
+    backdrop-filter: blur(6px);
 }
 .nav-btn.active{
-    background: linear-gradient(145deg, #9b5cff, #4a88ff);
+    background: linear-gradient(145deg, #d888ff, #7298ff);
     color:#fff;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -6px 14px rgba(90,60,180,0.45), 0 4px 0 #2d5aa8, 0 8px 20px rgba(74,136,255,0.35);
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -6px 14px rgba(90,60,180,0.45), 0 4px 0 #422d88, 0 8px 20px rgba(190,130,255,0.35);
 }
 .nav-btn:hover:not(.active){
     transform: translateY(1px);
+    background: linear-gradient(145deg, rgba(255,230,250,0.35), rgba(190,210,255,0.25));
 }
 .search-bar{
     width: 94%;
     max-width: 1400px;
     margin: 0 auto 24px;
     display: flex;
+    position: relative;
+    z-index: 2;
 }
 .search-bar input{
     flex: 1;
     padding: 12px 16px;
-    border: none;
+    border: 1px solid rgba(255,220,250,0.25);
     border-radius: 999px 0 0 999px;
     outline: none;
     font-size: 15px;
-    background: rgba(240,245,255,0.9);
+    background: rgba(255,255,255,0.08);
+    color:#fff;
+    backdrop-filter: blur(6px);
     box-shadow: inset 0 2px 6px rgba(150,120,220,0.15);
+}
+.search-bar input::placeholder{
+    color:rgba(255,255,255,0.55);
 }
 .search-bar button{
     padding: 0 22px;
     border: none;
-    background: linear-gradient(145deg, #9b5cff, #4a88ff);
+    background: linear-gradient(145deg, #d888ff, #7298ff);
     color: #fff;
     border-radius: 0 999px 999px 0;
     cursor: pointer;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), 0 4px 0 #2d5aa8, 0 8px 20px rgba(74,136,255,0.35);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), 0 4px 0 #422d88, 0 8px 20px rgba(190,130,255,0.35);
 }
 .main-wrap{
     width: 94%;
@@ -86,6 +147,8 @@ body{
     display:flex;
     gap:24px;
     align-items:flex-start;
+    position: relative;
+    z-index: 2;
 }
 .left-card-area{
     width:100%;
@@ -96,8 +159,8 @@ body{
     gap: 16px;
 }
 .music-card{
-    background: rgba(255,255,255,0.65);
-    border:1px solid #d4c8f5;
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(230,200,255,0.22);
     border-radius: 16px;
     padding: 12px;
     cursor: pointer;
@@ -105,22 +168,24 @@ body{
     display: flex;
     flex-direction: column;
     gap: 8px;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), 0 4px 12px rgba(150,110,220,0.12);
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 4px 12px rgba(150,110,220,0.12);
 }
 .music-card:hover{
     transform: translateY(-4px);
-    box-shadow: 0 6px 18px rgba(150,110,220,0.2);
+    border-color: rgba(220,170,255,0.45);
+    box-shadow: 0 6px 18px rgba(180,120,255,0.25);
 }
 .cover-box{
     width: 100%;
     aspect-ratio: 1/1;
     border-radius: 12px;
     overflow: hidden;
-    background: #eeeeee;
+    background: rgba(255,255,255,0.06);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6a4abc;
+    color: #e8d6ff;
     font-size: 16px;
 }
 .cover-box img{
@@ -131,7 +196,7 @@ body{
 .card-text{
     font-size: 13px;
     text-align: center;
-    color:#6a4abc;
+    color:#e8d6ff;
 }
 .card-text small{
     font-size:11px;
@@ -140,7 +205,7 @@ body{
 .load-tip{
     text-align: center;
     font-size: 16px;
-    color: #6a4abc;
+    color: #e8d6ff;
     padding: 40px 0;
     grid-column:1/-1;
 }
@@ -154,14 +219,15 @@ body{
     height:300px;
     min-width:360px;
     min-height:280px;
-    background:rgba(242,238,255,0.72);
-    border:1px solid #d4c8f5;
+    background:rgba(25,15,45,0.55);
+    border:1px solid rgba(220,180,255,0.25);
     border-radius:20px;
     overflow:hidden;
     display:flex;
     z-index:99;
     transition: all 0.3s ease;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 10px 28px rgba(120,80,200,0.18);
+    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 10px 28px rgba(120,80,200,0.25);
 }
 .right-big-container.minimize-state{
     display:none;
@@ -184,11 +250,13 @@ body{
     height:22px;
     border:none;
     border-radius:999px;
-    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
-    color:#6a4abc;
+    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
+    color:#e8d6ff;
+    border: 1px solid rgba(255,220,250,0.25);
     font-weight:bold;
     cursor:pointer;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -4px 10px rgba(180,140,255,0.35), 0 3px 8px rgba(90,60,180,0.2);
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
 }
 .resize-handle{
     position:absolute;
@@ -205,10 +273,10 @@ body{
 
 .playlist-sidebar{
     width:38%;
-    border-right:1px solid #d4c8f5;
+    border-right:1px solid rgba(220,180,255,0.22);
     display:flex;
     flex-direction:column;
-    background:rgba(236,230,255,0.6);
+    background:rgba(40,20,60,0.35);
 }
 .player-window{
     flex:1;
@@ -221,21 +289,23 @@ body{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    border-bottom:1px solid #d4c8f5;
+    border-bottom:1px solid rgba(220,180,255,0.22);
     margin-top:28px;
 }
 .sidebar-head h4{
     font-size:18px;
-    color:#6a4abc;
+    color:#e8d6ff;
 }
 .hideSideBtn{
     border:none;
     border-radius:999px;
     padding:4px 10px;
     cursor:pointer;
-    color:#6a4abc;
-    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -4px 10px rgba(180,140,255,0.35), 0 3px 8px rgba(90,60,180,0.2);
+    color:#e8d6ff;
+    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
+    border: 1px solid rgba(255,220,250,0.25);
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
 }
 .playlist-scroll{
     flex:1;
@@ -245,29 +315,36 @@ body{
 .playlist-scroll::-webkit-scrollbar{
     width:4px;
 }
+.playlist-scroll::-webkit-scrollbar-thumb{
+    background:rgba(210,160,255,0.35);
+    border-radius:4px;
+}
 .playlist-item{
     padding:8px 10px;
     border-radius:12px;
     margin-bottom:6px;
-    background:rgba(225,215,255,0.7);
+    background:rgba(255,255,255,0.06);
     font-size:13px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     cursor:pointer;
-    color:#6a4abc;
+    color:#e8d6ff;
     transition:0.15s;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.6);
+    border: 1px solid transparent;
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
 }
 .playlist-item.active{
-    background: linear-gradient(145deg, #9b5cff, #4a88ff);
+    background: linear-gradient(145deg, #d888ff, #7298ff);
     color:#fff;
+    border-color:rgba(255,255,255,0.3);
 }
 .playlist-item:hover{
-    background:rgba(210,195,255,0.85);
+    background:rgba(255,255,255,0.12);
+    border-color:rgba(220,180,255,0.35);
 }
 .playlist-item.active:hover{
-    background: linear-gradient(145deg, #8b4cee, #3b78ee);
+    background: linear-gradient(145deg, #c670ee, #6088ee);
 }
 .item-name{
     overflow:hidden;
@@ -308,21 +385,24 @@ body{
     padding:4px 10px;
     border:none;
     border-radius:999px;
-    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
-    color:#6a4abc;
+    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
+    color:#e8d6ff;
+    border: 1px solid rgba(255,220,250,0.25);
     cursor:pointer;
     font-size:12px;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), inset 0 -4px 10px rgba(180,140,255,0.35), 0 3px 8px rgba(90,60,180,0.2);
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
 }
 
-/* ========== 底部播放器布局调整 ========== */
+/* ========== 底部播放器布局 ========== */
 .bottom-player{
     position:fixed;
     left:0;
     bottom:0;
     width:100%;
-    background: linear-gradient(180deg, rgba(226,218,255,0.65), rgba(200,185,250,0.75));
-    backdrop-filter: blur(12px);
+    background: linear-gradient(180deg, rgba(45,25,75,0.65), rgba(25,12,45,0.75));
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(220,180,255,0.22);
     padding:12px 20px 18px;
     z-index:999;
 }
@@ -355,22 +435,23 @@ body{
 .progress-wrap{
     width:100%;
     height:10px;
-    background:rgba(255,255,255,0.45);
+    background:rgba(255,255,255,0.08);
     border-radius:999px;
     cursor:pointer;
+    border: 1px solid rgba(220,180,255,0.15);
     box-shadow: inset 0 2px 5px rgba(140,100,210,0.15);
 }
 .progress-bar{
     height:100%;
     width:0%;
-    background: linear-gradient(90deg,#9b5cff,#4a88ff);
+    background: linear-gradient(90deg,#d888ff,#7298ff);
     border-radius:999px;
 }
 .time-row{
     display:flex;
     justify-content:space-between;
     font-size:13px;
-    color:#6a4abc;
+    color:#e8d6ff;
 }
 .player-control-row{
     display:flex;
@@ -378,18 +459,20 @@ body{
     gap:10px;
     align-items:center;
 }
-/* 水晶胶囊按钮核心样式 */
+/* 水晶钻石胶囊按钮 */
 .control-btn{
     border: none;
     border-radius: 999px;
-    background: linear-gradient(145deg, rgba(230,240,255,0.95), rgba(190,210,255,0.95));
-    color:#6a4abc;
+    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
+    border: 1px solid rgba(255,220,250,0.25);
+    color:#e8d6ff;
     font-size:16px;
     cursor:pointer;
     padding:8px 14px;
+    backdrop-filter: blur(4px);
     box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.75),
-        inset 0 -5px 12px rgba(180,140,255,0.35),
+        inset 0 1px 1px rgba(255,255,255,0.35),
+        inset 0 -5px 12px rgba(180,140,255,0.25),
         0 4px 0 rgba(90,60,180,0.25),
         0 8px 18px rgba(30,60,150,0.18);
     transition: all 0.12s ease;
@@ -397,40 +480,43 @@ body{
 .control-btn:active{
     transform: translateY(2px);
     box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.75),
-        inset 0 -3px 8px rgba(180,140,255,0.35),
+        inset 0 1px 1px rgba(255,255,255,0.35),
+        inset 0 -3px 8px rgba(180,140,255,0.25),
         0 2px 0 rgba(90,60,180,0.25),
         0 4px 10px rgba(30,60,150,0.12);
 }
 .control-btn.play-main{
     padding:8px 22px;
-    background: linear-gradient(145deg, #9b5cff, #4a88ff);
+    background: linear-gradient(145deg, #d888ff, #7298ff);
     color:#fff;
+    border: 1px solid rgba(255,255,255,0.3);
     box-shadow:
         inset 0 1px 1px rgba(255,255,255,0.45),
         inset 0 -6px 14px rgba(90,60,180,0.45),
-        0 4px 0 #2d5aa8,
-        0 8px 20px rgba(74,136,255,0.35);
+        0 4px 0 #422d88,
+        0 8px 20px rgba(190,130,255,0.35);
 }
 .control-btn.play-main:active{
     box-shadow:
         inset 0 1px 1px rgba(255,255,255,0.45),
         inset 0 -3px 8px rgba(90,60,180,0.45),
-        0 2px 0 #2d5aa8,
-        0 4px 12px rgba(74,136,255,0.25);
+        0 2px 0 #422d88,
+        0 4px 12px rgba(190,130,255,0.25);
 }
 
 .lyric-area{
     text-align: center;
     font-size: 16px;
-    color: #6a4abc;
+    color: #e8d6ff;
     margin-top: 8px;
     line-height: 1.8;
     padding:8px;
     min-height:80px;
 }
-.lyric-normal{color:#9988cc;}
-.lyric-active{color:#9b5cff;font-weight:bold;}
+.lyric-normal{color:#b8a2dd;}
+.lyric-active{color:#ffb8ee;font-weight:bold;}
+
+/* =========【已修改：酷狗样式悬浮歌词】========= */
 .float-lyric-wrap{
     position: fixed;
     bottom: 170px;
@@ -441,19 +527,29 @@ body{
     z-index:9999;
     cursor:move;
     user-select:none;
-    resize:both;
     overflow:hidden;
     display:block;
+    padding:10px 14px;
+    border-radius:14px;
+    /* 默认：透明，无背景无边框，只显示文字 */
     background: transparent;
+    border:1px solid transparent;
+    transition: all 0.25s ease;
+}
+/* 鼠标移入才显示拖拽外框 */
+.float-lyric-wrap:hover{
+    background:rgba(40,20,70,0.22);
+    border: 1px solid rgba(210,170,255,0.35);
+    backdrop-filter: blur(4px);
 }
 .lyric-line{
     padding:8px 14px;
     margin:4px 0;
     border-radius:12px;
-    background:rgba(120,80,200,0.32);
-    backdrop-filter:blur(6px);
+    background:transparent;
     font-size:clamp(16px,2vw,26px);
     letter-spacing:2px;
+    text-shadow:0 0 6px rgba(240,180,255,0.55);
 }
 .prev-line{
     color:#ffffff;
@@ -519,7 +615,7 @@ body{
     </div>
 </div>
 
-<!-- 底部播放器：新布局 -->
+<!-- 底部播放器：最终布局 -->
 <div class="bottom-player">
     <div class="inner-row">
         <!-- 左侧：播放目录切换按钮 + 播放控制 -->
@@ -600,7 +696,7 @@ const dom = {
 dom.minWinBtn.onclick = ()=>{
     dom.floatWindow.classList.add("minimize-state");
 }
-// 底部右侧按钮恢复悬浮播放器（进度条平齐位置）
+// 底部右侧按钮恢复悬浮播放器
 dom.openPlayerBtn.onclick = ()=>{
     dom.floatWindow.classList.remove("minimize-state");
 }
@@ -729,31 +825,32 @@ dom.videoFullBtn.onclick = ()=>{
     else if (dom.mainVideo.webkitRequestFullscreen) dom.mainVideo.webkitRequestFullscreen();
 }
 
-// 悬浮歌词拖拽
+// =========【优化后的悬浮歌词拖拽】=========
 (function initLyricDrag(){
     const wrap = dom.floatLyricWrap;
-    let dragging = false, ox, oy;
+    let dragging = false, startX, startY, initLeft, initTop;
     wrap.addEventListener("mousedown",e=>{
-        const rect = wrap.getBoundingClientRect();
-        const edgeRange =14;
-        const isResizeArea = e.clientX-rect.left<edgeRange || rect.right-e.clientX<edgeRange
-        || e.clientY-rect.top<edgeRange || rect.bottom-e.clientY<edgeRange;
-        if(isResizeArea) return;
         dragging = true;
-        ox = e.clientX - rect.left;
-        oy = e.clientY - rect.top;
+        startX = e.clientX;
+        startY = e.clientY;
+        const rect = wrap.getBoundingClientRect();
+        initLeft = rect.left;
+        initTop = rect.top;
+        wrap.style.zIndex = 10000;
         e.preventDefault();
     });
     document.addEventListener("mousemove",e=>{
         if(!dragging) return;
-        let x = e.clientX-ox;
-        let y = e.clientY-oy;
-        x = Math.max(0, Math.min(x, window.innerWidth-wrap.offsetWidth));
-        y = Math.max(0, Math.min(y, window.innerHeight-wrap.offsetHeight));
-        wrap.style.left = `${x}px`;
-        wrap.style.top = `${y}px`;
+        const moveX = initLeft + (e.clientX - startX);
+        const moveY = initTop + (e.clientY - startY);
+        // 边界限制，防止拖出屏幕
+        wrap.style.left = `${Math.max(0, Math.min(moveX, window.innerWidth - wrap.offsetWidth))}px`;
+        wrap.style.top = `${Math.max(0, Math.min(moveY, window.innerHeight - wrap.offsetHeight))}px`;
     });
-    document.addEventListener("mouseup",()=>dragging=false);
+    document.addEventListener("mouseup",()=>{
+        dragging = false;
+        wrap.style.zIndex = 9999;
+    })
 })();
 
 function getCurrentMedia(){
@@ -880,7 +977,7 @@ document.addEventListener("keydown",e=>{
 
 window.addEventListener("load", async () => {
     if(location.protocol==="file:"){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#9b5cff">禁止本地双击打开HTML，必须网页托管访问</div>`;
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
     dom.navBtns.forEach(btn=>{
@@ -908,7 +1005,7 @@ window.addEventListener("load", async () => {
         allResourceList=await res.json();
         renderFilterList();
     }catch(err){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#9b5cff">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
         console.error(err);
     }
 });
@@ -952,7 +1049,7 @@ function addPlaylist(item){
 function renderPlaylist(){
     dom.playlistScroll.innerHTML="";
     if(currentPlayList.length===0){
-        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#9988cc">播放目录为空</div>';
+        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#b8a2dd">播放目录为空</div>';
         return;
     }
     currentPlayList.forEach((item,index)=>{
