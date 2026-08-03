@@ -73,7 +73,6 @@ body{
     border-radius: 0 999px 999px 0;
     cursor: pointer;
 }
-/* 主体左右布局：左卡片 */
 .main-wrap{
     width: 94%;
     max-width: 1400px;
@@ -87,7 +86,7 @@ body{
 }
 .card-wrap{
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(8, 1fr);
     gap: 16px;
 }
 .music-card{
@@ -123,12 +122,12 @@ body{
     object-fit: cover;
 }
 .card-text{
-    font-size: 14px;
+    font-size: 13px;
     text-align: center;
     color:#1957a0;
 }
 .card-text small{
-    font-size:12px;
+    font-size:11px;
     opacity:0.7;
 }
 .load-tip{
@@ -139,13 +138,13 @@ body{
     grid-column:1/-1;
 }
 
-/* ===== 右侧悬浮窗口：fixed固定视口！滚动不跟随页面移动 + 整体缩小尺寸 ===== */
+/* ===== 悬浮播放器窗口【初始化缩小 宽400 高300】 ===== */
 .right-big-container{
     position: fixed;
     top:140px;
     right:2%;
-    width:480px;
-    height:360px;
+    width:400px;
+    height:300px;
     min-width:360px;
     min-height:280px;
     background:rgba(255,255,255,0.65);
@@ -154,6 +153,11 @@ body{
     overflow:hidden;
     display:flex;
     z-index:99;
+    transition: all 0.3s ease;
+}
+/* 最小化状态 */
+.right-big-container.minimize-state{
+    display:none;
 }
 /* 拖拽头部区域 */
 .drag-handle{
@@ -164,6 +168,21 @@ body{
     left:0;
     cursor:move;
     z-index:5;
+    display:flex;
+    justify-content: flex-end;
+    align-items:center;
+    padding-right:8px;
+}
+/* 最小化减号按钮 */
+.minimize-win-btn{
+    width:24px;
+    height:20px;
+    border:none;
+    background:rgba(140,200,245,0.5);
+    border-radius:6px;
+    cursor:pointer;
+    color:#1957a0;
+    font-weight:bold;
 }
 /* 四边四角缩放手柄 */
 .resize-handle{
@@ -179,14 +198,12 @@ body{
 .resize-lb{left:0;bottom:0;width:12px;height:12px;cursor:sw-resize;}
 .resize-rb{right:0;bottom:0;width:12px;height:12px;cursor:se-resize;}
 
-/* 左小块：播放目录 */
 .playlist-sidebar{
     width:38%;
     border-right:1px solid #d4e6f7;
     display:flex;
     flex-direction:column;
 }
-/* 右大块：播放器区域 */
 .player-window{
     flex:1;
     display:flex;
@@ -262,7 +279,6 @@ body{
     flex-shrink:0;
 }
 
-/* 播放器窗口内视频区域 */
 .video-container{
     flex:1;
     padding:8px;
@@ -289,7 +305,7 @@ body{
     font-size:12px;
 }
 
-/* ========== 底部通栏播放器：进度条下移和按钮水平同线 ========== */
+/* ========== 底部播放器：胶囊3D立体按钮样式 ========== */
 .bottom-player{
     position:fixed;
     left:0;
@@ -297,17 +313,23 @@ body{
     width:100%;
     background: linear-gradient(180deg, rgba(180,225,255,0.6), rgba(140,200,245,0.8));
     backdrop-filter: blur(10px);
-    padding:0 30px 18px;
+    padding:12px 30px 18px;
     z-index:999;
 }
-/* 进度条下移：和控制按钮水平线对齐 */
-.progress-wrap{
+.bottom-player .inner-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
     width:100%;
+}
+.progress-wrap{
+    flex:1;
     height:6px;
     background:rgba(255,255,255,0.4);
     border-radius:4px;
-    margin:14px 0 0;
     cursor:pointer;
+    max-width:720px;
 }
 .progress-bar{
     height:100%;
@@ -320,30 +342,35 @@ body{
     justify-content:space-between;
     font-size:13px;
     color:#1957a0;
-    margin:4px 0 8px;
+    margin:6px auto 0;
+    max-width:calc(720px + 220px);
 }
 .player-control-row{
     display:flex;
     justify-content:center;
-    gap:14px;
+    gap:10px;
     align-items:center;
+    flex-shrink:0;
 }
+/* 胶囊3D按钮核心样式 */
 .control-btn{
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    border:1px solid #fff;
-    background:rgba(255,255,255,0.35);
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(145deg, #e6f4ff, #b8e0fc);
     color:#1957a0;
     font-size:16px;
     cursor:pointer;
-    display:grid;
-    place-items:center;
+    padding:8px 16px;
+    box-shadow: 0 4px 0 #86b8e0, 0 6px 12px rgba(0,80,160,0.15);
+    transition: all 0.1s ease;
+}
+.control-btn:active{
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #86b8e0, 0 3px 6px rgba(0,80,160,0.12);
 }
 .control-btn.play-main{
-    width:50px;
-    height:50px;
-    background:rgba(66,153,225,0.6);
+    padding:10px 26px;
+    background: linear-gradient(145deg,#60b8ff,#3487c9);
     color:#fff;
 }
 
@@ -390,6 +417,28 @@ body{
 .curr-line{
     text-align:right;
 }
+
+/* ===== 右下角唤起播放器按钮 ===== */
+.float-open-player{
+    position:fixed;
+    right:24px;
+    bottom:220px;
+    z-index:1000;
+    border-radius:999px;
+    padding:10px 16px;
+    border:none;
+    background:linear-gradient(145deg,#60b8ff,#3487c9);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(40,120,200,0.3);
+    cursor:pointer;
+    transition:0.2s;
+}
+.float-open-player:hover{
+    transform:scale(1.05);
+}
+.float-open-player.hide-btn{
+    display:none;
+}
 </style>
 </head>
 <body>
@@ -416,10 +465,11 @@ body{
     </div>
 </div>
 
-<!-- 右侧【固定悬浮不滚动+可拖动缩放】外层窗口 -->
+<!-- 右侧悬浮播放器窗口 -->
 <div class="right-big-container" id="floatWindow">
-    <div class="drag-handle" id="dragHandle"></div>
-    <!-- 缩放8个方向手柄 -->
+    <div class="drag-handle" id="dragHandle">
+        <button class="minimize-win-btn" id="minWinBtn">−</button>
+    </div>
     <div class="resize-handle resize-t" data-dir="t"></div>
     <div class="resize-handle resize-b" data-dir="b"></div>
     <div class="resize-handle resize-l" data-dir="l"></div>
@@ -445,18 +495,22 @@ body{
     </div>
 </div>
 
-<!-- 底部通栏播放器 -->
+<!-- 右下角唤起播放器按钮 -->
+<button class="float-open-player hide-btn" id="openPlayerBtn">打开播放器</button>
+
+<!-- 底部播放器 -->
 <div class="bottom-player">
-    <div class="player-control-row">
-        <button class="control-btn" id="prevBtn">◀◀</button>
-        <button class="control-btn" id="rewindBtn">◀</button>
-        <button class="control-btn play-main" id="playPauseBtn">▶</button>
-        <button class="control-btn" id="forwardBtn">▶</button>
-        <button class="control-btn" id="nextBtn">▶▶</button>
-    </div>
-    <!-- 进度条与按钮水平对齐 -->
-    <div class="progress-wrap" id="progressWrap">
-        <div class="progress-bar" id="progressBar"></div>
+    <div class="inner-row">
+        <div class="player-control-row">
+            <button class="control-btn" id="prevBtn">◀◀</button>
+            <button class="control-btn" id="rewindBtn">◀</button>
+            <button class="control-btn play-main" id="playPauseBtn">▶</button>
+            <button class="control-btn" id="forwardBtn">▶</button>
+            <button class="control-btn" id="nextBtn">▶▶</button>
+        </div>
+        <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
     </div>
     <div class="time-row">
         <span id="currentTimeText">00:00</span>
@@ -504,8 +558,21 @@ const dom = {
     progressBar:document.getElementById("progressBar"),
     currentTimeText:document.getElementById("currentTimeText"),
     totalTimeText:document.getElementById("totalTimeText"),
-    videoFullBtn:document.getElementById("videoFullBtn")
+    videoFullBtn:document.getElementById("videoFullBtn"),
+    minWinBtn:document.getElementById("minWinBtn"),
+    openPlayerBtn:document.getElementById("openPlayerBtn")
 };
+
+// 最小化播放器
+dom.minWinBtn.onclick = ()=>{
+    dom.floatWindow.classList.add("minimize-state");
+    dom.openPlayerBtn.classList.remove("hide-btn");
+}
+// 右下角按钮恢复播放器
+dom.openPlayerBtn.onclick = ()=>{
+    dom.floatWindow.classList.remove("minimize-state");
+    dom.openPlayerBtn.classList.add("hide-btn");
+}
 
 // ========= 窗口【拖拽移动】逻辑 =========
 (function initWindowDrag(){
