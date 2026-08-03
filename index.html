@@ -73,7 +73,7 @@ body{
     border-radius: 0 999px 999px 0;
     cursor: pointer;
 }
-/* 主体左右布局：左卡片，右播放目录 */
+/* 主体左右布局：左卡片，右侧【播放目录+播放器】外层容器 */
 .main-wrap{
     width: 94%;
     max-width: 1400px;
@@ -138,19 +138,30 @@ body{
     padding: 40px 0;
     grid-column:1/-1;
 }
-/* 右侧播放目录面板 */
-.right-playlist-area{
+
+/* ===== 右侧外层总容器【播放目录 + 播放器并排】 ===== */
+.right-big-container{
     width:33.33%;
-}
-.playlist-sidebar{
-    width:100%;
     min-height:460px;
     background:rgba(255,255,255,0.65);
     border:1px solid #b8d8f5;
     border-radius:16px;
     overflow:hidden;
     display:flex;
+}
+/* 左小块：播放目录 */
+.playlist-sidebar{
+    width:38%;
+    border-right:1px solid #d4e6f7;
+    display:flex;
     flex-direction:column;
+}
+/* 右大块：播放器区域 */
+.player-window{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    position:relative;
 }
 .sidebar-head{
     padding:12px 16px;
@@ -218,6 +229,31 @@ body{
     font-size:13px;
     cursor:pointer;
     flex-shrink:0;
+}
+
+/* 播放器窗口内视频区域 */
+.video-container{
+    flex:1;
+    padding:10px;
+    position:relative;
+}
+#mainVideo{
+    width:100%;
+    height:100%;
+    background:#000;
+    border-radius:8px;
+    object-fit:contain;
+}
+.fullscreen-video-btn{
+    position:absolute;
+    top:16px;
+    right:16px;
+    padding:4px 10px;
+    background:rgba(0,0,0,0.45);
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
 }
 
 /* ========== 底部通栏播放器（参考截图样式） ========== */
@@ -320,10 +356,6 @@ body{
 .curr-line{
     text-align:right;
 }
-/* 隐藏旧弹窗播放器相关样式 */
-.player-group, .player-wrap, .player-drag-header, .fullscreen-btn, .hidePlayerBtn, .lyric-toggle-btn, .play-cover, .video-view{
-    display:none !important;
-}
 </style>
 </head>
 <body>
@@ -348,13 +380,22 @@ body{
             <div class="load-tip">正在加载资源，请稍等...</div>
         </div>
     </div>
-    <div class="right-playlist-area">
+
+    <!-- 右侧外层大容器【播放目录｜播放器】 -->
+    <div class="right-big-container">
         <div class="playlist-sidebar" id="playlistSide">
             <div class="sidebar-head">
                 <h4>播放目录</h4>
                 <button class="hideSideBtn" id="hideSideBtn">收起</button>
             </div>
             <div class="playlist-scroll" id="playlistScroll"></div>
+        </div>
+
+        <div class="player-window">
+            <div class="video-container">
+                <video id="mainVideo" preload="auto" playsinline webkit-playsinline></video>
+                <button class="fullscreen-video-btn" id="videoFullBtn">全屏</button>
+            </div>
         </div>
     </div>
 </div>
@@ -383,7 +424,6 @@ body{
 </div>
 
 <audio id="mainAudio" preload="auto">
-<video id="mainVideo" preload="auto" playsinline webkit-playsinline style="display:none;"></video>
 
 <script>
 const API_BASE = "https://api.busisi.com";
@@ -415,8 +455,18 @@ const dom = {
     progressWrap:document.getElementById("progressWrap"),
     progressBar:document.getElementById("progressBar"),
     currentTimeText:document.getElementById("currentTimeText"),
-    totalTimeText:document.getElementById("totalTimeText")
+    totalTimeText:document.getElementById("totalTimeText"),
+    videoFullBtn:document.getElementById("videoFullBtn")
 };
+
+// 视频区域全屏按钮
+dom.videoFullBtn.onclick = ()=>{
+    if (dom.mainVideo.requestFullscreen) {
+        dom.mainVideo.requestFullscreen();
+    } else if (dom.mainVideo.webkitRequestFullscreen) {
+        dom.mainVideo.webkitRequestFullscreen();
+    }
+}
 
 dom.hideSideBtn.onclick = ()=>{
     dom.playlistSide.style.display = dom.playlistSide.style.display === "none" ? "flex":"none";
