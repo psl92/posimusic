@@ -132,13 +132,15 @@ body{
     bottom: 20px;
     right: 20px;
     width: 420px;
-    height: 340px;
+    height: 520px;
     background: #fff;
     border-radius: 16px;
     box-shadow: 0 5px 25px #94b9da;
     overflow: hidden;
     resize: both;
     z-index: 999;
+    max-width: 95vw;
+    max-height: 90vh;
 }
 .fullscreen-btn{
     position: absolute;
@@ -189,6 +191,7 @@ body{
     height: 58%;
     background: #000;
     display:block;
+    object-fit: contain;
 }
 .control-bar{
     padding: 10px;
@@ -298,7 +301,7 @@ body{
     <div class="play-cover" id="playCoverBox">
         <img id="playCoverImg">
     </div>
-    <video class="video-view" id="mainVideo" controls></video>
+    <video class="video-view" id="mainVideo" controls playsinline webkit-playsinline></video>
     <div class="control-bar">
         <div class="play-list" id="playListBox"></div>
         <div class="lyric-area" id="lyricBox">暂无播放内容</div>
@@ -313,7 +316,6 @@ let currentTabType = "all";
 let allResourceList = [];
 let nowPlayingItem = null;
 let parsedLyricList = [];
-let lyricTimer = null;
 
 const dom = {
     cardContainer: document.getElementById("cardContainer"),
@@ -334,24 +336,16 @@ const dom = {
     playerWrap: document.getElementById("playerWrap")
 };
 
-// 悬浮歌词拖拽移动逻辑
+// 悬浮歌词拖拽
 (function initLyricDrag(){
     const wrap = dom.floatLyricWrap;
-    let dragging = false;
-    let ox, oy;
+    let dragging = false, ox, oy;
     const edgeThreshold = 14;
-
     wrap.addEventListener("mousedown",e=>{
         const rect = wrap.getBoundingClientRect();
         const pRect = dom.playerWrap.getBoundingClientRect();
-        const isResizeEdge = (
-            e.clientX - rect.left < edgeThreshold ||
-            rect.right - e.clientX < edgeThreshold ||
-            e.clientY - rect.top < edgeThreshold ||
-            rect.bottom - e.clientY < edgeThreshold
-        );
+        const isResizeEdge = e.clientX-rect.left<edgeThreshold||rect.right-e.clientX<edgeThreshold||e.clientY-rect.top<edgeThreshold||rect.bottom-e.clientY<edgeThreshold;
         if(isResizeEdge) return;
-
         dragging = true;
         ox = e.clientX - rect.left;
         oy = e.clientY - rect.top;
@@ -360,295 +354,197 @@ const dom = {
     document.addEventListener("mousemove",e=>{
         if(!dragging) return;
         const pRect = dom.playerWrap.getBoundingClientRect();
-        let x = e.clientX - pRect.left - ox;
-        let y = e.clientY - pRect.top - oy;
-        x = Math.max(0, Math.min(x, dom.playerWrap.offsetWidth - wrap.offsetWidth));
-        y = Math.max(0, Math.min(y, dom.playerWrap.offsetHeight - wrap.offsetHeight));
+        let x = e.clientX-pRect.left-ox;
+        let y = e.clientY-pRect.top-oy;
+        x = Math.max(0, Math.min(x, dom.playerWrap.offsetWidth-wrap.offsetWidth));
+        y = Math.max(0, Math.min(y, dom.playerWrap.offsetHeight-wrap.offsetHeight));
         wrap.style.left = `${x}px`;
         wrap.style.top = `${y}px`;
     });
-    document.addEventListener("mouseup",()=>{
-        dragging = false;
-        wrap.style.cursor = "move";
-    });
+    document.addEventListener("mouseup",()=>dragging=false);
 })();
 
-// 悬浮歌词显隐开关
 dom.lyricToggleBtn.addEventListener("click",()=>{
-    dom.floatLyricWrap.style.display = dom.floatLyricWrap.style.display === "block" ? "none" : "block";
+    dom.floatLyricWrap.style.display = dom.floatLyricWrap.style.display==="block"?"none":"block";
 });
 
-// 通用歌词入口：自动区分KRC / LRC
+// 双格式歌词解析
 function parseLyric(rawText) {
-    if(rawText.includes("krcc") || rawText.includes("KRC")){
-        return parseKRC(rawText);
-    }else{
-        return parseLRC(rawText);
-    }
+    return rawText.includes("krcc")||rawText.includes("KRC") ? parseKRC(rawText) : parseLRC(rawText);
 }
-
-// LRC标准解析器
 function parseLRC(text){
     const result = [];
     const reg = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/;
-    const lines = text.split("\n");
-    for(let line of lines){
-        line = line.trim();
-        const match = line.match(reg);
-        if(!match) continue;
-        const min = parseInt(match[1]);
-        const sec = parseInt(match[2]);
-        const ms = parseInt(match[3]||0);
-        const time = min * 60 + sec + ms / 1000;
-        const txt = match[4].trim();
-        if(txt) result.push({time,text:txt});
-    }
-    result.sort((a,b)=>a.time - b.time);
-    return result;
+    text.split("\n").forEach(line=>{
+        line=line.trim();
+        const m=line.match(reg);
+        if(!m)return;
+        const t = parseInt(m[1])*60 + parseInt(m[2]) + (parseInt(m[3]||0)/1000);
+        const txt=m[4].trim();
+        txt&&result.push({time:t,text:txt});
+    });
+    return result.sort((a,b)=>a.time-b.time);
 }
-
-// KRC加密歌词解密解析器
 function parseKRC(krcText){
-    const krccMatch = krcText.match(/krcc:"([^"]+)"/);
-    if(!krccMatch) return [];
-    let base64Str = krccMatch[1];
-    const key = [64, 71, 97, 119, 94, 50, 116, 71];
-    let decodeStr = "";
-    for(let i=0;i<base64Str.length;i++){
-        decodeStr += String.fromCharCode(base64Str.charCodeAt(i) ^ key[i % key.length]);
+    const km=krcText.match(/krcc:"([^"]+)"/);
+    if(!km)return [];
+    let b64=km[1],out="";
+    const key=[64,71,97,119,94,50,116,71];
+    for(let i=0;i<b64.length;i++) out+=String.fromCharCode(b64.charCodeAt(i)^key[i%8]);
+    const list=[], reg=/(\d+),\d+,\d+\|([^\|]+)\|/g;
+    let m;
+    while((m=reg.exec(out))!==null){
+        const t=parseInt(m[1])/1000, txt=m[2].trim();
+        txt&&list.push({time:t,text:txt});
     }
-    const lineReg = /(\d+),\d+,\d+\|([^\|]+)\|/g;
-    const list = [];
-    let match;
-    while((match = lineReg.exec(decodeStr)) !== null){
-        const time = parseInt(match[1]) / 1000;
-        const text = match[2].trim();
-        if(text) list.push({time,text});
-    }
-    list.sort((a,b)=>a.time - b.time);
-    return list;
+    return list.sort((a,b)=>a.time-b.time);
 }
 
-// 根据播放进度刷新悬浮歌词
-function updateFloatLyric(currentTime){
-    if(parsedLyricList.length === 0){
-        dom.prevLyric.innerText = "";
-        dom.currLyric.innerText = "暂无歌词";
-        return;
+function updateFloatLyric(nowT){
+    if(!parsedLyricList.length){
+        dom.prevLyric.innerText="";dom.currLyric.innerText="暂无歌词";return;
     }
-    let activeIndex = 0;
-    for(let i=0; i<parsedLyricList.length; i++){
-        if(currentTime >= parsedLyricList[i].time){
-            activeIndex = i;
-        }else break;
+    let idx=0;
+    for(let i=0;i<parsedLyricList.length;i++){
+        if(nowT>=parsedLyricList[i].time) idx=i;
+        else break;
     }
-    const prev = parsedLyricList[activeIndex-1]?.text || "";
-    const curr = parsedLyricList[activeIndex].text;
-    dom.prevLyric.innerText = prev;
-    dom.currLyric.innerText = curr;
+    dom.prevLyric.innerText=parsedLyricList[idx-1]?.text||"";
+    dom.currLyric.innerText=parsedLyricList[idx].text;
 }
 
 window.addEventListener("load", async () => {
-    if(location.protocol === "file:"){
-        dom.cardContainer.innerHTML = `<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须托管网页访问</div>`;
+    if(location.protocol==="file:"){
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:red">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
-
-    dom.navBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            dom.navBtns.forEach(b => b.classList.remove("active"));
+    dom.navBtns.forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            dom.navBtns.forEach(b=>b.classList.remove("active"));
             btn.classList.add("active");
-            currentTabType = btn.dataset.type;
+            currentTabType=btn.dataset.type;
             renderFilterList();
-        })
+        });
     });
+    dom.searchBtn.addEventListener("click",searchResource);
+    dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
+    dom.fullBtn.addEventListener("click",toggleFullScreen);
 
-    dom.searchBtn.addEventListener("click", searchResource);
-    dom.searchInput.addEventListener("keydown", e => {
-        if(e.key === "Enter") searchResource();
-    });
-    dom.fullBtn.addEventListener("click", toggleFullScreen);
-
-    // 绑定播放进度监听，同步歌词
-    function bindTimeUpdate(){
-        function onTime(){
-            const media = nowPlayingItem?.type === "video" ? dom.mainVideo : dom.mainAudio;
-            if(media && !media.paused){
-                updateFloatLyric(media.currentTime);
-            }
-        }
-        dom.mainVideo.ontimeupdate = onTime;
-        dom.mainAudio.ontimeupdate = onTime;
+    function bindTime(){
+        const cb=()=>{
+            const media=nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
+            media&&!media.paused&&updateFloatLyric(media.currentTime);
+        };
+        dom.mainVideo.ontimeupdate=cb;
+        dom.mainAudio.ontimeupdate=cb;
     }
-    bindTimeUpdate();
+    bindTime();
 
-    try {
-        const res = await fetch(`${API_BASE}/getResourceList`);
-        if(!res.ok) throw new Error(`接口请求失败：${res.status}`);
-        allResourceList = await res.json();
+    try{
+        const res=await fetch(`${API_BASE}/getResourceList`);
+        if(!res.ok) throw new Error(`接口${res.status}`);
+        allResourceList=await res.json();
         renderFilterList();
-    } catch(err) {
-        dom.cardContainer.innerHTML = `
-            <div class="load-tip" style="color:red">
-                连接后端接口失败<br>
-                1.检查Worker是否部署完成<br>
-                2.等待域名解析生效<br>
-                错误信息：${err.message}
-            </div>
-        `;
-        console.error("资源加载报错：", err);
+    }catch(err){
+        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:red">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
+        console.error(err);
     }
 });
 
-function renderFilterList() {
-    let list = allResourceList;
-    if(currentTabType !== "all") {
-        list = list.filter(item => item.type === currentTabType);
-    }
+function renderFilterList(){
+    let list=allResourceList;
+    if(currentTabType!=="all") list=list.filter(i=>i.type===currentTabType);
     renderCard(list);
 }
-
-function renderCard(list) {
-    dom.cardContainer.innerHTML = "";
-    if(list.length === 0) {
-        dom.cardContainer.innerHTML = '<div class="load-tip">暂无匹配资源</div>';
-        return;
-    }
-    list.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "music-card";
-        let coverHtml = item.coverImg
-            ? `<div class="cover-box"><img src="${item.coverImg}" alt="封面"></div>`
-            : `<div class="cover-box">无封面</div>`;
-        card.innerHTML = `${coverHtml}<div class="card-text">${item.singer||"未知歌手"} - ${item.name}</div>`;
-
-        card.addEventListener("click", () => {
-            addPlaylist(item);
-            playMedia(item);
-        });
+function renderCard(list){
+    dom.cardContainer.innerHTML="";
+    if(!list.length){dom.cardContainer.innerHTML='<div class="load-tip">暂无资源</div>';return;}
+    list.forEach(item=>{
+        const card=document.createElement("div");
+        card.className="music-card";
+        const cover=item.coverImg?`<div class="cover-box"><img src="${item.coverImg}"></div>`:`<div class="cover-box">无封面</div>`;
+        card.innerHTML=`${cover}<div class="card-text">${item.singer||"未知歌手"} - ${item.name}</div>`;
+        card.onclick=()=>{addPlaylist(item);playMedia(item);};
         dom.cardContainer.appendChild(card);
     })
 }
-
-function addPlaylist(item) {
-    const isExist = currentPlayList.some(i => i.id === item.id);
-    if(isExist) return;
-    currentPlayList.push(item);
-    renderPlaylist();
+function addPlaylist(item){
+    if(currentPlayList.some(i=>i.id===item.id))return;
+    currentPlayList.push(item);renderPlaylist();
 }
-
-function renderPlaylist() {
-    dom.playListBox.innerHTML = "";
-    currentPlayList.forEach(item => {
-        const li = document.createElement("div");
-        li.className = "list-item";
-        li.innerHTML = `${item.singer||"未知歌手"} - ${item.name}<span class="del-btn">×</span>`;
-
-        li.addEventListener("click", e => {
-            if(e.target.classList.contains("del-btn")) return;
-            playMedia(item);
-        });
-
-        li.querySelector(".del-btn").addEventListener("click", e => {
+function renderPlaylist(){
+    dom.playListBox.innerHTML="";
+    currentPlayList.forEach(item=>{
+        const li=document.createElement("div");
+        li.className="list-item";
+        li.innerHTML=`${item.singer||"未知歌手"} - ${item.name}<span class="del-btn">×</span>`;
+        li.onclick=e=>{if(!e.target.classList.contains("del-btn")) playMedia(item);};
+        li.querySelector(".del-btn").onclick=e=>{
             e.stopPropagation();
-            currentPlayList = currentPlayList.filter(i => i.id !== item.id);
+            currentPlayList=currentPlayList.filter(i=>i.id!==item.id);
             renderPlaylist();
-        });
+        };
         dom.playListBox.appendChild(li);
     })
 }
 
-async function playMedia(item) {
-    nowPlayingItem = item;
-    dom.mainVideo.pause();
-    dom.mainVideo.src = "";
-    dom.mainAudio.pause();
-    dom.mainAudio.src = "";
-    dom.lyricBox.innerText = "加载歌词中...";
-    parsedLyricList = [];
-    dom.prevLyric.innerText = "";
-    dom.currLyric.innerText = "";
+async function playMedia(item){
+    nowPlayingItem=item;
+    dom.mainVideo.pause();dom.mainVideo.src="";
+    dom.mainAudio.pause();dom.mainAudio.src="";
+    dom.lyricBox.innerText="加载歌词中...";
+    parsedLyricList=[];dom.prevLyric.innerText="";dom.currLyric.innerText="";
 
-    if(item.type === "video" && item.videoLink) {
-        dom.mainVideo.style.display = "block";
-        dom.playCoverBox.style.display = "none";
-        dom.mainVideo.src = encodeURI(item.videoLink);
-        dom.mainVideo.play().catch(e => console.log("视频播放限制：", e));
-    } else if(item.audioLink) {
-        dom.mainVideo.style.display = "none";
-        dom.playCoverBox.style.display = "flex";
-        dom.mainAudio.src = encodeURI(item.audioLink);
-        dom.mainAudio.play().catch(e => console.log("音频播放限制：", e));
+    // 媒体后缀精准区分音视频
+    const isVideo = /\.(mp4|mov|m4v)$/i.test(item.name||"");
+    if(isVideo && item.videoLink){
+        dom.mainVideo.style.display="block";
+        dom.playCoverBox.style.display="none";
+        dom.mainVideo.src=encodeURI(item.videoLink);
+        dom.mainVideo.play().catch(e=>console.log("播放需手动触发：",e));
+    }else if(item.audioLink){
+        dom.mainVideo.style.display="none";
+        dom.playCoverBox.style.display="flex";
+        dom.mainAudio.src=encodeURI(item.audioLink);
+        dom.mainAudio.play().catch(e=>console.log("播放需手动触发：",e));
     }
+    if(item.coverImg) dom.playCoverImg.src=item.coverImg;
 
-    if(item.coverImg) {
-        dom.playCoverImg.src = item.coverImg;
-    }
-
-    try {
-        let lyricKey = item.lyricName || item.id;
-        const lyricRes = await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(lyricKey)}`);
-        if(lyricRes.ok) {
-            const lyricText = await lyricRes.text();
-            dom.lyricBox.innerText = lyricText;
-            // 调用通用解析函数，自动识别KRC/LRC
-            parsedLyricList = parseLyric(lyricText);
-        } else {
-            dom.lyricBox.innerText = "暂无匹配歌词";
-            parsedLyricList = [];
-        }
-    } catch {
-        dom.lyricBox.innerText = "歌词加载失败";
-        parsedLyricList = [];
-    }
+    try{
+        // 固定去children文件夹读取歌词
+        const lyricName=item.lyricName||item.id;
+        const lyricRes=await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(lyricName)}`);
+        if(lyricRes.ok){
+            const txt=await lyricRes.text();
+            dom.lyricBox.innerText=txt;
+            parsedLyricList=parseLyric(txt);
+        }else dom.lyricBox.innerText="暂无匹配歌词";
+    }catch{dom.lyricBox.innerText="歌词加载失败";}
 }
 
-function toggleFullScreen() {
-    const target = dom.mainVideo;
-    function enterFull(el){
-        if(el.requestFullscreen) el.requestFullscreen();
-        else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-        else if(el.mozRequestFullScreen) el.mozRequestFullscreen();
-    }
-    function exitFull(){
-        if(document.exitFullscreen) document.exitFullscreen();
-        else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
-
-    if(document.fullscreenElement || document.webkitFullscreenElement) {
-        exitFull();
-        dom.fullBtn.innerText = "⛶";
-    } else {
-        enterFull(target);
-        dom.fullBtn.innerText = "⊡";
-    }
+function toggleFullScreen(){
+    const target=dom.mainVideo;
+    const enter=el=>el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen?.();
+    const exit=()=>document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen?.();
+    if(document.fullscreenElement||document.webkitFullscreenElement){exit();dom.fullBtn.innerText="⛶";}
+    else{enter(target);dom.fullBtn.innerText="⊡";}
 }
-document.addEventListener('fullscreenchange', updateFullIcon);
-document.addEventListener('webkitfullscreenchange', updateFullIcon);
-function updateFullIcon(){
-    if(document.fullscreenElement || document.webkitFullscreenElement){
-        dom.fullBtn.innerText = "⊡";
-    }else{
-        dom.fullBtn.innerText = "⛶";
-    }
-}
+document.addEventListener('fullscreenchange',()=>{
+    dom.fullBtn.innerText=document.fullscreenElement?"⊡":"⛶";
+});
+document.addEventListener('webkitfullscreenchange',()=>{
+    dom.fullBtn.innerText=document.webkitFullscreenElement?"⊡":"⛶";
+});
 
-function searchResource() {
-    const keyword = dom.searchInput.value.trim().toLowerCase();
-    if(!keyword) {
-        renderFilterList();
-        return;
-    }
-    let sourceList = allResourceList;
-    if(currentTabType !== "all") {
-        sourceList = sourceList.filter(i => i.type === currentTabType);
-    }
-    const result = sourceList.filter(v => {
-        const songName = (v.name || "").toLowerCase();
-        const singerName = (v.singer || "").toLowerCase();
-        return songName.includes(keyword) || singerName.includes(keyword);
+function searchResource(){
+    const kw=dom.searchInput.value.trim().toLowerCase();
+    if(!kw){renderFilterList();return;}
+    let src=currentTabType==="all"?allResourceList:allResourceList.filter(i=>i.type===currentTabType);
+    const res=src.filter(v=>{
+        const n=(v.name||"").toLowerCase(),s=(v.singer||"").toLowerCase();
+        return n.includes(kw)||s.includes(kw);
     });
-    renderCard(result);
+    renderCard(res);
 }
 </script>
 </body>
