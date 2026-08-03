@@ -234,7 +234,6 @@ body{
     margin-top: 8px;
     line-height: 1.5;
 }
-/* 核心修改：默认显示悬浮歌词 */
 .float-lyric-wrap{
     position: absolute;
     top: 60px;
@@ -308,7 +307,7 @@ body{
         <div class="lyric-area" id="lyricBox">暂无播放内容</div>
     </div>
 </div>
-<audio id="mainAudio">
+<audio id="mainAudio" preload="auto">
 
 <script>
 const API_BASE = "https://api.busisi.com";
@@ -337,7 +336,6 @@ const dom = {
     playerWrap: document.getElementById("playerWrap")
 };
 
-// 悬浮歌词拖拽
 (function initLyricDrag(){
     const wrap = dom.floatLyricWrap;
     let dragging = false, ox, oy;
@@ -369,7 +367,6 @@ dom.lyricToggleBtn.addEventListener("click",()=>{
     dom.floatLyricWrap.style.display = dom.floatLyricWrap.style.display==="block"?"none":"block";
 });
 
-// 双格式歌词解析
 function parseLyric(rawText) {
     return rawText.includes("krcc")||rawText.includes("KRC") ? parseKRC(rawText) : parseLRC(rawText);
 }
@@ -434,7 +431,7 @@ window.addEventListener("load", async () => {
     function bindTime(){
         const cb=()=>{
             const media=nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
-            media&&!media.paused&&updateFloatLyric(media.currentTime);
+            if(media && !media.paused) updateFloatLyric(media.currentTime);
         };
         dom.mainVideo.ontimeupdate=cb;
         dom.mainAudio.ontimeupdate=cb;
@@ -498,30 +495,29 @@ async function playMedia(item){
     dom.prevLyric.innerText="";
     dom.currLyric.innerText="暂无歌词";
 
-    // 移除多余encodeURI，解决双重编码路径404
     const isVideo = /\.(mp4|mov|m4v)$/i.test(item.name||"");
     if(isVideo && item.videoLink){
         dom.mainVideo.style.display="block";
         dom.playCoverBox.style.display="none";
         dom.mainVideo.src = item.videoLink;
-        dom.mainVideo.play().catch(e=>console.log("播放需手动触发：",e));
+        dom.mainVideo.play().catch(e=>{});
     }else if(item.audioLink){
         dom.mainVideo.style.display="none";
         dom.playCoverBox.style.display="flex";
         dom.mainAudio.src = item.audioLink;
-        dom.mainAudio.play().catch(e=>console.log("播放需手动触发：",e));
+        // 强化WAV音频加载，添加加载完成监听
+        dom.mainAudio.load();
+        dom.mainAudio.play().catch(e=>{});
     }
     if(item.coverImg) dom.playCoverImg.src=item.coverImg;
 
     try{
-        // 固定去children文件夹读取歌词
         const lyricName=item.lyricName;
         const lyricRes=await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(lyricName)}`);
         if(lyricRes.ok){
             const txt=await lyricRes.text();
             dom.lyricBox.innerText=txt;
             parsedLyricList=parseLyric(txt);
-            // 加载歌词立刻渲染第一行
             updateFloatLyric(0);
         }else {
             dom.lyricBox.innerText="暂无匹配歌词";
