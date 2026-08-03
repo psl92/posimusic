@@ -126,16 +126,14 @@ body{
     color: #204080;
     padding: 40px 0;
 }
-/* =====播放器容器组===== */
 .player-group{
     position: fixed;
-    top: 120px;
     right: 20px;
+    bottom: 20px;
     display:flex;
     gap:6px;
     z-index:999;
 }
-/* 左侧独立播放列表面板 */
 .playlist-sidebar{
     width: 260px;
     height: 520px;
@@ -149,6 +147,7 @@ body{
 }
 .playlist-sidebar.collapse{
     width:0;
+    overflow:hidden;
 }
 .sidebar-head{
     padding:10px 12px;
@@ -215,10 +214,9 @@ body{
     cursor:pointer;
     flex-shrink:0;
 }
-/* 展开侧边栏悬浮按钮 */
 .showSideBtn{
     position:fixed;
-    top:140px;
+    bottom:140px;
     right:290px;
     padding:6px 10px;
     background:#4299e1;
@@ -229,7 +227,6 @@ body{
     z-index:998;
     display:none;
 }
-/*播放器浮动窗口（全屏目标容器）*/
 .player-box{
     width: 420px;
     height: 520px;
@@ -257,9 +254,25 @@ body{
 .fullscreen-btn{
     position: absolute;
     top: 8px;
-    right: 8px;
+    right: 45px;
     color: #fff;
     font-size: 22px;
+    cursor: pointer;
+    z-index: 10;
+    background: rgba(0,0,0,0.4);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    border:none;
+}
+.hidePlayerBtn{
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #fff;
+    font-size: 18px;
     cursor: pointer;
     z-index: 10;
     background: rgba(0,0,0,0.4);
@@ -284,7 +297,7 @@ body{
 }
 .play-cover{
     width: 100%;
-    height: 58%;
+    height: 50%;
     margin: 0 auto;
     border-radius: 0;
     overflow: hidden;
@@ -301,26 +314,47 @@ body{
 }
 .video-view{
     width: 100%;
-    height: 58%;
+    height: 50%;
     background: #000;
     display:none;
     object-fit: contain;
 }
 .control-bar{
     padding: 10px;
-    height: 42%;
+    height: 50%;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+.media-buttons{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+}
+.media-buttons button{
+    padding:6px 14px;
+    border:none;
+    border-radius:6px;
+    background:#4299e1;
+    color:#fff;
+    cursor:pointer;
+    font-size:14px;
 }
 .lyric-area{
     text-align: center;
-    font-size: 13px;
-    color: #666;
+    font-size: 16px;
+    color: #333;
     margin-top: 8px;
-    line-height: 1.5;
+    line-height: 1.8;
+    padding:8px;
+    min-height:80px;
 }
-/*悬浮歌词 */
+/* 卡拉OK逐字样式：未播放灰色，当前高亮蓝色 */
+.lyric-normal{color:#666;}
+.lyric-active{color:#2596ff;font-weight:bold;}
 .float-lyric-wrap{
     position: fixed;
-    top: 650px;
+    bottom: 30px;
     left: 30px;
     min-width:260px;
     min-height:90px;
@@ -348,8 +382,6 @@ body{
     text-align:left;
 }
 .curr-line{
-    color:#63d8ff;
-    font-weight:bold;
     text-align:right;
 }
 </style>
@@ -361,6 +393,8 @@ body{
     <button class="nav-btn active" data-type="all">首页 Home</button>
     <button class="nav-btn" data-type="music">音乐 Music</button>
     <button class="nav-btn" data-type="video">视频 Video</button>
+    <button class="nav-btn" data-type="image">图片</button>
+    <button class="nav-btn" data-type="reward">赞赏</button>
 </div>
 
 <div class="search-bar">
@@ -372,39 +406,38 @@ body{
     <div class="load-tip">正在加载资源，请稍等...</div>
 </div>
 
-<!-- 播放器整体组：侧边播放列表 + 播放器窗口 -->
 <div class="player-group" id="playerGroup">
-    <!-- 独立竖向播放列表（播放器左侧） -->
     <div class="playlist-sidebar" id="playlistSide">
         <div class="sidebar-head">
             <h4>播放目录</h4>
             <button class="hideSideBtn" id="hideSideBtn">收起</button>
         </div>
-        <div class="playlist-scroll" id="playlistScroll">
-            <!-- JS动态生成曲目 -->
-        </div>
+        <div class="playlist-scroll" id="playlistScroll"></div>
     </div>
-    <!-- 播放器主体（全屏目标容器） -->
     <div class="player-box" id="playerWrap">
         <div class="player-drag-header" id="playerDragHead"></div>
         <button class="lyric-toggle-btn" id="lyricToggleBtn">悬浮歌词</button>
         <button class="fullscreen-btn" id="fullBtn">⛶</button>
+        <button class="hidePlayerBtn" id="hidePlayerBtn">−</button>
         <div class="play-cover" id="playCoverBox">
             <img id="playCoverImg">
         </div>
         <video class="video-view" id="mainVideo" controls playsinline webkit-playsinline></video>
         <div class="control-bar">
+            <div class="media-buttons">
+                <button id="prevBtn">后退10s</button>
+                <button id="playPauseBtn">暂停</button>
+                <button id="nextBtn">前进10s</button>
+            </div>
             <div class="lyric-area" id="lyricBox">暂无播放内容</div>
         </div>
     </div>
 </div>
-<!-- 展开列表悬浮按钮 -->
 <button class="showSideBtn" id="showSideBtn">展开播放目录</button>
 
-<!--悬浮歌词 -->
 <div class="float-lyric-wrap" id="floatLyricWrap">
     <div class="lyric-line prev-line" id="prevLyric"></div>
-    <div class="lyric-line curr-line" id="currLyric">暂无歌词</div>
+    <div class="lyric-line curr-line" id="currLyric"></div>
 </div>
 
 <audio id="mainAudio" preload="auto">
@@ -417,6 +450,7 @@ let allResourceList = [];
 let nowPlayingItem = null;
 let parsedLyricList = [];
 let lastPlayTime = 0;
+let playerCollapsed = false;
 
 const dom = {
     cardContainer: document.getElementById("cardContainer"),
@@ -424,6 +458,7 @@ const dom = {
     searchBtn: document.getElementById("searchBtn"),
     navBtns: document.querySelectorAll(".nav-btn"),
     fullBtn: document.getElementById("fullBtn"),
+    hidePlayerBtn: document.getElementById("hidePlayerBtn"),
     mainVideo: document.getElementById("mainVideo"),
     mainAudio: document.getElementById("mainAudio"),
     playCoverBox: document.getElementById("playCoverBox"),
@@ -439,10 +474,13 @@ const dom = {
     playlistScroll:document.getElementById("playlistScroll"),
     hideSideBtn:document.getElementById("hideSideBtn"),
     showSideBtn:document.getElementById("showSideBtn"),
-    playerGroup:document.getElementById("playerGroup")
+    playerGroup:document.getElementById("playerGroup"),
+    prevBtn:document.getElementById("prevBtn"),
+    nextBtn:document.getElementById("nextBtn"),
+    playPauseBtn:document.getElementById("playPauseBtn")
 };
 
-// 侧边栏 收起/展开
+// 侧边播放列表收起展开
 dom.hideSideBtn.onclick = ()=>{
     dom.playlistSide.classList.add("collapse");
     dom.showSideBtn.style.display = "block";
@@ -452,15 +490,34 @@ dom.showSideBtn.onclick = ()=>{
     dom.showSideBtn.style.display = "none";
 }
 
-// 播放器窗口拖拽
+// 播放器整体收起/展开
+dom.hidePlayerBtn.onclick = ()=>{
+    playerCollapsed = !playerCollapsed;
+    if(playerCollapsed){
+        dom.playerWrap.style.height = "60px";
+        dom.playerWrap.style.resize = "none";
+        dom.playCoverBox.style.display = "none";
+        dom.mainVideo.style.display = "none";
+        dom.lyricBox.style.display = "none";
+    }else{
+        dom.playerWrap.style.height = "520px";
+        dom.playerWrap.style.resize = "both";
+        dom.lyricBox.style.display = "block";
+        if(nowPlayingItem?.type==="video") dom.mainVideo.style.display = "block";
+        if(nowPlayingItem?.type==="music") dom.playCoverBox.style.display = "flex";
+    }
+}
+
+// 播放器拖拽
 (function initPlayerDrag(){
     const dragHead = dom.playerDragHead;
     const groupWrap = dom.playerGroup;
     let dragging = false, offsetX, offsetY;
     dragHead.addEventListener("mousedown",(e)=>{
         dragging=true;
-        offsetX = e.clientX - groupWrap.offsetLeft;
-        offsetY = e.clientY - groupWrap.offsetTop;
+        const rect = groupWrap.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
         e.preventDefault();
     })
     document.addEventListener("mousemove",(e)=>{
@@ -506,10 +563,28 @@ dom.lyricToggleBtn.addEventListener("click",()=>{
     dom.floatLyricWrap.style.display = dom.floatLyricWrap.style.display==="none"?"block":"none";
 });
 
-// LRC/KRC解析
-function parseLyric(rawText) {
-    return rawText.includes("krcc")||rawText.includes("KRC") ? parseKRC(rawText) : parseLRC(rawText);
+// 播放控制按钮绑定
+function getCurrentMedia(){
+    return nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
 }
+dom.prevBtn.onclick = ()=>{
+    const m = getCurrentMedia(); if(!m) return; m.currentTime -=10;
+}
+dom.nextBtn.onclick = ()=>{
+    const m = getCurrentMedia(); if(!m) return; m.currentTime +=10;
+}
+dom.playPauseBtn.onclick = ()=>{
+    const m = getCurrentMedia(); if(!m) return;
+    m.paused ? m.play() : m.pause();
+}
+// 同步暂停按钮文字
+function syncPlayBtnText(){
+    const m = getCurrentMedia();
+    if(!m){dom.playPauseBtn.innerText="暂停";return;}
+    dom.playPauseBtn.innerText = m.paused ? "播放" : "暂停";
+}
+
+// LRC解析 + 卡拉OK逐字拆分核心逻辑
 function parseLRC(text){
     const result = [];
     const reg = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/;
@@ -519,30 +594,30 @@ function parseLRC(text){
         if(!m)return;
         const time = parseInt(m[1])*60 + parseInt(m[2]) + (parseInt(m[3]||0)/1000);
         const txt=m[4].trim();
-        txt&&result.push({time,text:txt});
+        if(!txt) return;
+        // 单字均分时长，实现逐字变色
+        const charCount = txt.length;
+        result.push({time, text:txt, charCount});
     });
     return result.sort((a,b)=>a.time-b.time);
 }
-function parseKRC(krcText){
-    const km=krcText.match(/krcc:"([^"]+)"/);
-    if(!km)return [];
-    let b64=km[1],out="";
-    const key=[64,71,97,119,94,50,116,71];
-    for(let i=0;i<b64.length;i++) out+=String.fromCharCode(b64.charCodeAt(i)^key[i%8]);
-    const list=[], reg=/(\d+),\d+,\d+\|([^\|]+)\|/g;
-    let m;
-    while((m=reg.exec(out))!==null){
-        const t=parseInt(m[1])/1000, txt=m[2].trim();
-        txt&&list.push({time:t,text:txt});
+// 渲染卡拉OK逐字HTML
+function renderKaraokeLine(lineText, progressRatio){
+    let html = "";
+    for(let i=0;i<lineText.length;i++){
+        const isActive = i < Math.floor(lineText.length * progressRatio);
+        html += `<span class="${isActive?'lyric-active':'lyric-normal'}">${lineText[i]}</span>`;
     }
-    return list.sort((a,b)=>a.time-b.time);
+    return html;
 }
-
+// 更新逐字变色歌词
 function updateFloatLyric(nowT){
     lastPlayTime = nowT;
+    syncPlayBtnText();
     if(!parsedLyricList.length){
         dom.prevLyric.innerText="";
-        dom.currLyric.innerText="暂无歌词";
+        dom.currLyric.innerHTML="<span class='lyric-normal'>暂无歌词</span>";
+        dom.lyricBox.innerHTML="<span class='lyric-normal'>暂无歌词</span>";
         return;
     }
     let currIndex=0;
@@ -550,20 +625,29 @@ function updateFloatLyric(nowT){
         if(nowT>=parsedLyricList[i].time) currIndex=i;
         else break;
     }
+    const currLine = parsedLyricList[currIndex];
+    const nextTime = parsedLyricList[currIndex+1]?.time || (currLine.time + 5);
+    const lineTotalDuration = nextTime - currLine.time;
+    const linePassDuration = nowT - currLine.time;
+    const ratio = Math.min(1, linePassDuration / lineTotalDuration);
+    // 主歌词区逐字变色
+    dom.lyricBox.innerHTML = renderKaraokeLine(currLine.text, ratio);
+    // 悬浮歌词上下行展示
     dom.prevLyric.innerText=parsedLyricList[currIndex-1]?.text||"";
-    dom.currLyric.innerText=parsedLyricList[currIndex].text;
+    dom.currLyric.innerHTML = renderKaraokeLine(currLine.text, ratio);
 }
 
 //全局快捷键
 document.addEventListener("keydown",e=>{
     const targetTag = e.target.tagName;
     if(targetTag === "INPUT" || targetTag === "TEXTAREA") return;
-    const media = nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
+    const media = getCurrentMedia();
     if(!media) return;
     switch(e.code){
         case "Space":
             e.preventDefault();
-            media.paused ? media.play() : media.pause();
+            media.paused ? media.play().catch(()=>{}) : media.pause();
+            syncPlayBtnText();
             break;
         case "ArrowLeft":
             e.preventDefault();
@@ -584,7 +668,7 @@ document.addEventListener("keydown",e=>{
     }
 })
 
-// 全屏核心修正：仅播放器容器全屏，不整页全屏
+// 全屏控制
 function enterFull(el){
     if(el.requestFullscreen) el.requestFullscreen();
     else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
@@ -601,7 +685,6 @@ function toggleFullScreen(){
         enterFull(targetBox);
     }
 }
-// 监听全屏状态切换按钮文字
 document.addEventListener('fullscreenchange',()=>{
     dom.fullBtn.innerText = document.fullscreenElement ? "⊡" : "⛶";
 });
@@ -661,19 +744,18 @@ function renderCard(list){
         card.innerHTML=`${cover}<div class="card-text">${item.singer||"未知歌手"} - ${item.name}</div>`;
         card.onclick=()=>{
             addPlaylist(item);
+            playMedia(item);
         };
         dom.cardContainer.appendChild(card);
     })
 }
 
-// 添加到播放列表
 function addPlaylist(item){
     if(currentPlayList.some(i=>i.id===item.id))return;
     currentPlayList.push(item);
     renderPlaylist();
 }
 
-// 渲染竖向播放目录：序号排列、滑动、双击播放、单条删除
 function renderPlaylist(){
     dom.playlistScroll.innerHTML="";
     if(currentPlayList.length===0){
@@ -688,11 +770,9 @@ function renderPlaylist(){
             <div class="item-name">${index+1}. ${item.singer||"未知歌手"} - ${item.name}</div>
             <button class="item-del">×</button>
         `;
-        // 双击条目播放
         div.ondblclick = ()=>{
             playMedia(item);
         }
-        // 单独删除本条，阻止冒泡触发播放
         div.querySelector(".item-del").onclick=(e)=>{
             e.stopPropagation();
             currentPlayList = currentPlayList.filter(v=>v.id!==item.id);
@@ -713,46 +793,55 @@ async function playMedia(item){
     parsedLyricList = [];
     lastPlayTime = 0;
     dom.prevLyric.innerText = "";
-    dom.currLyric.innerText = "暂无歌词";
-    dom.lyricBox.innerText = "加载歌词中...";
+    dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无歌词</span>";
+    dom.lyricBox.innerHTML = "<span class='lyric-normal'>加载歌词中...</span>";
+    playerCollapsed=false;
+    dom.playerWrap.style.height="520px";
+    dom.playerWrap.style.resize="both";
+    dom.lyricBox.style.display="block";
 
     if(item.type === "video"){
         dom.mainVideo.style.display = "block";
         dom.mainVideo.src = item.videoLink;
         dom.mainVideo.onloadedmetadata = function(){
-            dom.mainVideo.play().catch(()=>{});
+            dom.mainVideo.play().catch(err=>{
+                dom.lyricBox.innerHTML="<span class='lyric-normal'>浏览器阻止自动播放，请手动点击播放</span>";
+            });
+            syncPlayBtnText();
         }
     }else if(item.type === "music"){
         dom.playCoverBox.style.display = "flex";
         dom.mainAudio.src = item.audioLink;
         dom.mainAudio.load();
         dom.mainAudio.oncanplaythrough = function(){
-            dom.mainAudio.play().catch(()=>{});
+            dom.mainAudio.play().catch(err=>{
+                dom.lyricBox.innerHTML="<span class='lyric-normal'>浏览器阻止自动播放，请手动点击播放</span>";
+            });
+            syncPlayBtnText();
         }
     }
     if(item.coverImg) dom.playCoverImg.src=item.coverImg;
-
     renderPlaylist();
 
     if(!item.lyricName){
-        dom.lyricBox.innerText = "暂无匹配歌词";
-        dom.currLyric.innerText = "暂无匹配歌词";
+        dom.lyricBox.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
+        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
         return;
     }
     try{
         const lyricRes=await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(item.lyricName)}`);
         if(lyricRes.ok){
             const txt=await lyricRes.text();
-            dom.lyricBox.innerText=txt;
-            parsedLyricList=parseLyric(txt);
+            parsedLyricList=parseLRC(txt);
             updateFloatLyric(0);
         }else {
-            dom.lyricBox.innerText="暂无匹配歌词";
-            dom.currLyric.innerText="暂无匹配歌词";
+            dom.lyricBox.innerHTML="<span class='lyric-normal'>暂无匹配歌词</span>";
+            dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
         }
-    }catch{
-        dom.lyricBox.innerText="歌词加载失败";
-        dom.currLyric.innerText="歌词加载失败";
+    }catch(err){
+        dom.lyricBox.innerHTML="<span class='lyric-normal'>歌词加载失败</span>";
+        dom.currLyric.innerHTML = "<span class='lyric-normal'>歌词加载失败</span>";
+        console.log("歌词请求异常",err);
     }
 }
 
