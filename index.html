@@ -1407,9 +1407,9 @@ dom.hideSideBtn.onclick = ()=>{
 
         const dy = e.clientY - startY;
 
-        const minW = parseInt(dom.floatWindow.style.minWidth);
+        const minW = 360;
 
-        const minH = parseInt(dom.floatWindow.style.minHeight);
+        const minH = 300;
 
 
 
@@ -1598,7 +1598,6 @@ function getCurrentMedia(){
     return nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
 
 }
-
 function formatTime(s){
 
     const m = Math.floor(s / 60);
@@ -1953,21 +1952,21 @@ function renderCard(list){
         const card=document.createElement("div");
 
         card.className="music-card";
+        // 修复封面加载，加载失败自动回退占位
+        let coverHtml = `<div class="cover-box">无封面</div>`
+        if(item.coverImg){
+            coverHtml = `<div class="cover-box"><img src="${item.coverImg}" onerror="this.parentElement.innerHTML='无封面'"></div>`
+        }
 
-        const cover=item.coverImg?`<div class="cover-box"><img src="${item.coverImg}"></div>`:`<div class="cover-box">无封面</div>`;
-
-        card.innerHTML=`${cover}<div class="card-text">${item.name}<br><small>${item.singer||"未知歌手"}</small></div>`;
-
-        card.onclick=()=>{
-
+        card.innerHTML=`${coverHtml}<div class="card-text">${item.name}<br><small>${item.singer||"未知歌手"}</small></div>`;
+        // 修复点击事件，强制打开播放器窗口、加入播放列表、执行播放
+        card.onclick=async ()=>{
+            dom.floatWindow.classList.remove("minimize-state");
             addPlaylist(item);
-
-            playMedia(item);
-
+            await playMedia(item);
         };
 
         dom.cardContainer.appendChild(card);
-
     })
 
 }
@@ -2016,10 +2015,9 @@ function renderPlaylist(){
 
         `;
 
-        div.ondblclick = ()=>{
-
-            playMedia(item);
-
+        div.ondblclick = async ()=>{
+            dom.floatWindow.classList.remove("minimize-state");
+            await playMedia(item);
         }
 
         div.querySelector(".item-del").onclick=(e)=>{
@@ -2069,19 +2067,17 @@ async function playMedia(item){
         dom.mainVideo.src = item.videoLink;
 
         dom.mainVideo.load();
-
-        dom.mainVideo.play().catch(err=>{});
+        // 捕获浏览器自动播放拦截异常
+        await dom.mainVideo.play().catch(()=>{});
 
     }else if(item.type === "music"){
 
         dom.mainAudio.src = item.audioLink;
 
         dom.mainAudio.load();
-
-        dom.mainAudio.play().catch(err=>{});
+        await dom.mainAudio.play().catch(()=>{});
 
     }
-
     renderPlaylist();
 
 
