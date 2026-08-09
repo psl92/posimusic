@@ -1,3 +1,4 @@
+步丝丝音乐 前台客户端（接口全对齐版）
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -46,7 +47,7 @@ body::after{
 }
 @keyframes twinkle{
     0%{ opacity: 0.6; }
-    50%{ opacity: 1; }
+50%{ opacity: 1; }
     100%{ opacity: 0.6; }
 }
 .main-title{
@@ -121,7 +122,7 @@ body::after{
 .main-wrap{
     width: 94%;
     max-width: 1400px;
-    margin:0 auto;
+ margin:0 auto;
     display:flex;
     gap:24px;
     align-items:flex-start;
@@ -141,7 +142,7 @@ body::after{
     border-radius: 16px;
     padding: 12px;
     cursor: pointer;
-    transition: transform 0.2s;
+ transition: transform 0.2s;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -194,7 +195,7 @@ body::after{
     width:400px;
     height:340px;
     min-width:360px;
-    min-height:300px;
+ min-height:300px;
     background:rgba(255,255,255,0.65);
     border-radius:20px;
     overflow:hidden;
@@ -222,7 +223,7 @@ body::after{
 }
 .minimize-win-btn{
     width:28px;
-    height:22px;
+ height:22px;
     border-radius:999px;
     background: linear-gradient(135deg, #ffe6f2, #e6f4ff);
     color:#333;
@@ -249,7 +250,6 @@ body::after{
     display:flex;
     flex-direction:column;
     background:rgba(255,255,255,0.35);
-    display: none;
 }
 .player-window{
     flex:1;
@@ -340,7 +340,7 @@ body::after{
     height:100%;
     background:#000;
     border-radius:12px;
-    object-fit:contain;
+ object-fit:contain;
 }
 .fullscreen-video-btn{
     position:absolute;
@@ -390,7 +390,7 @@ body::after{
     display:flex;
     gap:10px;
     align-items:center;
-    flex-shrink:0;
+ flex-shrink:0;
 }
 .progress-wrap{
     width:100%;
@@ -432,14 +432,14 @@ body::after{
     transform: translateY(2px);
 }
 .control-btn.play-main{
-    padding:8px 22px;
+ padding:8px 22px;
     background: linear-gradient(145deg, #ffb4d8, #9cd4ff);
     color:#111;
 }
 
 .lyric-area{
     text-align: center;
-    font-size: 18px;
+ font-size: 18px;
     color: #333;
     margin-top: 8px;
     line-height: 2;
@@ -488,61 +488,6 @@ body::after{
 .curr-line{
     text-align:right;
 }
-
-/*管理员后台面板*/
-.admin-panel{
-    width:94%;
-    max-width:1400px;
-    margin:20px auto;
-    background:rgba(255,255,255,0.65);
-    border-radius:20px;
-    padding:24px;
-    backdrop-filter: blur(8px);
-    display:none;
-    z-index: 2;
-    position:relative;
-}
-.admin-title{
-    font-size:26px;
-    text-align:center;
-    margin-bottom:20px;
-}
-.login-row{
-    display:flex;
-    gap:12px;
-    justify-content:center;
-    margin-bottom:20px;
-}
-.login-row input{
-    padding:8px 14px;
-    border-radius:12px;
-    border:0;
-}
-.upload-area{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    margin:16px 0;
-}
-.del-item{
-    padding:6px 10px;
-    background:#ff8fb3;
-    border-radius:8px;
-    color:white;
-    cursor:pointer;
-}
-.reward-wrap{
-    width:94%;
-    max-width:1400px;
-    margin:0 auto;
-    display:none;
-    position:relative;
-    z-index: 2;
-}
-.reward-img{
-    border-radius:16px;
-    width:320px;
-}
 </style>
 </head>
 <body>
@@ -550,11 +495,10 @@ body::after{
 
 <div class="nav-bar">
     <button class="nav-btn active" data-type="all">首页 Home</button>
-    <button class="nav-btn" data-type="music">音乐 Music</button>
+<button class="nav-btn" data-type="music">音乐 Music</button>
     <button class="nav-btn" data-type="video">视频 Video</button>
     <button class="nav-btn" data-type="image">图片</button>
     <button class="nav-btn" data-type="reward">赞赏</button>
-    <button class="nav-btn" id="openAdminBtn">管理员后台</button>
 </div>
 
 <div class="search-bar">
@@ -562,40 +506,12 @@ body::after{
     <button id="searchBtn">搜索 Search</button>
 </div>
 
-<div class="main-wrap" id="mainPage">
+<div class="main-wrap">
     <div class="left-card-area">
         <div class="card-wrap" id="cardContainer">
             <div class="load-tip">正在加载资源，请稍等...</div>
         </div>
     </div>
-</div>
-
-<!--赞赏页面，普通用户只可查看图片-->
-<div class="reward-wrap" id="rewardPage">
-    <img class="reward-img" src="">
-</div>
-
-<!--管理员后台面板-->
-<div class="admin-panel" id="adminPanel">
-    <div class="admin-title">管理员控制面板</div>
-    <div class="login-row">
-        <input placeholder="管理员账号" id="adminAccount">
-        <input placeholder="管理员密码" type="password" id="adminPwd">
-        <button class="control-btn" id="adminLoginBtn">登录后台</button>
-    </div>
-    <div>管理员密钥(X‑Admin‑Token)：<span id="adminTokenText">未登录</span></div>
-    <div class="upload-area">
-        <select id="uploadFolder">
-            <option value="music">音乐文件夹 music</option>
-            <option value="video">视频文件夹 video</option>
-            <option value="img">图片文件夹 img</option>
-            <option value="lyric">歌词文件夹 lyric</option>
-        </select>
-        <input type="file" id="uploadFile">
-        <button class="control-btn" id="uploadBtn">上传资源</button>
-    </div>
-    <h3>全部资源列表(可删除)</h3>
-    <div id="adminResourceList"></div>
 </div>
 
 <!-- 右侧悬浮播放器窗口 -->
@@ -625,13 +541,13 @@ body::after{
             <video id="mainVideo" preload="auto" playsinline webkit-playsinline></video>
             <button class="fullscreen-video-btn" id="videoFullBtn">全屏</button>
         </div>
-    </div>
+</div>
 </div>
 
 <!-- 底部播放器：最终布局 -->
 <div class="bottom-player">
     <div class="inner-row">
-        <!-- 左侧：播放目录切换按钮 + 播放控制 -->
+ <!-- 左侧：播放目录切换按钮 + 播放控制 -->
         <div class="left-control-group">
             <button class="control-btn" id="togglePlaylistBtn">目录</button>
             <div class="player-control-row">
@@ -640,7 +556,7 @@ body::after{
                 <button class="control-btn play-main" id="playPauseBtn">▶</button>
                 <button class="control-btn" id="forwardBtn">▶</button>
                 <button class="control-btn" id="nextBtn">▶▶</button>
-            </div>
+ </div>
         </div>
         <!-- 中间：进度条+时间 -->
         <div class="mid-progress-area">
@@ -652,607 +568,341 @@ body::after{
                 <span id="totalTimeText">00:00</span>
             </div>
         </div>
-        <!-- 右侧：打开播放器按钮（和进度条水平平齐） -->
+<!-- 右侧：打开播放器按钮（和进度条水平平齐） -->
         <div class="right-control-group">
-            <button class="control-btn play-main" id="openPlayerBtn">打开播放器</button>
+            <button class="control-btn" id="openFloatWinBtn">播放器</button>
+            <button class="control-btn" id="lyricToggleBtn">悬浮歌词</button>
         </div>
     </div>
 </div>
 
-<div class="float-lyric-wrap" id="floatLyricWrap">
-    <div class="lyric-line prev-line" id="prevLyric"></div>
-    <div class="lyric-line curr-line" id="currLyric"></div>
+<!-- 悬浮歌词容器 -->
+<div class="float-lyric-wrap" id="floatLyricWrap" style="display: none;">
+    <div class="lyric-line prev-line" id="prevLyricLine">--</div>
+    <div class="lyric-line curr-line lyric-active" id="currLyricLine">等待播放</div>
 </div>
 
-<audio id="mainAudio" preload="auto">
-
 <script>
-const API_BASE = "https://api.busisi.com";
-let currentPlayList = [];
-let currentTabType = "all";
-let allResourceList = [];
-let nowPlayingItem = null;
-let parsedLyricList = [];
-let lastPlayTime = 0;
-let adminToken = "";
-
-const dom = {
-    floatWindow: document.getElementById("floatWindow"),
-    dragHandle: document.getElementById("dragHandle"),
-    cardContainer: document.getElementById("cardContainer"),
-    searchInput: document.getElementById("searchInput"),
-    searchBtn: document.getElementById("searchBtn"),
-    navBtns: document.querySelectorAll(".nav-btn"),
-    mainVideo: document.getElementById("mainVideo"),
-    mainAudio: document.getElementById("mainAudio"),
-    floatLyricWrap: document.getElementById("floatLyricWrap"),
-    prevLyric: document.getElementById("prevLyric"),
-    currLyric: document.getElementById("currLyric"),
-    playlistSide:document.getElementById("playlistSide"),
-    playlistScroll:document.getElementById("playlistScroll"),
-    hideSideBtn:document.getElementById("hideSideBtn"),
-    togglePlaylistBtn:document.getElementById("togglePlaylistBtn"),
-    prevBtn:document.getElementById("prevBtn"),
-    rewindBtn:document.getElementById("rewindBtn"),
-    forwardBtn:document.getElementById("forwardBtn"),
-    nextBtn:document.getElementById("nextBtn"),
-    playPauseBtn:document.getElementById("playPauseBtn"),
-    progressWrap:document.getElementById("progressWrap"),
-    progressBar:document.getElementById("progressBar"),
-    currentTimeText:document.getElementById("currentTimeText"),
-    totalTimeText:document.getElementById("totalTimeText"),
-    videoFullBtn:document.getElementById("videoFullBtn"),
-    minWinBtn:document.getElementById("minWinBtn"),
-    openPlayerBtn:document.getElementById("openPlayerBtn"),
-    openAdminBtn:document.getElementById("openAdminBtn"),
-    adminPanel:document.getElementById("adminPanel"),
-    mainPage:document.getElementById("mainPage"),
-    rewardPage:document.getElementById("rewardPage"),
-    adminAccount:document.getElementById("adminAccount"),
-    adminPwd:document.getElementById("adminPwd"),
-    adminLoginBtn:document.getElementById("adminLoginBtn"),
-    adminTokenText:document.getElementById("adminTokenText"),
-    uploadFolder:document.getElementById("uploadFolder"),
-    uploadFile:document.getElementById("uploadFile"),
-    uploadBtn:document.getElementById("uploadBtn"),
-    adminResourceList:document.getElementById("adminResourceList")
+// ==================== 全局接口配置（全量对齐后端接口）====================
+const API_BASE_URL = "http://localhost:8080/api";
+const API = {
+    // 首页资源接口
+    getAllResource: `${API_BASE_URL}/resource/all`,
+    getMusicResource: `${API_BASE_URL}/resource/music`,
+    getVideoResource: `${API_BASE_URL}/resource/video`,
+    getImageResource: `${API_BASE_URL}/resource/image`,
+    // 搜索接口
+    searchResource: `${API_BASE_URL}/resource/search`,
+    // 歌曲播放、歌词接口
+    getMusicUrl: `${API_BASE_URL}/music/url`,
+    getMusicLyric: `${API_BASE_URL}/music/lyric`
 };
 
-//导航栏页面切换
-dom.navBtns.forEach(btn=>{
-    btn.addEventListener("click",()=>{
-        dom.navBtns.forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-        const type = btn.dataset.type;
-        currentTabType=type;
-        dom.adminPanel.style.display = "none";
-        dom.rewardPage.style.display = "none";
-        dom.mainPage.style.display = "flex";
-        if(type === "reward"){
-            dom.mainPage.style.display = "none";
-            dom.rewardPage.style.display = "block";
+// ==================== 全局变量 ====================
+let currentMusicList = [];
+let currentPlayIndex = -1;
+let lyricList = [];
+let lyricTimer = null;
+let floatLyricShow = false;
+
+// DOM节点
+const cardContainer = document.getElementById('cardContainer');
+const playlistScroll = document.getElementById('playlistScroll');
+const mainVideo = document.getElementById('mainVideo');
+const progressWrap = document.getElementById('progressWrap');
+const progressBar = document.getElementById('progressBar');
+const currentTimeText = document.getElementById('currentTimeText');
+const totalTimeText = document.getElementById('totalTimeText');
+const playPauseBtn = document.getElementById('playPauseBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const rewindBtn = document.getElementById('rewindBtn');
+const forwardBtn = document.getElementById('forwardBtn');
+const searchBtn = document.getElementById('searchBtn');
+const searchInput = document.getElementById('searchInput');
+const navBtns = document.querySelectorAll('.nav-btn');
+const floatWindow = document.getElementById('floatWindow');
+const minWinBtn = document.getElementById('minWinBtn');
+const openFloatWinBtn = document.getElementById('openFloatWinBtn');
+const videoFullBtn = document.getElementById('videoFullBtn');
+const hideSideBtn = document.getElementById('hideSideBtn');
+const playlistSide = document.getElementById('playlistSide');
+const togglePlaylistBtn = document.getElementById('togglePlaylistBtn');
+const floatLyricWrap = document.getElementById('floatLyricWrap');
+const lyricToggleBtn = document.getElementById('lyricToggleBtn');
+const prevLyricLine = document.getElementById('prevLyricLine');
+const currLyricLine = document.getElementById('currLyricLine');
+
+// ==================== 工具函数 ====================
+// 时间格式化
+function formatTime(seconds) {
+    if (isNaN(seconds)) return "00:00";
+    let m = Math.floor(seconds / 60);
+    let s = Math.floor(seconds % 60);
+    return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+}
+
+// 接口请求封装
+async function request(url, params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(query ? `${url}?${query}` : url);
+    return await res.json();
+}
+
+// ==================== 核心页面渲染接口 ====================
+// 加载首页资源
+async function loadResource(type = 'all') {
+    cardContainer.innerHTML = '<div class="load-tip">正在加载资源，请稍等...</div>';
+    let res;
+    try {
+        switch (type) {
+            case 'all': res = await request(API.getAllResource); break;
+            case 'music': res = await request(API.getMusicResource); break;
+            case 'video': res = await request(API.getVideoResource); break;
+            case 'image': res = await request(API.getImageResource); break;
+            default: res = await request(API.getAllResource);
         }
-        renderFilterList();
+        if (res.code === 200 && res.data) {
+            renderCardList(res.data);
+            currentMusicList = res.data.filter(item => item.type === 'music');
+            renderPlaylist();
+        } else {
+            cardContainer.innerHTML = '<div class="load-tip">资源加载失败</div>';
+        }
+    } catch (err) {
+        cardContainer.innerHTML = '<div class="load-tip">接口请求异常，请检查后端服务</div>';
+        console.error("资源加载接口异常：", err);
+    }
+}
+
+// 渲染资源卡片
+function renderCardList(list) {
+    if (!list || list.length === 0) {
+        cardContainer.innerHTML = '<div class="load-tip">暂无资源数据</div>';
+        return;
+    }
+    let html = '';
+    list.forEach((item, index) => {
+        html += `
+ <div class="music-card" data-index="${index}" data-id="${item.id}" data-type="${item.type}">
+            <div class="cover-box">
+                <img src="${item.cover || 'https://picsum.photos/200/200'}" alt="封面">
+            </div>
+            <div class="card-text">
+                <div>${item.name || '未知资源'}</div>
+ <small>${item.author || '未知作者'}</small>
+            </div>
+        </div>
+        `;
     });
-})
+    cardContainer.innerHTML = html;
 
-//打开管理员面板
-dom.openAdminBtn.onclick = ()=>{
-    dom.mainPage.style.display = "none";
-    dom.rewardPage.style.display = "none";
-    dom.adminPanel.style.display = "block";
-}
-
-//管理员登录
-dom.adminLoginBtn.onclick = async ()=>{
-    const acc = dom.adminAccount.value.trim();
-    const pwd = dom.adminPwd.value.trim();
-    const res = await fetch(`${API_BASE}/userVerify`,{
-        method:"POST",
-        headers:{
-            "Content‑Type":"application/json"
-        },
-        body:JSON.stringify({account:acc,password:pwd})
-    })
-    const json = await res.json();
-    if(json.success){
-        adminToken = acc + "-secret‑key";
-        dom.adminTokenText.innerText = adminToken;
-        alert("管理员登录成功");
-        loadAdminResource();
-    }else{
-        alert("账号密码错误");
-    }
-}
-
-//上传文件
-dom.uploadBtn.onclick = async ()=>{
-    if(!adminToken){
-        alert("请先登录管理员账号");
-        return;
-    }
-    const file = dom.uploadFile.files[0];
-    if(!file){
-        alert("请选择文件");
-        return;
-    }
-    const folder = dom.uploadFolder.value;
-    const form = new FormData();
-    form.append("file",file);
-    form.append("folder",folder);
-    const res = await fetch(`${API_BASE}/addResource`,{
-        method:"POST",
-        headers:{
-            "X‑Admin‑Token":adminToken
-        },
-        body:form
-    })
-    const data = await res.json();
-    if(data.success){
-        alert("上传成功");
-        location.reload();
-    }else{
-        alert(data.msg);
-    }
-}
-
-//加载后台资源列表
-async function loadAdminResource(){
-    dom.adminResourceList.innerHTML = "";
-    const musicRes = await env.R2_BUCKET.list({ prefix: "music/" });
-    const videoRes = await env.R2_BUCKET.list({ prefix: "video/" });
-    const imgRes = await env.R2_BUCKET.list({ prefix: "img/" });
-    const lyricRes = await env.R2_BUCKET.list({ prefix: "lyric/" });
-    let allKeys = [];
-    musicRes.objects.forEach(i=>allKeys.push(i.key));
-    videoRes.objects.forEach(i=>allKeys.push(i.key));
-    imgRes.objects.forEach(i=>allKeys.push(i.key));
-    lyricRes.objects.forEach(i=>allKeys.push(i.key));
-    allKeys.forEach(key=>{
-        const div = document.createElement("div");
-        div.style.display = "flex";
-        div.gap = "10px";
-        div.style.margin = "8px 0";
-        div.innerHTML = `<span>${key}</span><button class="del-item">删除</button>`;
-        div.querySelector(".del-item").onclick = async ()=>{
-            await fetch(`${API_BASE}/delResource`,{
-                method:"POST",
-                headers:{
-                    "Content‑Type":"application/json",
-                    "X‑Admin‑Token":adminToken
-                },
-                body:JSON.stringify({key:key})
-            })
-            alert("删除完毕");
-            loadAdminResource();
-        }
-        dom.adminResourceList.appendChild(div);
-    })
-}
-
-// 最小化悬浮播放器
-dom.minWinBtn.onclick = ()=>{
-    dom.floatWindow.classList.add("minimize-state");
-}
-// 底部右侧按钮恢复悬浮播放器
-dom.openPlayerBtn.onclick = ()=>{
-    dom.floatWindow.classList.remove("minimize-state");
-}
-// 底部左侧目录按钮：切换播放列表侧边栏显示隐藏
-dom.togglePlaylistBtn.onclick = ()=>{
-    dom.playlistSide.style.display = dom.playlistSide.style.display === "none" ? "flex" : "none";
-}
-dom.hideSideBtn.onclick = ()=>{
-    dom.playlistSide.style.display = "none";
-}
-
-// ========= 窗口拖拽移动 =========
-(function initWindowDrag(){
-    let dragging = false;
-    let startX, startY, winStartLeft, winStartTop;
-    dom.dragHandle.addEventListener("mousedown", e=>{
-        dragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        winStartLeft = dom.floatWindow.offsetLeft;
-        winStartTop = dom.floatWindow.offsetTop;
-        dom.floatWindow.style.zIndex = 999;
-        e.preventDefault();
-    })
-    document.addEventListener("mousemove",e=>{
-        if(!dragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        dom.floatWindow.style.left = `${winStartLeft + dx}px`;
-        dom.floatWindow.style.top = `${winStartTop + dy}px`;
-    })
-    document.addEventListener("mouseup",()=>{
-        dragging = false;
-        dom.floatWindow.style.zIndex = 99;
-    })
-})();
-
-// ========= 窗口四边四角拉伸缩放 =========
-(function initWindowResize(){
-    const handles = document.querySelectorAll(".resize-handle");
-    let resizing = false;
-    let dir;
-    let startX, startY;
-    let startW, startH;
-    let startL, startT;
-
-    handles.forEach(hd=>{
-        hd.addEventListener("mousedown",e=>{
-            resizing = true;
-            dir = hd.dataset.dir;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = dom.floatWindow.offsetWidth;
-            startH = dom.floatWindow.offsetHeight;
-            startL = dom.floatWindow.offsetLeft;
-            startT = dom.floatWindow.offsetTop;
-            dom.floatWindow.style.zIndex = 999;
-            e.preventDefault();
-        })
-    })
-    document.addEventListener("mousemove",e=>{
-        if(!resizing) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        const minW = parseInt(dom.floatWindow.style.minWidth);
-        const minH = parseInt(dom.floatWindow.style.minHeight);
-
-        if(dir === "r") dom.floatWindow.style.width = `${Math.max(minW, startW + dx)}px`;
-        if(dir === "b") dom.floatWindow.style.height = `${Math.max(minH, startH + dy)}px`;
-        if(dir === "rb"){
-            dom.floatWindow.style.width = `${Math.max(minW, startW + dx)}px`;
-            dom.floatWindow.style.height = `${Math.max(minH, startH + dy)}px`;
-        }
-        if(dir === "l"){
-            const newW = startW - dx;
-            if(newW >= minW){
-                dom.floatWindow.style.width = `${newW}px`;
-                dom.floatWindow.style.left = `${startL + dx}px`;
-            }
-        }
-        if(dir === "t"){
-            const newH = startH - dy;
-            if(newH >= minH){
-                dom.floatWindow.style.height = `${newH}px`;
-                dom.floatWindow.style.top = `${startT + dy}px`;
-            }
-        }
-        if(dir === "lt"){
-            const newW = startW - dx;
-            const newH = startH - dy;
-            if(newW >= minW){
-                dom.floatWindow.style.width = `${newW}px`;
-                dom.floatWindow.style.left = `${startL + dx}px`;
-            }
-            if(newH >= minH){
-                dom.floatWindow.style.height = `${newH}px`;
-                dom.floatWindow.style.top = `${startT + dy}px`;
-            }
-        }
-        if(dir === "rt"){
-            dom.floatWindow.style.width = `${Math.max(minW, startW + dx)}px`;
-            const newH = startH - dy;
-            if(newH >= minH){
-                dom.floatWindow.style.height = `${newH}px`;
-                dom.floatWindow.style.top = `${startT + dy}px`;
-            }
-        }
-        if(dir === "lb"){
-            const newW = startW - dx;
-            if(newW >= minW){
-                dom.floatWindow.style.width = `${newW}px`;
-                dom.floatWindow.style.left = `${startL + dx}px`;
-            }
-            dom.floatWindow.style.height = `${Math.max(minH, startH + dy)}px`;
-        }
-    })
-    document.addEventListener("mouseup",()=>{
-        resizing = false;
-        dom.floatWindow.style.zIndex = 99;
-    })
-})();
-
-// 视频全屏
-dom.videoFullBtn.onclick = ()=>{
-    if (dom.mainVideo.requestFullscreen) dom.mainVideo.requestFullscreen();
-    else if (dom.mainVideo.webkitRequestFullscreen) dom.mainVideo.webkitRequestFullscreen();
-}
-
-// =========【优化后的悬浮歌词拖拽】=========
-(function initLyricDrag(){
-    const wrap = dom.floatLyricWrap;
-    let dragging = false, startX, startY, initLeft, initTop;
-    wrap.addEventListener("mousedown",e=>{
-        dragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        const rect = wrap.getBoundingClientRect();
-        initLeft = rect.left;
-        initTop = rect.top;
-        wrap.style.zIndex = 10000;
-        e.preventDefault();
+    // 绑定卡片点击播放事件
+    document.querySelectorAll('.music-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const idx = parseInt(card.dataset.index);
+            playMedia(idx, list[idx]);
+        });
     });
-    document.addEventListener("mousemove",e=>{
-        if(!dragging) return;
-        const moveX = initLeft + (e.clientX - startX);
-        const moveY = initTop + (e.clientY - startY);
-        wrap.style.left = `${Math.max(0, Math.min(moveX, window.innerWidth - wrap.offsetWidth))}px`;
-        wrap.style.top = `${Math.max(0, Math.min(moveY, window.innerHeight - wrap.offsetHeight))}px`;
+}
+
+// 渲染播放列表
+function renderPlaylist() {
+    if (!currentMusicList.length) {
+        playlistScroll.innerHTML = '<div class="load-tip" style="font-size:12px;padding:20px 0">暂无播放曲目</div>';
+        return;
+    }
+    let html = '';
+    currentMusicList.forEach((item, index) => {
+        html += `
+        <div class="playlist-item ${index === currentPlayIndex ? 'active' : ''}" data-index="${index}">
+            <div class="item-name">${item.name}</div>
+            <div class="item-del" data-del="${index}">×</div>
+        </div>
+        `;
     });
-    document.addEventListener("mouseup",()=>{
-        dragging = false;
-        wrap.style.zIndex = 9999;
-    })
-})();
+    playlistScroll.innerHTML = html;
 
-function getCurrentMedia(){
-    return nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
-}
-function formatTime(s){
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-}
-
-dom.rewindBtn.onclick = ()=>{
-    const m = getCurrentMedia(); if(!m) return; m.currentTime -=10;
-}
-dom.forwardBtn.onclick = ()=>{
-    const m = getCurrentMedia(); if(!m) return; m.currentTime +=10;
-}
-dom.playPauseBtn.onclick = ()=>{
-    const m = getCurrentMedia(); if(!m) return;
-    m.paused ? m.play() : m.pause();
-}
-dom.prevBtn.onclick = ()=>{
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.id === nowPlayingItem.id);
-    idx--;
-    if(idx <0) idx = currentPlayList.length -1;
-    playMedia(currentPlayList[idx]);
-}
-dom.nextBtn.onclick = ()=>{
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.id === nowPlayingItem.id);
-    idx++;
-    if(idx >= currentPlayList.length) idx = 0;
-    playMedia(currentPlayList[idx]);
-}
-function syncPlayBtnStatus(){
-    const m = getCurrentMedia();
-    if(!m){
-        dom.playPauseBtn.innerText="▶";
-        return;
-    }
-    dom.playPauseBtn.innerText = m.paused ? "▶" : "⏸";
-}
-
-dom.progressWrap.onclick = function(e){
-    const media = getCurrentMedia();
-    if(!media || !media.duration) return;
-    const rect = this.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    media.currentTime = percent * media.duration;
-}
-
-function parseLRC(text){
-    const result = [];
-    const reg = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/;
-    text.split("\n").forEach(line=>{
-        line=line.trim();
-        const m=line.match(reg);
-        if(!m)return;
-        const time = parseInt(m[1])*60 + parseInt(m[2]) + (parseInt(m[3]||0)/1000);
-        const txt=m[4].trim();
-        if(!txt) return;
-        result.push({time, text:txt});
+    // 列表点击播放
+    document.querySelectorAll('.playlist-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('item-del')) return;
+            const idx = parseInt(item.dataset.index);
+            playMedia(idx, currentMusicList[idx]);
+        });
     });
-    return result.sort((a,b)=>a.time-b.time);
+
+    // 删除单曲
+    document.querySelectorAll('.item-del').forEach(del => {
+        del.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const idx = parseInt(del.dataset.del);
+            currentMusicList.splice(idx, 1);
+            if (currentPlayIndex === idx) currentPlayIndex = -1;
+            renderPlaylist();
+        });
+    });
 }
-function renderKaraokeLine(lineText, progressRatio){
-    let html = "";
-    for(let i=0;i<lineText.length;i++){
-        const isActive = i < Math.floor(lineText.length * progressRatio);
-        html += `<span class="${isActive?'lyric-active':'lyric-normal'}">${lineText[i]}</span>`;
+
+// ==================== 播放核心接口 ====================
+async function playMedia(index, item) {
+    if (!item) return;
+    currentPlayIndex = index;
+    renderPlaylist();
+    try {
+        // 获取播放地址
+        const urlRes = await request(API.getMusicUrl, { id: item.id });
+        if (urlRes.code !== 200 || !urlRes.data.url) {
+            alert("暂无播放资源");
+            return;
+        }
+        mainVideo.src = urlRes.data.url;
+        mainVideo.play();
+        playPauseBtn.innerText = '❚❚';
+
+        // 获取歌词
+        const lyricRes = await request(API.getMusicLyric, { id: item.id });
+        lyricList = lyricRes.code === 200 ? lyricRes.data : [];
+        startLyricScroll();
+    } catch (err) {
+        console.error("播放接口异常：", err);
+        alert("播放失败，请重试");
     }
-    return html;
 }
-function updateFloatLyric(nowT){
-    lastPlayTime = nowT;
-    syncPlayBtnStatus();
-    const media = getCurrentMedia();
-    if(media?.duration){
-        const pct = (nowT/media.duration)*100;
-        dom.progressBar.style.width = `${pct}%`;
-        dom.currentTimeText.innerText = formatTime(nowT);
-        dom.totalTimeText.innerText = formatTime(media.duration);
-    }
-    if(!parsedLyricList.length){
-        dom.prevLyric.innerText="";
-        dom.currLyric.innerHTML="<span class='lyric-normal'>暂无歌词</span>";
+
+// ==================== 歌词滚动逻辑 ====================
+function startLyricScroll() {
+    clearInterval(lyricTimer);
+    if (!lyricList.length) {
+        currLyricLine.innerText = "暂无歌词";
+        prevLyricLine.innerText = "--";
         return;
     }
-    let currIndex=0;
-    for(let i=0;i<parsedLyricList.length;i++){
-        if(nowT>=parsedLyricList[i].time) currIndex=i;
-        else break;
-    }
-    const currLine = parsedLyricList[currIndex];
-    const nextTime = parsedLyricList[currIndex+1]?.time || (currLine.time + 5);
-    const linePassDuration = nowT - currLine.time;
-    const ratio = Math.min(1, linePassDuration / (nextTime - currLine.time));
-    dom.prevLyric.innerText=parsedLyricList[currIndex-1]?.text||"";
-    dom.currLyric.innerHTML = renderKaraokeLine(currLine.text, ratio);
+    lyricTimer = setInterval(() => {
+        const currentTime = mainVideo.currentTime;
+        let curr = lyricList.findIndex((item, idx) => {
+            return currentTime >= item.time && (!lyricList[idx+1] || currentTime < lyricList[idx+1].time);
+        });
+        if (curr !== -1) {
+            prevLyricLine.innerText = lyricList[curr-1]?.content || "";
+            currLyricLine.innerText = lyricList[curr].content;
+        }
+    }, 300);
 }
 
-document.addEventListener("keydown",e=>{
-    const targetTag = e.target.tagName;
-    if(targetTag === "INPUT" || targetTag === "TEXTAREA") return;
-    const media = getCurrentMedia();
-    if(!media) return;
-    switch(e.code){
-        case "Space":
-            e.preventDefault();
-            media.paused ? media.play().catch(()=>{}) : media.pause();
-            syncPlayBtnStatus();
-            break;
-        case "ArrowLeft":
-            e.preventDefault();
-            media.currentTime -=10;
-            break;
-        case "ArrowRight":
-            e.preventDefault();
-            media.currentTime +=10;
-            break;
-    }
-})
+// ==================== 进度条、时间更新 ====================
+mainVideo.addEventListener('timeupdate', () => {
+    const percent = (mainVideo.currentTime / mainVideo.duration) * 100 || 0;
+    progressBar.style.width = percent + '%';
+    currentTimeText.innerText = formatTime(mainVideo.currentTime);
+    totalTimeText.innerText = formatTime(mainVideo.duration);
+});
 
-window.addEventListener("load", async () => {
-    if(location.protocol==="file:"){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#444">禁止本地双击打开HTML，必须网页托管访问</div>`;
-        return;
-    }
-    const timeUpdateFunc = function(){
-        updateFloatLyric(this.currentTime);
-    }
-    dom.mainVideo.ontimeupdate = timeUpdateFunc;
-    dom.mainAudio.ontimeupdate = timeUpdateFunc;
-    dom.mainVideo.onended = playNext;
-    dom.mainAudio.onended = playNext;
+// 进度条拖拽跳转
+progressWrap.addEventListener('click', (e) => {
+    const offset = e.offsetX;
+    const width = progressWrap.clientWidth;
+    mainVideo.currentTime = (offset / width) * mainVideo.duration;
+});
 
-    try{
-        const res=await fetch(`${API_BASE}/getResourceList`);
-        if(!res.ok) throw new Error(`接口状态码:${res.status}`);
-        allResourceList=await res.json();
-        renderFilterList();
-    }catch(err){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#444">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
-        console.error(err);
+// 播放结束自动下一首
+mainVideo.addEventListener('ended', () => {
+    nextBtn.click();
+});
+
+// ==================== 播放控制事件 ====================
+// 暂停/播放
+playPauseBtn.addEventListener('click', () => {
+    if (!mainVideo.src) return;
+    if (mainVideo.paused) {
+        mainVideo.play();
+        playPauseBtn.innerText = '❚❚';
+    } else {
+        mainVideo.pause();
+        playPauseBtn.innerText = '▶';
     }
 });
-function playNext(){
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.id === nowPlayingItem.id);
-    idx++;
-    if(idx >= currentPlayList.length) idx = 0;
-    playMedia(currentPlayList[idx]);
-}
-function renderFilterList(){
-    let list=allResourceList;
-    if(currentTabType!=="all") list=list.filter(i=>i.type===currentTabType);
-    renderCard(list);
-}
-function renderCard(list){
-    dom.cardContainer.innerHTML="";
-    if(!list.length){
-        dom.cardContainer.innerHTML='<div class="load-tip">暂无资源</div>';
-        return;
-    }
-    list.forEach(item=>{
-        const card=document.createElement("div");
-        card.className="music-card";
-        const cover=item.coverImg?`<div class="cover-box"><img src="${item.coverImg}"></div>`:`<div class="cover-box">无封面</div>`;
-        card.innerHTML=`${cover}<div class="card-text">${item.name}<br><small>${item.singer||"未知歌手"}</small></div>`;
-        card.onclick=()=>{
-            addPlaylist(item);
-            playMedia(item);
-        };
-        dom.cardContainer.appendChild(card);
-    })
-}
 
-function addPlaylist(item){
-    if(currentPlayList.some(i=>i.id===item.id))return;
-    currentPlayList.push(item);
-    renderPlaylist();
-}
+// 上一首
+prevBtn.addEventListener('click', () => {
+    if (!currentMusicList.length) return;
+    let idx = currentPlayIndex - 1;
+    if (idx < 0) idx = currentMusicList.length - 1;
+    playMedia(idx, currentMusicList[idx]);
+});
 
-function renderPlaylist(){
-    dom.playlistScroll.innerHTML="";
-    if(currentPlayList.length===0){
-        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#555">播放目录为空</div>';
-        return;
-    }
-    currentPlayList.forEach((item,index)=>{
-        const div=document.createElement("div");
-        div.className="playlist-item";
-        if(nowPlayingItem && nowPlayingItem.id===item.id) div.classList.add("active");
-        div.innerHTML=`
-            <div class="item-name">${index+1}. ${item.name}</div>
-            <button class="item-del">×</button>
-        `;
-        div.ondblclick = ()=>{
-            playMedia(item);
-        }
-        div.querySelector(".item-del").onclick=(e)=>{
-            e.stopPropagation();
-            currentPlayList = currentPlayList.filter(v=>v.id!==item.id);
+// 下一首
+nextBtn.addEventListener('click', () => {
+    if (!currentMusicList.length) return;
+    let idx = currentPlayIndex + 1;
+    if (idx >= currentMusicList.length) idx = 0;
+    playMedia(idx, currentMusicList[idx]);
+});
+
+// 快进/快退 5秒
+rewindBtn.addEventListener('click', () => mainVideo.currentTime -= 5);
+forwardBtn.addEventListener('click', () => mainVideo.currentTime += 5);
+
+// ==================== 搜索接口事件 ====================
+searchBtn.addEventListener('click', async () => {
+    const key = searchInput.value.trim();
+    if (!key) return alert("请输入搜索内容");
+    cardContainer.innerHTML = '<div class="load-tip">搜索中...</div>';
+    try {
+        const res = await request(API.searchResource, { key: key });
+        if (res.code === 200) {
+            renderCardList(res.data);
+            currentMusicList = res.data.filter(item => item.type === 'music');
             renderPlaylist();
+        } else {
+            cardContainer.innerHTML = '<div class="load-tip">暂无搜索结果</div>';
         }
-        dom.playlistScroll.appendChild(div);
-    })
-}
-
-async function playMedia(item){
-    nowPlayingItem=item;
-    dom.mainVideo.pause();
-    dom.mainVideo.src = "";
-    dom.mainAudio.pause();
-    dom.mainAudio.src = "";
-    parsedLyricList = [];
-    lastPlayTime = 0;
-    dom.prevLyric.innerText = "";
-    dom.currLyric.innerHTML = "<span class='lyric-normal'>加载中...</span>";
-    dom.progressBar.style.width = "0%";
-    dom.currentTimeText.innerText = "00:00";
-
-    if(item.type === "video"){
-        dom.mainVideo.src = item.videoLink;
-        dom.mainVideo.load();
-        dom.mainVideo.play().catch(err=>{});
-    }else if(item.type === "music"){
-        dom.mainAudio.src = item.audioLink;
-        dom.mainAudio.load();
-        dom.mainAudio.play().catch(err=>{});
+    } catch (err) {
+        cardContainer.innerHTML = '<div class="load-tip">搜索接口异常</div>';
     }
-    renderPlaylist();
+});
 
-    if(!item.lyricName){
-        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
-        return;
-    }
-    try{
-        const lyricRes=await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(item.lyricName)}`);
-        if(lyricRes.ok){
-            const txt=await lyricRes.text();
-            parsedLyricList=parseLRC(txt);
-            updateFloatLyric(0);
-        }else {
-            dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
-        }
-    }catch(err){
-        dom.currLyric.innerHTML = "<span class='lyric-normal'>歌词加载失败</span>";
-    }
-}
+searchInput.addEventListener('keydown', (e) => e.key === 'Enter' && searchBtn.click());
 
-function searchResource(){
-    const kw=dom.searchInput.value.trim().toLowerCase();
-    if(!kw){
-        renderFilterList();
-        return;
-    }
-    let src=currentTabType==="all"?allResourceList:allResourceList.filter(i=>i.type===currentTabType);
-    const res=src.filter(v=>{
-        const n=(v.name||"").toLowerCase(),s=(v.singer||"").toLowerCase();
-        return n.includes(kw)||s.includes(kw);
+// ==================== 导航分类接口 ====================
+navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadResource(btn.dataset.type);
     });
-    renderCard(res);
-}
+});
+
+// ==================== 页面控件交互 ====================
+// 最小化播放器
+minWinBtn.addEventListener('click', () => floatWindow.classList.add('minimize-state'));
+// 打开播放器
+openFloatWinBtn.addEventListener('click', () => floatWindow.classList.remove('minimize-state'));
+// 视频全屏
+videoFullBtn.addEventListener('click', () => {
+    if (mainVideo.requestFullscreen) mainVideo.requestFullscreen();
+});
+// 收起/展开播放列表
+let sideHide = false;
+hideSideBtn.addEventListener('click', () => {
+    sideHide = !sideHide;
+    playlistSide.style.width = sideHide ? '0' : '38%';
+    hideSideBtn.innerText = sideHide ? '展开' : '收起';
+});
+togglePlaylistBtn.addEventListener('click', () => hideSideBtn.click());
+
+// 悬浮歌词开关
+lyricToggleBtn.addEventListener('click', () => {
+    floatLyricShow = !floatLyricShow;
+    floatLyricWrap.style.display = floatLyricShow ? 'block' : 'none';
+    lyricToggleBtn.innerText = floatLyricShow ? '关闭歌词' : '悬浮歌词';
+});
+
+// 页面初始化加载
+window.onload = () => {
+    loadResource('all');
+};
 </script>
+
 </body>
 </html>
