@@ -29,7 +29,6 @@ body{
     margin:0 auto;
     padding:0 20px;
 }
-/* 主布局：左侧播放器2/3，右侧播放列表1/3 */
 .main-layout{
     display:flex;
     gap:16px;
@@ -74,7 +73,6 @@ body{
     color:#223355;
     margin-bottom:24px;
 }
-/* 胶囊3D按钮 */
 .btn-group{
     display:flex;
     gap:12px;
@@ -96,7 +94,6 @@ body{
     transform:translateY(2px);
     box-shadow: 0 2px 6px rgba(72,52,212,0.35);
 }
-/* 底部全局播放条 */
 .bottom-bar{
     position:fixed;
     left:0;
@@ -127,7 +124,6 @@ body{
     font-size:13px;
     color:#444;
 }
-/* 歌曲列表项 */
 .song-item{
     padding:10px 12px;
     border-radius:10px;
@@ -142,7 +138,6 @@ body{
     background:rgba(123,97,255,0.22);
     color:#4834d4;
 }
-/* 悬浮酷狗风格歌词 */
 .lyric-float{
     position:fixed;
     left:120px;
@@ -187,13 +182,12 @@ body{
             <div class="list-box">
                 <h3>歌曲列表（自动读取Worker资源）</h3>
                 <div id="songListWrap">
-                    <div>加载歌曲失败，请检查Worker接口</div>
+                    <div>加载歌曲中...</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!--底部播放控制条-->
     <div class="bottom-bar">
         <div class="progress-wrap" id="progressWrap">
             <div class="progress-bar" id="progressBar"></div>
@@ -204,7 +198,6 @@ body{
         </div>
     </div>
 
-    <!--悬浮歌词窗口-->
     <div class="lyric-float" id="currLyric">
         <span class="lyric-normal">暂无匹配歌词</span>
     </div>
@@ -236,7 +229,28 @@ let allSong = [];
 let nowIndex = 0;
 let lyricArr = [];
 
-// 加载歌曲列表
+async function tryLoadCover(baseUrl, name){
+    const exts = ["jpg","jpeg","png","webp"];
+    for(let ext of exts){
+        const res = await fetch(`${baseUrl}${name}.${ext}`);
+        if(res.ok){
+            return `${baseUrl}${name}.${ext}`;
+        }
+    }
+    return "";
+}
+
+async function tryLoadLyric(baseUrl, name){
+    const exts = ["lrc","krc"];
+    for(let ext of exts){
+        const res = await fetch(`${baseUrl}${name}.${ext}`);
+        if(res.ok){
+            return await res.text();
+        }
+    }
+    return null;
+}
+
 async function loadAllMusicList(){
     try{
         const res = await fetch(`${WORKER_API}/listMusic`);
@@ -248,14 +262,12 @@ async function loadAllMusicList(){
     }
 }
 
-//渲染列表
 function renderSongList(){
     let html = "";
     allSong.forEach((item,idx)=>{
         html += `<div class="song-item" data-index="${idx}">${item.name}</div>`;
     });
     dom.songListWrap.innerHTML = html;
-    //点击事件
     document.querySelectorAll(".song-item").forEach(el=>{
         el.onclick = ()=>{
             const i = Number(el.dataset.index);
@@ -264,7 +276,6 @@ function renderSongList(){
     })
 }
 
-//播放歌曲【已增加中文url编码处理】
 async function playSong(index) {
     nowIndex = index;
     let song = allSong[index];
@@ -273,10 +284,24 @@ async function playSong(index) {
 
     dom.audioDom.src = `${WORKER_API}${PATH_MUSIC}${song.file}`;
     dom.songNameDom.innerText = song.name;
-
     const encodedName = encodeURIComponent(song.name);
-    dom.songCoverDom.src = `${WORKER_API}${PATH_COVER}${encodedName}.jpg`;
-    loadLyric(encodedName);
+
+    //尝试加载封面
+    const coverSrc = await tryLoadCover(`${WORKER_API}${PATH_COVER}`,encodedName);
+    if(coverSrc){
+        dom.songCoverDom.src = coverSrc;
+    }else{
+        dom.songCoverDom.src = "";
+    }
+
+    //尝试加载歌词
+    const lyricText = await tryLoadLyric(`${WORKER_API}${PATH_LYRIC}`,encodedName);
+    if(lyricText){
+        parseLyric(lyricText);
+    }else{
+        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
+        lyricArr = [];
+    }
 
     try{
         await dom.audioDom.play();
@@ -286,20 +311,6 @@ async function playSong(index) {
     }
 }
 
-//加载歌词
-async function loadLyric(encodedSongName) {
-    try{
-        let lyricRes = await fetch(`${WORKER_API}${PATH_LYRIC}${encodedSongName}.lrc`);
-        if(!lyricRes.ok) throw new Error("无歌词");
-        let lyricText = await lyricRes.text();
-        parseLyric(lyricText);
-    }catch(e){
-        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
-        lyricArr = [];
-    }
-}
-
-//解析lrc歌词
 function parseLyric(text){
     lyricArr = [];
     const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/g;
@@ -313,7 +324,6 @@ function parseLyric(text){
     }
 }
 
-//更新歌词高亮
 function updateLyric(){
     if(!lyricArr.length) return;
     const t = dom.audioDom.currentTime;
@@ -326,14 +336,12 @@ function updateLyric(){
     dom.currLyric.innerHTML = `<span class="lyric-high">${showText||" "}</span>`;
 }
 
-//时间格式化
 function formatTime(s){
     const m = Math.floor(s/60);
     const sec = Math.floor(s%60);
     return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
 }
 
-//音频事件
 dom.audioDom.ontimeupdate = ()=>{
     const curr = dom.audioDom.currentTime;
     const total = dom.audioDom.duration||0;
@@ -347,7 +355,6 @@ dom.audioDom.onended = ()=>{
     nextSong();
 }
 
-//按钮事件
 dom.playBtn.onclick = ()=>{
     if(dom.audioDom.paused){
         dom.audioDom.play();
@@ -365,22 +372,23 @@ dom.prevBtn.onclick = ()=>{
 }
 
 dom.nextBtn.onclick = ()=>{
-    nextSong();
+    let i = nowIndex+1;
+    if(i>=allSong.length) i=0;
+    playSong(i);
 }
+
 function nextSong(){
     let i = nowIndex+1;
     if(i>=allSong.length) i=0;
     playSong(i);
 }
 
-//进度条点击跳转
 dom.progressWrap.onclick = (e)=>{
     const rect = dom.progressWrap.getBoundingClientRect();
     const per = (e.clientX - rect.left)/rect.width;
     dom.audioDom.currentTime = per * dom.audioDom.duration;
 }
 
-//悬浮歌词拖拽
 let drag = false,dx,dy;
 dom.currLyric.onmousedown = function(e){
     drag = true;
@@ -394,7 +402,6 @@ document.onmousemove = function(e){
 }
 document.onmouseup = ()=>drag=false;
 
-//初始化
 loadAllMusicList();
 </script>
 </body>
