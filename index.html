@@ -1001,6 +1001,10 @@ body::after{
 
     <button class="nav-btn" data-type="video">视频 Video</button>
 
+    <button class="nav-btn" data-type="image">图片</button>
+
+    <button class="nav-btn" data-type="reward">赞赏</button>
+
 </div>
 
 
@@ -1178,7 +1182,13 @@ body::after{
 
 <script>
 
+// 接口基础地址
 const API_BASE = "https://api.busisi.com";
+// 全部后端接口路径，仅对接接口，其余原有代码保持原样
+const apiUrl = {
+    获取资源列表: `${API_BASE}/getResourceList`,
+    获取歌词: `${API_BASE}/getLyric`
+};
 
 let currentPlayList = [];
 
@@ -1884,7 +1894,7 @@ window.addEventListener("load", async () => {
 
     try{
 
-        const res=await fetch(`${API_BASE}/getResourceList`);
+        const res=await fetch(apiUrl.获取资源列表);
 
         if(!res.ok) throw new Error(`接口状态码:${res.status}`);
 
@@ -2074,9 +2084,10 @@ async function playMedia(item){
 
     renderPlaylist();
 
-    //适配后端字段lyricUrl，直接调用完整歌词地址
 
-    if(!item.lyricUrl){
+
+
+    if(!item.lyricName){
 
         dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
 
@@ -2086,7 +2097,7 @@ async function playMedia(item){
 
     try{
 
-        const lyricRes=await fetch(item.lyricUrl);
+        const lyricRes=await fetch(`${apiUrl.获取歌词}?name=${encodeURIComponent(item.lyricName)}`);
 
         if(lyricRes.ok){
 
