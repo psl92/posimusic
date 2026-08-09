@@ -284,18 +284,17 @@ async function playSong(index) {
 
     dom.audioDom.src = `${WORKER_API}${PATH_MUSIC}${song.file}`;
     dom.songNameDom.innerText = song.name;
-    const encodedName = encodeURIComponent(song.name);
+    //直接使用原始中文歌名，不做encodeURIComponent
+    const rawName = song.name;
 
-    //尝试加载封面
-    const coverSrc = await tryLoadCover(`${WORKER_API}${PATH_COVER}`,encodedName);
+    const coverSrc = await tryLoadCover(`${WORKER_API}${PATH_COVER}`,rawName);
     if(coverSrc){
         dom.songCoverDom.src = coverSrc;
     }else{
         dom.songCoverDom.src = "";
     }
 
-    //尝试加载歌词
-    const lyricText = await tryLoadLyric(`${WORKER_API}${PATH_LYRIC}`,encodedName);
+    const lyricText = await tryLoadLyric(`${WORKER_API}${PATH_LYRIC}`,rawName);
     if(lyricText){
         parseLyric(lyricText);
     }else{
@@ -372,11 +371,8 @@ dom.prevBtn.onclick = ()=>{
 }
 
 dom.nextBtn.onclick = ()=>{
-    let i = nowIndex+1;
-    if(i>=allSong.length) i=0;
-    playSong(i);
+    nextSong();
 }
-
 function nextSong(){
     let i = nowIndex+1;
     if(i>=allSong.length) i=0;
