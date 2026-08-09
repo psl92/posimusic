@@ -1184,10 +1184,12 @@ body::after{
 
 // 接口基础地址
 const API_BASE = "https://api.busisi.com";
-// 全部后端接口路径，仅对接接口，其余原有代码保持原样
+// 全部后端接口路径，适配新版Worker
 const apiUrl = {
     获取资源列表: `${API_BASE}/getResourceList`,
-    获取歌词: `${API_BASE}/getLyric`
+    获取封面: `${API_BASE}/getCover`,
+    文件流: `${API_BASE}/stream`,
+    获取歌词: `${API_BASE}/stream`
 };
 
 let currentPlayList = [];
@@ -1897,10 +1899,25 @@ window.addEventListener("load", async () => {
 
         if(!res.ok) throw new Error(`接口状态码:${res.status}`);
 
-        allResourceList=await res.json();
-
+        const rawData = await res.json();
+        allResourceList = rawData.data.map(item=>{
+            const fileName = item.fullPath.split("/").pop();
+            let fileType = "music";
+            if(item.fullPath.startsWith("video/")) fileType = "video";
+            if(item.fullPath.startsWith("img/")) fileType = "image";
+            const baseName = fileName.split(".").slice(0,-1).join(".");
+            return {
+                id:item.fullPath,
+                name:baseName,
+                fullKey:item.fullPath,
+                type:fileType,
+                singer:"未知歌手",
+                audioLink:`${apiUrl.文件流}?name=${encodeURIComponent(item.fullPath)}`,
+                videoLink:`${apiUrl.文件流}?name=${encodeURIComponent(item.fullPath)}`,
+                lyricName:`lyric/${baseName}.lrc`
+            }
+        })
         renderFilterList();
-
     }catch(err){
 
         dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#444">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
@@ -1908,7 +1925,6 @@ window.addEventListener("load", async () => {
         console.error(err);
 
     }
-
 });
 
 function playNext(){
@@ -1935,7 +1951,7 @@ function renderFilterList(){
 
 }
 
-function renderCard(list){
+async function renderCard(list){
 
     dom.cardContainer.innerHTML="";
 
@@ -1947,19 +1963,24 @@ function renderCard(list){
 
     }
 
-    list.forEach(item=>{
-
+    for(let item of list){
         const card=document.createElement("div");
-
         card.className="music-card";
-        // 修复封面加载，加载失败自动回退占位
+        // 请求后端自动匹配歌曲封面
+        let coverUrl = null;
+        if(item.type === "music"){
+            const baseName = item.name;
+            const coverRes = await fetch(`${apiUrl.获取封面}?songBaseName=${encodeURIComponent(baseName)}`);
+            const coverJson = await coverRes.json();
+            coverUrl = coverJson.coverUrl;
+        }
         let coverHtml = `<div class="cover-box">无封面</div>`
-        if(item.coverImg){
-            coverHtml = `<div class="cover-box"><img src="${item.coverImg}" onerror="this.parentElement.innerHTML='无封面'"></div>`
+        if(coverUrl){
+            coverHtml = `<div class="cover-box"><img src="${coverUrl}" onerror="this.parentElement.innerHTML='无封面'"></div>`
         }
 
         card.innerHTML=`${coverHtml}<div class="card-text">${item.name}<br><small>${item.singer||"未知歌手"}</small></div>`;
-        // 修复点击事件，强制打开播放器窗口、加入播放列表、执行播放
+        // 点击卡片播放
         card.onclick=async ()=>{
             dom.floatWindow.classList.remove("minimize-state");
             addPlaylist(item);
@@ -1967,7 +1988,7 @@ function renderCard(list){
         };
 
         dom.cardContainer.appendChild(card);
-    })
+    }
 
 }
 
@@ -2067,7 +2088,6 @@ async function playMedia(item){
         dom.mainVideo.src = item.videoLink;
 
         dom.mainVideo.load();
-        // 捕获浏览器自动播放拦截异常
         await dom.mainVideo.play().catch(()=>{});
 
     }else if(item.type === "music"){
@@ -2082,14 +2102,6 @@ async function playMedia(item){
 
 
 
-
-    if(!item.lyricName){
-
-        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
-
-        return;
-
-    }
 
     try{
 
