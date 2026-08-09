@@ -228,20 +228,24 @@ let nowIndex = 0;
 let lyricArr = [];
 
 async function tryLoadCover(name){
-    const url = `${WORKER_API}/getCover?name=${encodeURIComponent(name)}`;
-    const res = await fetch(url);
-    if(res.ok){
-        return url;
-    }
+    try{
+        const url = `${WORKER_API}/getCover?name=${encodeURIComponent(name)}`;
+        const res = await fetch(url);
+        if(res.ok){
+            return url;
+        }
+    }catch(e){}
     return "";
 }
 
 async function tryLoadLyric(name){
     const url = `${WORKER_API}/getLyric?name=${encodeURIComponent(name)}`;
-    const res = await fetch(url);
-    if(res.ok){
-        return await res.text();
-    }
+    try{
+        const res = await fetch(url);
+        if(res.ok){
+            return await res.text();
+        }
+    }catch(e){}
     return null;
 }
 
