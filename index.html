@@ -1,194 +1,137 @@
-export default {
-  async fetch(request, env) {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,OPTIONS",
-      "Access-Control-Allow-Headers": "*",
-      "Access-Control-Max-Age": "86400"
-    };
-    if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>步丝丝音乐 前台客户端</title>
+<style>
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft Yahei", sans-serif;
+}
+body{
+    background: linear-gradient(160deg, #ffd8ee 0%, #d0edff 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 160px;
+}
+.main-title{
+    text-align: center;
+    padding: 20px 0 12px;
+    font-size: 42px;
+    color:#7b2cb4;
+}
+.nav-bar{
+    display:flex;gap:12px;padding:12px 24px;background:rgba(255,255,255,0.4);backdrop-filter:blur(8px);
+}
+.nav-bar span{
+    padding:8px 16px;border-radius:20px;background:#fff;cursor:pointer;
+}
+.search-box{
+    margin:20px 24px;
+    width:calc(100% - 48px);
+    padding:12px;border-radius:30px;border:none;outline:none;
+}
+.content-wrap{
+    display:grid;grid-template-columns:repeat(8,1fr);gap:16px;padding:0 24px;
+}
+.card{
+    background:rgba(255,255,255,0.6);border-radius:12px;padding:10px;text-align:center;
+}
+.card img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;margin-bottom:8px;}
+.play-layout{
+    display:flex;gap:20px;padding:24px;position:fixed;bottom:0;left:0;width:100%;background:rgba(255,255,255,0.7);
+}
+.player-main{width:66%;}
+.play-list{width:33%;border-left:1px solid #ccc;padding-left:20px;}
+.progress{width:100%;height:6px;background:#ddd;border-radius:3px;margin-top:12px;}
+.progress-inner{height:100%;width:0%;background:#7b2cb4;border-radius:3px;}
+</style>
+</head>
+<body>
+<h1 class="main-title">步丝丝《朝歌》</h1>
+<div class="nav-bar">
+    <span>首页 Home</span>
+    <span>音乐 Music</span>
+    <span>视频 Video</span>
+    <span>图片</span>
+    <span>赞赏</span>
+</div>
+<input class="search-box" id="searchInput" placeholder="搜索歌曲名、歌手">
+<div class="content-wrap" id="cardWrap"></div>
 
-    const url = new URL(request.url);
-    const bucket = env.busimusic;
-    const path = url.pathname;
+<div class="play-layout">
+    <div class="player-main">
+        <h3>播放器区域</h3>
+        <p id="playName">暂无播放</p>
+        <div class="progress">
+            <div class="progress-inner" id="progressBar"></div>
+        </div>
+    </div>
+    <div class="play-list">
+        <h3>播放目录 <span onclick="hideList()">收起</span></h3>
+        <div id="listBox"></div>
+    </div>
+</div>
 
-    // 获取全部资源列表接口
-    if (path === "/getResourceList") {
-      try {
-        const listData = await buildResourceList(bucket);
-        return Response.json(listData, { headers: corsHeaders });
-      } catch (e) {
-        return Response.json({ error: e.message }, { status: 500, headers: corsHeaders });
-      }
-    }
+<audio id="audioPlayer">
 
-    // 获取歌词文件接口
-    if (path.startsWith("/getLyric")) {
-      const lyricName = url.searchParams.get("name");
-      if (!lyricName) return Response.json({ msg: "缺少参数name" }, { status:400, headers:corsHeaders });
-      const lyricObj = await bucket.get(`lyric/${lyricName}`);
-      if (!lyricObj) return Response.json({ msg:"歌词不存在" },{status:404,headers:corsHeaders});
-      const lyricText = await lyricObj.text();
-      return new Response(lyricText, { headers:{...corsHeaders,"Content-Type":"text/plain;charset=utf-8"} });
-    }
+<script>
+const API_HOST = "https://proud-tooth-xxxx.workers.dev"; //替换你的Worker域名
+let showData = [];
+const audio = document.getElementById("audioPlayer");
 
-    // 静态资源分发
-    const routeMap = {
-      "/music/": "music/",
-      "/img/": "img/",
-      "/video/": "video/",
-      "/reward/": "reward/"
-    };
-    for(let prefix in routeMap){
-      if(path.startsWith(prefix)){
-        const fileKey = routeMap[prefix] + decodeURIComponent(path.slice(prefix.length));
-        const fileObj = await bucket.get(fileKey);
-        if(!fileObj) return Response.json({msg:"文件不存在"},{status:404,headers:corsHeaders});
-        const headers = new Headers(corsHeaders);
-        if(fileKey.endsWith(".mp3")) headers.set("Content-Type","audio/mpeg");
-        if(fileKey.endsWith(".mp4")) headers.set("Content-Type","video/mp4");
-        if(fileKey.match(/\.(jpg|jpeg|png|webp)$/)) headers.set("Content-Type","image/*");
-        return new Response(fileObj.body, { headers });
-      }
-    }
-
-    return Response.json({msg:"接口不存在"},{status:404,headers:corsHeaders});
-  }
-};
-
-// 分页遍历R2全部文件
-async function listAll(bucket, prefix) {
-  let list = [];
-  let cursor = null;
-  do {
-    const res = await bucket.list({ prefix, cursor });
-    list = list.concat(res.objects);
-    cursor = res.cursor;
-  } while (cursor);
-  return list;
+// 页面加载自动拉取前台发布数据
+window.onload = async function(){
+    const res = await fetch(`${API_HOST}/api/show/list`);
+    const json = await res.json();
+    showData = json.data;
+    renderCard();
 }
 
-// 构建完整资源数组（自动拆分歌手 - 歌名）
-async function buildResourceList(bucket){
-  const out = [];
-  let idCounter = 1;
-
-  async function safeList(prefix){
-    try{
-      return await listAll(bucket,prefix);
-    }catch(e){
-      return [];
-    }
-  }
-
-  const musicObjs = await safeList("music/");
-  const imgObjs = await safeList("img/");
-  const lyricObjs = await safeList("lyric/");
-  const videoObjs = await safeList("video/");
-  const rewardObjs = await safeList("reward/");
-
-  function getStem(filename){
-    const dot = filename.lastIndexOf(".");
-    return dot>0 ? filename.substring(0,dot) : filename;
-  }
-
-  // 音乐资源处理
-  for(const o of musicObjs){
-    const fullName = o.key.slice("music/");
-    const stem = getStem(fullName);
-    let coverImg = null;
-    let lyricName = null;
-    let singer = "未知歌手";
-    let songName = stem;
-    if(stem.includes(" - ")){
-      const splitArr = stem.split(" - ");
-      singer = splitArr[0].trim();
-      songName = splitArr[1].trim();
-    }
-    // 匹配封面图
-    for(const img of imgObjs){
-      const imgName = img.key.slice("img/");
-      const imgStem = getStem(imgName);
-      if(imgStem === stem){
-        coverImg = `https://api.busisi.com/img/${encodeURIComponent(imgName)}`;
-        break;
-      }
-    }
-    // 匹配歌词
-    for(const ly of lyricObjs){
-      const lyName = ly.key.slice("lyric/");
-      const lyStem = getStem(lyName);
-      if(lyStem === stem){
-        lyricName = lyName;
-        break;
-      }
-    }
-    out.push({
-      id:idCounter++,
-      type:"music",
-      name:songName,
-      singer:singer,
-      audioLink:`https://api.busisi.com/music/${encodeURIComponent(fullName)}`,
-      coverImg:coverImg,
-      lyricName:lyricName
+// 渲染卡片
+function renderCard(){
+    const wrap = document.getElementById("cardWrap");
+    wrap.innerHTML = "";
+    showData.forEach(item=>{
+        const div = document.createElement("div");
+        div.className = "card";
+        const coverUrl = item.coverKey ? `${API_HOST}/api/stream?nam=${item.coverKey}` : "";
+        div.innerHTML = `
+            ${coverUrl?`<img src="${coverUrl}">`:"<div style='height:120px;background:#eee;line-height:120px'>无封面</div>"}
+            <p>${item.name}</p>
+            <p style="font-size:12px;color:#666">${item.author}</p>
+        `
+        div.onclick = ()=>playMusic(item);
+        wrap.appendChild(div);
     })
-  }
-
-  // 视频资源处理
-  for(const o of videoObjs){
-    const fullName = o.key.slice("video/");
-    const stem = getStem(fullName);
-    let coverImg = null;
-    let singer = "未知歌手";
-    let videoName = stem;
-    if(stem.includes(" - ")){
-      const splitArr = stem.split(" - ");
-      singer = splitArr[0].trim();
-      videoName = splitArr[1].trim();
-    }
-    for(const img of imgObjs){
-      const imgName = img.key.slice("img/");
-      const imgStem = getStem(imgName);
-      if(imgStem === stem){
-        coverImg = `https://api.busisi.com/img/${encodeURIComponent(imgName)}`;
-        break;
-      }
-    }
-    out.push({
-      id:idCounter++,
-      type:"video",
-      name:videoName,
-      singer:singer,
-      videoLink:`https://api.busisi.com/video/${encodeURIComponent(fullName)}`,
-      coverImg:coverImg,
-      lyricName:null
-    })
-  }
-
-  // 图片资源
-  for(const o of imgObjs){
-    const fullName = o.key.slice("img/");
-    const stem = getStem(fullName);
-    out.push({
-      id:idCounter++,
-      type:"image",
-      name:stem,
-      singer:"",
-      coverImg:`https://api.busisi.com/img/${encodeURIComponent(fullName)}`
-    })
-  }
-
-  // 赞赏图片资源
-  for(const o of rewardObjs){
-    const fullName = o.key.slice("reward/");
-    const stem = getStem(fullName);
-    out.push({
-      id:idCounter++,
-      type:"reward",
-      name:stem,
-      singer:"",
-      coverImg:`https://api.busisi.com/reward/${encodeURIComponent(fullName)}`
-    })
-  }
-  return out;
 }
+
+// 播放歌曲
+function playMusic(item){
+    if(!item.audioKey) return alert("无音频文件");
+    const audioUrl = `${API_HOST}/api/stream?nam=${item.audioKey}`;
+    audio.src = audioUrl;
+    audio.play();
+    document.getElementById("playName").innerText = `正在播放：${item.name} - ${item.author}`;
+    addPlayList(item);
+}
+
+// 添加到播放列表
+function addPlayList(item){
+    const listWrap = document.getElementById("listBox");
+    const p = document.createElement("p");
+    p.style="margin:8px 0;cursor:pointer";
+    p.innerText = item.name;
+    p.onclick = ()=>playMusic(item);
+    listWrap.appendChild(p);
+}
+
+function hideList(){
+    document.querySelector(".play-list").style.display = "none";
+}
+</script>
+</body>
+</html>
