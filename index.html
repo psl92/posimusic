@@ -12,403 +12,390 @@
     font-family: "Microsoft Yahei", sans-serif;
 }
 body{
-    background: linear-gradient(160deg, #a8e0ff 0%, #e0f4ff 100%);
+    background: linear-gradient(160deg, #ffd8ee 0%, #d0edff 100%);
     min-height: 100vh;
     overflow-x: hidden;
-    padding-bottom: 140px;
+    padding-bottom: 160px;
     position: relative;
-}
-body::before{
-    content: "";
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background:
-        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.7) 0%, transparent 10%),
-        radial-gradient(circle at 30% 10%, rgba(160,120,255,0.5) 0%, transparent 12%),
-        radial-gradient(circle at 70% 40%, rgba(100,180,255,0.4) 0%, transparent 15%);
-    pointer-events: none;
-    z-index: 0;
 }
 .main-title{
     text-align: center;
-    padding: 20px 0 12px;
-    font-size: 42px;
-    color: #1a4b80;
-    text-shadow: 0 0 8px #84c8ff;
-    position: relative;
-    z-index: 1;
+    padding:20px 0 12px;
+    font-size:42px;
+    color:#223355;
 }
-/* 主容器 左右2:1布局 */
-.wrap-main{
-    display: flex;
-    width: 96%;
-    margin: 0 auto;
-    gap: 16px;
-    position: relative;
-    z-index: 1;
+.wrap{
+    max-width:1400px;
+    margin:0 auto;
+    padding:0 20px;
 }
-/* 左侧播放器区域 2/3 */
+/* 主布局：左侧播放器2/3，右侧播放列表1/3 */
+.main-layout{
+    display:flex;
+    gap:16px;
+    margin-top:20px;
+}
 .player-box{
-    width: 66.66%;
-    background: rgba(255,255,255,0.25);
-    backdrop-filter: blur(12px);
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.4);
-    padding: 30px;
-    box-shadow: 0 0 20px rgba(120,180,255,0.25);
+    width:66.666%;
+    background:rgba(255,255,255,0.35);
+    backdrop-filter:blur(12px);
+    border-radius:16px;
+    padding:24px;
+    border:1px solid rgba(255,255,255,0.6);
+    box-shadow:0 8px 30px rgba(120,90,200,0.15);
 }
-/* 右侧播放列表 1/3 */
-.playlist-box{
-    width: 33.33%;
-    background: rgba(255,255,255,0.25);
-    backdrop-filter: blur(12px);
-    border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.4);
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(120,180,255,0.25);
-    max-height: 70vh;
-    overflow-y: auto;
+.list-box{
+    width:33.333%;
+    background:rgba(255,255,255,0.35);
+    backdrop-filter:blur(12px);
+    border-radius:16px;
+    padding:20px;
+    border:1px solid rgba(255,255,255,0.6);
+    box-shadow:0 8px 30px rgba(120,90,200,0.15);
+    max-height:600px;
+    overflow-y:auto;
 }
-.playlist-box h3{
-    color: #1a4b80;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(100,160,255,0.3);
-    padding-bottom: 8px;
-}
-.song-item{
-    padding: 10px 12px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: 0.2s;
-    color: #193b63;
-}
-.song-item:hover{
-    background: rgba(130,190,255,0.35);
-}
-.song-item.active{
-    background: rgba(80,160,255,0.45);
-    font-weight: bold;
-}
-/* 胶囊水晶按钮样式 全局统一 */
-.btn-capsule{
-    padding: 9px 22px;
-    border-radius: 999px;
-    border: none;
-    background: linear-gradient(135deg,#40a0ff,#945bff);
-    color: #fff;
-    font-size: 15px;
-    box-shadow: 0 4px 12px rgba(80,140,255,0.4);
-    cursor: pointer;
-    transition: 0.25s;
-}
-.btn-capsule:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(80,140,255,0.55);
-}
-/* 底部播放控制栏 */
-.bottom-control{
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background: rgba(10,30,60,0.75);
-    backdrop-filter: blur(16px);
-    padding: 18px 30px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    z-index: 99;
-}
-.progress-wrap{
-    flex: 1;
-}
-#progress-bar{
-    width: 100%;
-    height: 6px;
-    border-radius: 99px;
-    background: rgba(255,255,255,0.2);
-    outline: none;
-    cursor: pointer;
-}
-/* 悬浮歌词窗口 */
-.lyric-window{
-    position: fixed;
-    top: 120px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    border-radius: 14px;
-    z-index: 98;
-    cursor: default;
-    user-select: none;
-}
-.lyric-window:hover{
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.35);
-}
-.lyric-text{
-    font-size: 24px;
-    color: #fff;
-    text-shadow: 0 0 6px #000;
-    text-align: center;
-}
-/* 播放器封面区域 */
 .cover-area{
-    width: 220px;
-    height: 220px;
-    background: rgba(0,0,0,0.15);
-    border-radius: 16px;
-    margin: 0 auto 24px;
-    overflow: hidden;
+    width:220px;
+    height:220px;
+    border-radius:12px;
+    background:#e8edf8;
+    margin:0 auto 20px;
+    overflow:hidden;
 }
 .cover-area img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width:100%;
+    height:100%;
+    object-fit:cover;
 }
-.song-name{
-    text-align: center;
-    font-size: 26px;
-    color: #15355c;
-    margin-bottom: 20px;
+.song-name-text{
+    text-align:center;
+    font-size:22px;
+    color:#223355;
+    margin-bottom:24px;
+}
+/* 胶囊3D按钮 */
+.btn-group{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-bottom:20px;
+}
+.btn{
+    padding:10px 22px;
+    border:none;
+    border-radius:999px;
+    font-size:16px;
+    color:#fff;
+    background:linear-gradient(145deg,#7b61ff,#4834d4);
+    box-shadow: 0 4px 12px rgba(72,52,212,0.35),inset 0 1px 0 rgba(255,255,255,0.25);
+    cursor:pointer;
+    transition:0.2s;
+}
+.btn:active{
+    transform:translateY(2px);
+    box-shadow: 0 2px 6px rgba(72,52,212,0.35);
+}
+/* 底部全局播放条 */
+.bottom-bar{
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    background:rgba(255,255,255,0.45);
+    backdrop-filter:blur(14px);
+    padding:14px 24px;
+    border-top:1px solid rgba(255,255,255,0.7);
+}
+.progress-wrap{
+    width:100%;
+    height:8px;
+    background:#ccd4ee;
+    border-radius:999px;
+    margin-bottom:10px;
+    cursor:pointer;
+}
+.progress-bar{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg,#7b61ff,#4834d4);
+}
+.time-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:#444;
+}
+/* 歌曲列表项 */
+.song-item{
+    padding:10px 12px;
+    border-radius:10px;
+    margin-bottom:6px;
+    cursor:pointer;
+    transition:0.2s;
+}
+.song-item:hover{
+    background:rgba(123,97,255,0.12);
+}
+.song-item.active{
+    background:rgba(123,97,255,0.22);
+    color:#4834d4;
+}
+/* 悬浮酷狗风格歌词 */
+.lyric-float{
+    position:fixed;
+    left:120px;
+    bottom:100px;
+    padding:8px 14px;
+    font-size:26px;
+    color:#ffffff;
+    text-shadow:0 0 8px #222;
+    border:2px solid transparent;
+    border-radius:10px;
+    cursor:default;
+    user-select:none;
+    z-index:999;
+}
+.lyric-float:hover{
+    border-color:rgba(255,255,255,0.45);
+    cursor:move;
+}
+.lyric-normal{
+    opacity:0.65;
+}
+.lyric-high{
+    color:#ffdd44;
 }
 </style>
 </head>
 <body>
-<h1 class="main-title">步丝丝音乐播放器</h1>
-
-<div class="wrap-main">
-    <!-- 左侧播放器 2/3 -->
-    <div class="player-box">
-        <div class="cover-area" id="coverBox">
-            <img src="" id="songCover" alt="歌曲封面">
+    <h1 class="main-title">步丝丝音乐播放器</h1>
+    <div class="wrap">
+        <div class="main-layout">
+            <div class="player-box">
+                <div class="cover-area">
+                    <img id="songCoverDom" src="" alt="">
+                </div>
+                <div class="song-name-text" id="songNameDom">未选择歌曲</div>
+                <div class="btn-group">
+                    <button class="btn" id="playBtn">播放</button>
+                    <button class="btn" id="prevBtn">上一首</button>
+                    <button class="btn" id="nextBtn">下一首</button>
+                </div>
+            </div>
+            <div class="list-box">
+                <h3>歌曲列表（自动读取Worker资源）</h3>
+                <div id="songListWrap">
+                    <div>加载歌曲失败，请检查Worker接口</div>
+                </div>
+            </div>
         </div>
-        <h2 class="song-name" id="songName">未播放歌曲</h2>
-        <div style="text-align:center;gap:12px;display:flex;justify-content:center;">
-            <button class="btn-capsule" id="prevBtn">上一曲</button>
-            <button class="btn-capsule" id="playBtn">播放</button>
-            <button class="btn-capsule" id="nextBtn">下一曲</button>
-            <button class="btn-capsule" id="lyricToggle">悬浮歌词</button>
+    </div>
+
+    <!--底部播放控制条-->
+    <div class="bottom-bar">
+        <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="time-row">
+            <span id="currTime">00:00</span>
+            <span id="totalTime">00:00</span>
         </div>
     </div>
 
-    <!-- 右侧播放列表 1/3 -->
-    <div class="playlist-box">
-        <h3>歌曲列表（自动读取Worker资源）</h3>
-        <div id="songList"></div>
+    <!--悬浮歌词窗口-->
+    <div class="lyric-float" id="currLyric">
+        <span class="lyric-normal">暂无匹配歌词</span>
     </div>
-</div>
 
-<!-- 底部控制栏 -->
-<div class="bottom-control">
-    <button class="btn-capsule" id="playMini">播放/暂停</button>
-    <div class="progress-wrap">
-        <input type="range" min="0" max="100" value="0" id="progress-bar">
-    </div>
-    <span id="timeText">00:00 / 00:00</span>
-</div>
-
-<!-- 悬浮歌词窗口 -->
-<div class="lyric-window" id="lyricWin" style="display:none;">
-    <div class="lyric-text" id="currLyric">暂无歌词</div>
-</div>
-
-<audio id="audioPlayer">
+    <audio id="audioDom">
 
 <script>
-// ========== 配置项 替换成你自己的Worker接口地址 ==========
 const WORKER_API = "https://api.busisi.com";
-// R2桶文件夹划分
 const PATH_MUSIC = "/music/";
 const PATH_LYRIC = "/lyric/";
 const PATH_COVER = "/cover/";
 
-// 全局变量
-let audio = document.getElementById("audioPlayer");
-let songListDom = document.getElementById("songList");
-let progressBar = document.getElementById("progress-bar");
-let timeText = document.getElementById("timeText");
-let playBtn = document.getElementById("playBtn");
-let playMini = document.getElementById("playMini");
-let prevBtn = document.getElementById("prevBtn");
-let nextBtn = document.getElementById("nextBtn");
-let lyricToggle = document.getElementById("lyricToggle");
-let lyricWin = document.getElementById("lyricWin");
-let currLyric = document.getElementById("currLyric");
-let songNameDom = document.getElementById("songName");
-let songCoverDom = document.getElementById("songCover");
+const dom = {
+    audioDom: document.querySelector("#audioDom"),
+    songCoverDom: document.querySelector("#songCoverDom"),
+    songNameDom: document.querySelector("#songNameDom"),
+    playBtn: document.querySelector("#playBtn"),
+    prevBtn: document.querySelector("#prevBtn"),
+    nextBtn: document.querySelector("#nextBtn"),
+    songListWrap: document.querySelector("#songListWrap"),
+    progressWrap: document.querySelector("#progressWrap"),
+    progressBar: document.querySelector("#progressBar"),
+    currTime: document.querySelector("#currTime"),
+    totalTime: document.querySelector("#totalTime"),
+    currLyric: document.querySelector("#currLyric")
+};
 
 let allSong = [];
 let nowIndex = 0;
-let lyricShow = false;
+let lyricArr = [];
 
-// 1. 初始化拉取Worker内全部音乐列表
-async function loadAllMusic() {
-    try {
-        let res = await fetch(`${WORKER_API}/listMusic`);
-        let data = await res.json();
-        allSong = data.list;
+// 加载歌曲列表
+async function loadAllMusicList(){
+    try{
+        const res = await fetch(`${WORKER_API}/listMusic`);
+        const json = await res.json();
+        allSong = json.list || [];
         renderSongList();
-    } catch(err) {
-        songListDom.innerHTML = "<div style='color:#c00;'>加载歌曲失败，请检查Worker接口</div>";
-        console.error("加载音乐列表错误：",err);
+    }catch(err){
+        dom.songListWrap.innerHTML = `<div style="color:red">加载音乐列表错误：${err.message}</div>`;
     }
 }
 
-// 渲染右侧播放列表
-function renderSongList() {
-    songListDom.innerHTML = "";
+//渲染列表
+function renderSongList(){
+    let html = "";
     allSong.forEach((item,idx)=>{
-        let div = document.createElement("div");
-        div.className = "song-item";
-        div.innerText = item.name;
-        div.dataset.index = idx;
-        div.onclick = ()=> playSong(idx);
-        songListDom.appendChild(div);
+        html += `<div class="song-item" data-index="${idx}">${item.name}</div>`;
+    });
+    dom.songListWrap.innerHTML = html;
+    //点击事件
+    document.querySelectorAll(".song-item").forEach(el=>{
+        el.onclick = ()=>{
+            const i = Number(el.dataset.index);
+            playSong(i);
+        }
     })
 }
 
-// 播放指定歌曲，自动匹配歌词、封面
+//播放歌曲【已增加中文url编码处理】
 async function playSong(index) {
     nowIndex = index;
     let song = allSong[index];
-    // 重置播放列表激活样式
     document.querySelectorAll(".song-item").forEach(d=>d.classList.remove("active"));
     document.querySelector(`.song-item[data-index="${index}"]`).classList.add("active");
 
-    // 加载音频
-    audio.src = `${WORKER_API}${PATH_MUSIC}${song.file}`;
-    songNameDom.innerText = song.name;
+    dom.audioDom.src = `${WORKER_API}${PATH_MUSIC}${song.file}`;
+    dom.songNameDom.innerText = song.name;
 
-    // 加载封面
-    songCoverDom.src = `${WORKER_API}${PATH_COVER}${song.name}.jpg`;
+    const encodedName = encodeURIComponent(song.name);
+    dom.songCoverDom.src = `${WORKER_API}${PATH_COVER}${encodedName}.jpg`;
+    loadLyric(encodedName);
 
-    // 加载同名歌词 lrc/krc
-    loadLyric(song.name);
-
-    audio.play();
-    playBtn.innerText = "暂停";
+    try{
+        await dom.audioDom.play();
+        dom.playBtn.innerText = "暂停";
+    }catch(err){
+        dom.playBtn.innerText = "播放";
+    }
 }
 
-// 读取对应歌名歌词文件
-async function loadLyric(songName) {
+//加载歌词
+async function loadLyric(encodedSongName) {
     try{
-        let lyricRes = await fetch(`${WORKER_API}${PATH_LYRIC}${songName}.lrc`);
-        if(!lyricRes.ok) throw new Error("无lrc歌词");
+        let lyricRes = await fetch(`${WORKER_API}${PATH_LYRIC}${encodedSongName}.lrc`);
+        if(!lyricRes.ok) throw new Error("无歌词");
         let lyricText = await lyricRes.text();
         parseLyric(lyricText);
     }catch(e){
-        currLyric.innerHTML = "<span>暂无匹配歌词</span>";
+        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
+        lyricArr = [];
     }
 }
 
-let lyricArr = [];
-// 解析lrc歌词
-function parseLyric(lrcText) {
+//解析lrc歌词
+function parseLyric(text){
     lyricArr = [];
-    let reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/g;
-    let match;
-    while((match = reg.exec(lrcText))!==null){
-        let min = Number(match[1]);
-        let sec = Number(match[2]);
-        let ms = Number(match[3]);
-        let time = min*60 + sec + ms/1000;
-        lyricArr.push({time,text:match[4]});
+    const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/g;
+    let m;
+    while((m = reg.exec(text))!==null){
+        const min = Number(m[1]);
+        const sec = Number(m[2]);
+        const ms = Number(m[3]);
+        const time = min*60 + sec + ms/1000;
+        lyricArr.push({time,text:m[4]});
     }
-    lyricArr.sort((a,b)=>a.time - b.time);
 }
 
-// 同步歌词播放
-audio.addEventListener("timeupdate",()=>{
-    let curTime = audio.currentTime;
-    // 更新进度条
-    let percent = (curTime / audio.duration)*100 || 0;
-    progressBar.value = percent;
-    // 时间格式化
-    timeText.innerText = formatTime(curTime)+" / "+formatTime(audio.duration||0);
-
-    // 匹配当前歌词
-    let showText = "暂无歌词";
+//更新歌词高亮
+function updateLyric(){
+    if(!lyricArr.length) return;
+    const t = dom.audioDom.currentTime;
+    let showText = "";
     for(let i=0;i<lyricArr.length;i++){
-        if(lyricArr[i].time <= curTime){
+        if(lyricArr[i].time <= t){
             showText = lyricArr[i].text;
-        }else break;
+        }
     }
-    currLyric.innerText = showText;
-})
-
-// 进度条跳转
-progressBar.addEventListener("input",()=>{
-    let target = (progressBar.value / 100) * audio.duration;
-    audio.currentTime = target;
-})
-
-// 格式化秒数为 00:00
-function formatTime(s) {
-    if(isNaN(s)) return "00:00";
-    let m = Math.floor(s/60);
-    let ss = Math.floor(s%60);
-    return String(m).padStart(2,"0")+":"+String(ss).padStart(2,"0");
+    dom.currLyric.innerHTML = `<span class="lyric-high">${showText||" "}</span>`;
 }
 
-// 播放暂停切换
-function togglePlay() {
-    if(audio.paused){
-        audio.play();
-        playBtn.innerText = "暂停";
-        playMini.innerText = "暂停";
+//时间格式化
+function formatTime(s){
+    const m = Math.floor(s/60);
+    const sec = Math.floor(s%60);
+    return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+
+//音频事件
+dom.audioDom.ontimeupdate = ()=>{
+    const curr = dom.audioDom.currentTime;
+    const total = dom.audioDom.duration||0;
+    dom.progressBar.style.width = (curr/total*100 ||0)+"%";
+    dom.currTime.innerText = formatTime(curr);
+    dom.totalTime.innerText = formatTime(total);
+    updateLyric();
+}
+
+dom.audioDom.onended = ()=>{
+    nextSong();
+}
+
+//按钮事件
+dom.playBtn.onclick = ()=>{
+    if(dom.audioDom.paused){
+        dom.audioDom.play();
+        dom.playBtn.innerText = "暂停";
     }else{
-        audio.pause();
-        playBtn.innerText = "播放";
-        playMini.innerText = "播放";
+        dom.audioDom.pause();
+        dom.playBtn.innerText = "播放";
     }
 }
-playBtn.onclick = togglePlay;
-playMini.onclick = togglePlay;
 
-// 上一曲
-prevBtn.onclick = ()=>{
-    if(allSong.length===0)return;
-    nowIndex = nowIndex <=0 ? allSong.length-1 : nowIndex-1;
-    playSong(nowIndex);
-}
-// 下一曲
-nextBtn.onclick = ()=>{
-    if(allSong.length===0)return;
-    nowIndex = nowIndex >= allSong.length-1 ? 0 : nowIndex+1;
-    playSong(nowIndex);
+dom.prevBtn.onclick = ()=>{
+    let i = nowIndex-1;
+    if(i<0) i = allSong.length-1;
+    playSong(i);
 }
 
-// 悬浮歌词开关
-lyricToggle.onclick = ()=>{
-    lyricShow = !lyricShow;
-    lyricWin.style.display = lyricShow ? "block" : "none";
+dom.nextBtn.onclick = ()=>{
+    nextSong();
+}
+function nextSong(){
+    let i = nowIndex+1;
+    if(i>=allSong.length) i=0;
+    playSong(i);
 }
 
-// 歌词窗口拖拽
-let drag = false, offsetX, offsetY;
-lyricWin.addEventListener("mousedown",e=>{
+//进度条点击跳转
+dom.progressWrap.onclick = (e)=>{
+    const rect = dom.progressWrap.getBoundingClientRect();
+    const per = (e.clientX - rect.left)/rect.width;
+    dom.audioDom.currentTime = per * dom.audioDom.duration;
+}
+
+//悬浮歌词拖拽
+let drag = false,dx,dy;
+dom.currLyric.onmousedown = function(e){
     drag = true;
-    offsetX = e.clientX - lyricWin.offsetLeft;
-    offsetY = e.clientY - lyricWin.offsetTop;
-    lyricWin.style.transform = "none";
-})
-document.addEventListener("mousemove",e=>{
-    if(!drag)return;
-    lyricWin.style.left = (e.clientX - offsetX)+"px";
-    lyricWin.style.top = (e.clientY - offsetY)+"px";
-})
-document.addEventListener("mouseup",()=>drag=false);
+    dx = e.clientX - dom.currLyric.offsetLeft;
+    dy = e.clientY - dom.currLyric.offsetTop;
+}
+document.onmousemove = function(e){
+    if(!drag) return;
+    dom.currLyric.style.left = (e.clientX - dx)+"px";
+    dom.currLyric.style.top = (e.clientY - dy)+"px";
+}
+document.onmouseup = ()=>drag=false;
 
-// 歌曲播放结束自动下一首
-audio.addEventListener("ended",()=>{
-    nextBtn.click();
-})
-
-// 页面加载完成自动读取Worker音乐列表
-window.onload = loadAllMusic;
+//初始化
+loadAllMusicList();
 </script>
 </body>
 </html>
