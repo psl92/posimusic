@@ -628,7 +628,7 @@ dom.minWinBtn.onclick = ()=>{
 dom.openPlayerBtn.onclick = ()=>{
     dom.floatWindow.classList.remove("minimize-state");
 }
-// 底部左侧目录按钮：切换播放列表侧边栏显示隐藏
+// 底部左侧目录按钮：切换播放列表显示隐藏
 dom.togglePlaylistBtn.onclick = ()=>{
     dom.playlistSide.style.display = dom.playlistSide.style.display === "none" ? "flex" : "none";
 }
@@ -1009,7 +1009,6 @@ async function playMedia(item){
     lastPlayTime = 0;
     dom.prevLyric.innerText = "";
     dom.currLyric.innerHTML = "<span class='lyric-normal'>加载中...</span>";
-
     if(item.type === "video"){
         dom.mainVideo.src = item.videoLink;
         dom.mainVideo.load();
