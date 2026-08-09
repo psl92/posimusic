@@ -249,6 +249,7 @@ body::after{
     display:flex;
     flex-direction:column;
     background:rgba(255,255,255,0.35);
+    display: none;
 }
 .player-window{
     flex:1;
@@ -487,6 +488,61 @@ body::after{
 .curr-line{
     text-align:right;
 }
+
+/*管理员后台面板*/
+.admin-panel{
+    width:94%;
+    max-width:1400px;
+    margin:20px auto;
+    background:rgba(255,255,255,0.65);
+    border-radius:20px;
+    padding:24px;
+    backdrop-filter: blur(8px);
+    display:none;
+    z-index: 2;
+    position:relative;
+}
+.admin-title{
+    font-size:26px;
+    text-align:center;
+    margin-bottom:20px;
+}
+.login-row{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    margin-bottom:20px;
+}
+.login-row input{
+    padding:8px 14px;
+    border-radius:12px;
+    border:0;
+}
+.upload-area{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin:16px 0;
+}
+.del-item{
+    padding:6px 10px;
+    background:#ff8fb3;
+    border-radius:8px;
+    color:white;
+    cursor:pointer;
+}
+.reward-wrap{
+    width:94%;
+    max-width:1400px;
+    margin:0 auto;
+    display:none;
+    position:relative;
+    z-index: 2;
+}
+.reward-img{
+    border-radius:16px;
+    width:320px;
+}
 </style>
 </head>
 <body>
@@ -498,6 +554,7 @@ body::after{
     <button class="nav-btn" data-type="video">视频 Video</button>
     <button class="nav-btn" data-type="image">图片</button>
     <button class="nav-btn" data-type="reward">赞赏</button>
+    <button class="nav-btn" id="openAdminBtn">管理员后台</button>
 </div>
 
 <div class="search-bar">
@@ -505,12 +562,40 @@ body::after{
     <button id="searchBtn">搜索 Search</button>
 </div>
 
-<div class="main-wrap">
+<div class="main-wrap" id="mainPage">
     <div class="left-card-area">
         <div class="card-wrap" id="cardContainer">
             <div class="load-tip">正在加载资源，请稍等...</div>
         </div>
     </div>
+</div>
+
+<!--赞赏页面，普通用户只可查看图片-->
+<div class="reward-wrap" id="rewardPage">
+    <img class="reward-img" src="">
+</div>
+
+<!--管理员后台面板-->
+<div class="admin-panel" id="adminPanel">
+    <div class="admin-title">管理员控制面板</div>
+    <div class="login-row">
+        <input placeholder="管理员账号" id="adminAccount">
+        <input placeholder="管理员密码" type="password" id="adminPwd">
+        <button class="control-btn" id="adminLoginBtn">登录后台</button>
+    </div>
+    <div>管理员密钥(X‑Admin‑Token)：<span id="adminTokenText">未登录</span></div>
+    <div class="upload-area">
+        <select id="uploadFolder">
+            <option value="music">音乐文件夹 music</option>
+            <option value="video">视频文件夹 video</option>
+            <option value="img">图片文件夹 img</option>
+            <option value="lyric">歌词文件夹 lyric</option>
+        </select>
+        <input type="file" id="uploadFile">
+        <button class="control-btn" id="uploadBtn">上传资源</button>
+    </div>
+    <h3>全部资源列表(可删除)</h3>
+    <div id="adminResourceList"></div>
 </div>
 
 <!-- 右侧悬浮播放器窗口 -->
@@ -589,6 +674,7 @@ let allResourceList = [];
 let nowPlayingItem = null;
 let parsedLyricList = [];
 let lastPlayTime = 0;
+let adminToken = "";
 
 const dom = {
     floatWindow: document.getElementById("floatWindow"),
@@ -617,8 +703,132 @@ const dom = {
     totalTimeText:document.getElementById("totalTimeText"),
     videoFullBtn:document.getElementById("videoFullBtn"),
     minWinBtn:document.getElementById("minWinBtn"),
-    openPlayerBtn:document.getElementById("openPlayerBtn")
+    openPlayerBtn:document.getElementById("openPlayerBtn"),
+    openAdminBtn:document.getElementById("openAdminBtn"),
+    adminPanel:document.getElementById("adminPanel"),
+    mainPage:document.getElementById("mainPage"),
+    rewardPage:document.getElementById("rewardPage"),
+    adminAccount:document.getElementById("adminAccount"),
+    adminPwd:document.getElementById("adminPwd"),
+    adminLoginBtn:document.getElementById("adminLoginBtn"),
+    adminTokenText:document.getElementById("adminTokenText"),
+    uploadFolder:document.getElementById("uploadFolder"),
+    uploadFile:document.getElementById("uploadFile"),
+    uploadBtn:document.getElementById("uploadBtn"),
+    adminResourceList:document.getElementById("adminResourceList")
 };
+
+//导航栏页面切换
+dom.navBtns.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+        dom.navBtns.forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        const type = btn.dataset.type;
+        currentTabType=type;
+        dom.adminPanel.style.display = "none";
+        dom.rewardPage.style.display = "none";
+        dom.mainPage.style.display = "flex";
+        if(type === "reward"){
+            dom.mainPage.style.display = "none";
+            dom.rewardPage.style.display = "block";
+        }
+        renderFilterList();
+    });
+})
+
+//打开管理员面板
+dom.openAdminBtn.onclick = ()=>{
+    dom.mainPage.style.display = "none";
+    dom.rewardPage.style.display = "none";
+    dom.adminPanel.style.display = "block";
+}
+
+//管理员登录
+dom.adminLoginBtn.onclick = async ()=>{
+    const acc = dom.adminAccount.value.trim();
+    const pwd = dom.adminPwd.value.trim();
+    const res = await fetch(`${API_BASE}/userVerify`,{
+        method:"POST",
+        headers:{
+            "Content‑Type":"application/json"
+        },
+        body:JSON.stringify({account:acc,password:pwd})
+    })
+    const json = await res.json();
+    if(json.success){
+        adminToken = acc + "-secret‑key";
+        dom.adminTokenText.innerText = adminToken;
+        alert("管理员登录成功");
+        loadAdminResource();
+    }else{
+        alert("账号密码错误");
+    }
+}
+
+//上传文件
+dom.uploadBtn.onclick = async ()=>{
+    if(!adminToken){
+        alert("请先登录管理员账号");
+        return;
+    }
+    const file = dom.uploadFile.files[0];
+    if(!file){
+        alert("请选择文件");
+        return;
+    }
+    const folder = dom.uploadFolder.value;
+    const form = new FormData();
+    form.append("file",file);
+    form.append("folder",folder);
+    const res = await fetch(`${API_BASE}/addResource`,{
+        method:"POST",
+        headers:{
+            "X‑Admin‑Token":adminToken
+        },
+        body:form
+    })
+    const data = await res.json();
+    if(data.success){
+        alert("上传成功");
+        location.reload();
+    }else{
+        alert(data.msg);
+    }
+}
+
+//加载后台资源列表
+async function loadAdminResource(){
+    dom.adminResourceList.innerHTML = "";
+    const musicRes = await env.R2_BUCKET.list({ prefix: "music/" });
+    const videoRes = await env.R2_BUCKET.list({ prefix: "video/" });
+    const imgRes = await env.R2_BUCKET.list({ prefix: "img/" });
+    const lyricRes = await env.R2_BUCKET.list({ prefix: "lyric/" });
+    let allKeys = [];
+    musicRes.objects.forEach(i=>allKeys.push(i.key));
+    videoRes.objects.forEach(i=>allKeys.push(i.key));
+    imgRes.objects.forEach(i=>allKeys.push(i.key));
+    lyricRes.objects.forEach(i=>allKeys.push(i.key));
+    allKeys.forEach(key=>{
+        const div = document.createElement("div");
+        div.style.display = "flex";
+        div.gap = "10px";
+        div.style.margin = "8px 0";
+        div.innerHTML = `<span>${key}</span><button class="del-item">删除</button>`;
+        div.querySelector(".del-item").onclick = async ()=>{
+            await fetch(`${API_BASE}/delResource`,{
+                method:"POST",
+                headers:{
+                    "Content‑Type":"application/json",
+                    "X‑Admin‑Token":adminToken
+                },
+                body:JSON.stringify({key:key})
+            })
+            alert("删除完毕");
+            loadAdminResource();
+        }
+        dom.adminResourceList.appendChild(div);
+    })
+}
 
 // 最小化悬浮播放器
 dom.minWinBtn.onclick = ()=>{
@@ -907,17 +1117,6 @@ window.addEventListener("load", async () => {
         dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#444">禁止本地双击打开HTML，必须网页托管访问</div>`;
         return;
     }
-    dom.navBtns.forEach(btn=>{
-        btn.addEventListener("click",()=>{
-            dom.navBtns.forEach(b=>b.classList.remove("active"));
-            btn.classList.add("active");
-            currentTabType=btn.dataset.type;
-            renderFilterList();
-        });
-    });
-    dom.searchBtn.addEventListener("click",searchResource);
-    dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
-
     const timeUpdateFunc = function(){
         updateFloatLyric(this.currentTime);
     }
@@ -1009,6 +1208,8 @@ async function playMedia(item){
     lastPlayTime = 0;
     dom.prevLyric.innerText = "";
     dom.currLyric.innerHTML = "<span class='lyric-normal'>加载中...</span>";
+    dom.progressBar.style.width = "0%";
+    dom.currentTimeText.innerText = "00:00";
 
     if(item.type === "video"){
         dom.mainVideo.src = item.videoLink;
