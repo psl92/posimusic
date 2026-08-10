@@ -1001,11 +1001,16 @@ dom.hideSideBtn.onclick = ()=>{
     })
 })();
 
+// 视频全屏
 dom.videoFullBtn.onclick = ()=>{
-    if (dom.mainVideo.requestFullscreen) dom.mainVideo.requestFullscreen();
-    else if (dom.mainVideo.webkitRequestFullscreen) dom.mainVideo.webkitRequestFullscreen();
+    if (dom.mainVideo.requestFullscreen) {
+        dom.mainVideo.requestFullscreen();
+    } else if (dom.mainVideo.webkitRequestFullscreen) {
+        dom.mainVideo.webkitRequestFullscreen();
+    }
 }
 
+// 悬浮歌词拖拽初始化
 (function initLyricDrag(){
     const wrap = dom.floatLyricWrap;
     let dragging = false, startX, startY, initLeft, initTop;
@@ -1054,6 +1059,7 @@ dom.modeBtn.onclick = function(){
     this.innerText = textList[idx];
 }
 
+// 加载歌曲评论以及播放次数
 async function loadSongComment(songKey){
     if(!songKey) return;
     const resList = await fetch(`${API_BASE}/getResourceList`);
@@ -1070,6 +1076,8 @@ async function loadSongComment(songKey){
     const ret = await resComment.json();
     renderComment(ret.data||[]);
 }
+
+// 渲染评论列表
 function renderComment(list){
     dom.commentListBox.innerHTML = "";
     if(list.length ===0){
@@ -1087,8 +1095,13 @@ function renderComment(list){
         dom.commentListBox.appendChild(div);
     })
 }
+
+// 提交评论点击事件
 dom.submitCommentBtn.onclick = async ()=>{
-    if(!nowPlayingItem) return alert("请先播放歌曲");
+    if(!nowPlayingItem) {
+        alert("请先播放歌曲");
+        return;
+    }
     const key = nowPlayingItem.key;
     const userName = dom.commentUserName.value.trim() || "匿名用户";
     const content = dom.commentInput.value.trim();
@@ -1096,13 +1109,18 @@ dom.submitCommentBtn.onclick = async ()=>{
         alert("请输入评论内容");
         return;
     }
-    const resp = await fetch(`${API_BASE}/submitComment`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({key,userName,content})
-})
-const result = await resp.json();
-// 判断请求成功再渲染评论
-if(resp.ok){
-    renderComment(result)
+    try {
+        const resp = await fetch(`${API_BASE}/submitComment`,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({key,userName,content})
+        })
+        const result = await resp.json();
+        if(resp.ok){
+            renderComment(result)
+            dom.commentInput.value = "";
+        }
+    } catch (err) {
+        alert("评论提交失败，请稍后重试");
+    }
 }
