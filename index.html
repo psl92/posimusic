@@ -516,7 +516,7 @@ body::after{
 .lyric-normal{color:#b8a2dd;}
 .lyric-active{color:#ffb8ee;font-weight:bold;}
 
-/* =========【已修改：酷狗样式悬浮歌词】========= */
+/* =========【酷狗样式悬浮歌词】========= */
 .float-lyric-wrap{
     position: fixed;
     bottom: 170px;
@@ -1118,13 +1118,4 @@ function searchResource(){
         renderFilterList();
         return;
     }
-    let src=currentTabType==="all"?allResourceList:allResourceList.filter(i=>i.type===currentTabType);
-    const res=src.filter(v=>{
-        const n=(v.name||"").toLowerCase(),s=(v.singer||"").toLowerCase();
-        return n.includes(kw)||s.includes(kw);
-    });
-    renderCard(res);
-}
-</script>
-</body>
-</html>
+    let src=currentTabType==="all"?allResourceList:allResourceList.filter(i=>
