@@ -575,6 +575,62 @@ body::after{
     width: 80px;
     accent-color: #d888ff;
 }
+/*歌曲评论面板*/
+.comment-wrap{
+    width:94%;
+    max-width:1400px;
+    margin:20px auto 0;
+    padding:16px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(230,200,255,0.22);
+    border-radius:16px;
+    backdrop-filter: blur(8px);
+    position:relative;
+    z-index: 2;
+}
+.comment-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    color:#e8d6ff;
+}
+.comment-input-area{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+}
+.comment-input-area input{
+    padding:8px;
+    border-radius:999px;
+    border: 1px solid rgba(255,220,250,0.25);
+    background:rgba(255,255,255,0.08);
+    color:#fff;
+    backdrop-filter: blur(6px);
+}
+#comment‑username{
+    flex-basis:120px;
+}
+#comment‑input{
+    flex:1;
+}
+#btn‑submit‑comment{
+    padding:8px 16px;
+    border-radius:999px;
+    border:none;
+    background: linear-gradient(145deg, #d888ff, #7298ff);
+    color:#ffffff;
+    cursor:pointer;
+}
+#comment‑list{
+    max-height:320px;
+    overflow-y:auto;
+    color:#e8d6ff;
+}
+.comment-item{
+    padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+}
 </style>
 </head>
 <body>
@@ -596,6 +652,19 @@ body::after{
             <div class="load-tip">正在加载资源，请稍等...</div>
         </div>
     </div>
+</div>
+<!--评论面板-->
+<div class="comment-wrap">
+    <div class="comment-head">
+        <h3>歌曲评论区</h3>
+        <span>播放次数：<span id="play‑count‑text">0</span></span>
+    </div>
+    <div class="comment-input-area">
+        <input id="comment‑username" placeholder="昵称(可选)">
+        <input id="comment‑input" placeholder="写下你的评论……">
+        <button id="btn‑submit‑comment">发送</button>
+    </div>
+    <div id="comment‑list"></div>
 </div>
 <!-- 右侧悬浮播放器窗口 -->
 <div class="right-big-container" id="floatWindow">
@@ -708,7 +777,12 @@ const dom = {
     minWinBtn:document.getElementById("minWinBtn"),
     openPlayerBtn:document.getElementById("openPlayerBtn"),
     modeBtn: document.getElementById("modeBtn"),
-    volumeSlider: document.getElementById("volumeSlider")
+    volumeSlider: document.getElementById("volumeSlider"),
+    playCountText:document.getElementById("play‑count‑text"),
+    commentListBox:document.getElementById("comment‑list"),
+    commentUserName:document.getElementById("comment‑username"),
+    commentInput:document.getElementById("comment‑input"),
+    submitCommentBtn:document.getElementById("btn‑submit‑comment")
 };
 
 // 新增格式判断函数
@@ -900,6 +974,69 @@ dom.videoFullBtn.onclick = ()=>{
     })
 })();
 
+//加载播放次数和评论
+async function loadSongComment(songKey){
+    if(!songKey) return;
+    const resList = await fetch(`${API_BASE}/getResourceList`);
+    const jsonList = await resList.json();
+    const songItem = jsonList.data.find(item=>item.key === songKey);
+    if(songItem){
+        dom.playCountText.innerText = songItem.playCount??0;
+    }
+    const resComment = await fetch(`${API_BASE}/getComment`,{
+        method:"POST",
+        headers:{"Content‑Type":"application/json"},
+        body:JSON.stringify({key:songKey})
+    })
+    const ret = await resComment.json();
+    renderComment(ret.data||[]);
+}
+//渲染评论列表
+function renderComment(list){
+    dom.commentListBox.innerHTML = "";
+    if(list.length ===0){
+        dom.commentListBox.innerHTML = "<div style='color:#b8a2dd'>暂无评论，快来抢沙发！</div>";
+        return;
+    }
+    list.forEach(item=>{
+        const div = document.createElement("div");
+        div.className="comment-item";
+        div.innerHTML =`
+          <div style="font‑weight:bold;">${escapeHtml(item.userName)}</div>
+          <div style="margin:4px 0;">${escapeHtml(item.content)}</div>
+          <div style="font‑size:12px;opacity:0.6;">${item.time}</div>
+        `;
+        dom.commentListBox.appendChild(div);
+    })
+}
+//发送评论
+dom.submitCommentBtn.onclick = async ()=>{
+    if(!nowPlayingItem) return alert("请先播放歌曲");
+    const key = nowPlayingItem.key;
+    const userName = dom.commentUserName.value.trim() || "匿名用户";
+    const content = dom.commentInput.value.trim();
+    if(!content){
+        alert("请输入评论内容");
+        return;
+    }
+    const resp = await fetch(`${API_BASE}/submitComment`,{
+        method:"POST",
+        headers:{"Content‑Type":"application/json"},
+        body:JSON.stringify({key,userName,content})
+    })
+    const result = await resp.json();
+    renderComment(result.data);
+    dom.commentInput.value = "";
+}
+//XSS过滤
+function escapeHtml(str){
+    return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+}
+
 function getCurrentMedia(){
     return nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
 }
@@ -956,133 +1093,15 @@ function parseLRC(text){
         if(!m)return;
         const time = parseInt(m[1])*60 + parseInt(m[2]) + (parseInt(m[3]||0)/1000);
         const txt=m[4].trim();
-        if(!txt) return;
-        result.push({time, text:txt});
-    });
-    return result.sort((a,b)=>a.time-b.time);
-}
-function renderKaraokeLine(lineText, progressRatio){
-    let html = "";
-    for(let i=0;i<lineText.length;i++){
-        const isActive = i < Math.floor(lineText.length * progressRatio);
-        html += `<span class="${isActive?'lyric-active':'lyric-normal'}">${lineText[i]}</span>`;
-    }
-    return html;
-}
-function updateFloatLyric(nowT){
-    lastPlayTime = nowT;
-    syncPlayBtnStatus();
-    const media = getCurrentMedia();
-    if(media?.duration){
-        const pct = (nowT/media.duration)*100;
-        dom.progressBar.style.width = `${pct}%`;
-        dom.currentTimeText.innerText = formatTime(nowT);
-        dom.totalTimeText.innerText = formatTime(media.duration);
-    }
-    if(!parsedLyricList.length){
-        dom.prevLyric.innerText="";
-        dom.currLyric.innerHTML="<span class='lyric-normal'>暂无歌词</span>";
-        return;
-    }
-    let currIndex=0;
-    for(let i=0;i<parsedLyricList.length;i++){
-        if(nowT>=parsedLyricList[i].time) currIndex=i;
-        else break;
-    }
-    const currLine = parsedLyricList[currIndex];
-    const nextTime = parsedLyricList[currIndex+1]?.time || (currLine.time + 5);
-    const linePassDuration = nowT - currLine.time;
-    const ratio = Math.min(1, linePassDuration / (nextTime - currLine.time));
-    dom.prevLyric.innerText=parsedLyricList[currIndex-1]?.text||"";
-    dom.currLyric.innerHTML = renderKaraokeLine(currLine.text, ratio);
-}
-document.addEventListener("keydown",e=>{
-    const targetTag = e.target.tagName;
-    if(targetTag === "INPUT" || targetTag === "TEXTAREA") return;
-    const media = getCurrentMedia();
-    if(!media) return;
-    switch(e.code){
-        case "Space":
-            e.preventDefault();
-            media.paused ? media.play().catch(()=>{}) : media.pause();
-            syncPlayBtnStatus();
-            break;
-        case "ArrowLeft":
-            e.preventDefault();
-            media.currentTime -=10;
-            break;
-        case "ArrowRight":
-            e.preventDefault();
-            media.currentTime +=10;
-            break;
-    }
-})
-dom.volumeSlider.oninput = function(){
-    const vol = Number(this.value);
-    lastVolume = vol;
-    dom.mainAudio.volume = vol;
-    dom.mainVideo.volume = vol;
-}
-dom.modeBtn.onclick = ()=>{
-    const map = {order:"顺序",random:"随机",loop:"单曲"};
-    const arr = ["order","random","loop"];
-    let idx = arr.indexOf(playMode);
-    idx = (idx+1)%3;
-    playMode = arr[idx];
-    dom.modeBtn.innerText = map[playMode];
-}
-
-window.addEventListener("load", async () => {
-    const savedWinPos = localStorage.getItem(STORAGE_KEYS.winPos);
-    if(savedWinPos){
-        const {left,top,w,h} = JSON.parse(savedWinPos);
-        dom.floatWindow.style.left = left+"px";
-        dom.floatWindow.style.top = top+"px";
-        dom.floatWindow.style.width = w+"px";
-        dom.floatWindow.style.height = h+"px";
-    }else{
-        dom.floatWindow.style.right = "2%";
-        dom.floatWindow.style.top = "140px";
-    }
-    const lyricPos = localStorage.getItem(STORAGE_KEYS.lyricPos);
-    if(lyricPos){
-        const {left,top} = JSON.parse(lyricPos);
-        dom.floatLyricWrap.style.left = left;
-        dom.floatLyricWrap.style.top = top;
-    }
-    const cacheList = localStorage.getItem(STORAGE_KEYS.playList);
-    if(cacheList) currentPlayList = JSON.parse(cacheList);
-    renderPlaylist();
-    dom.mainAudio.volume = lastVolume;
-    dom.mainVideo.volume = lastVolume;
-    dom.volumeSlider.value = lastVolume;
-
-    if(location.protocol==="file:"){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">禁止本地双击打开HTML，必须网页托管访问</div>`;
-        return;
-    }
-    dom.navBtns.forEach(btn=>{
-        btn.addEventListener("click",()=>{
-            dom.navBtns.forEach(b=>b.classList.remove("active"));
-            btn.classList.add("active");
-            currentTabType=btn.dataset.type;
-            renderFilterList();
-        });
-    });
-    dom.searchBtn.addEventListener("click",searchResource);
-dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
-const timeUpdateFunc = function(){
-    updateFloatLyric(this.currentTime);
-}
-// 音频、视频时间轴事件绑定
-dom.mainAudio.ontimeupdate = timeUpdateFunc;
-dom.mainVideo.ontimeupdate = timeUpdateFunc;
-
-// 播放结束监听
-dom.mainAudio.onended = mediaEnded;
-
-// 对应的播放结束回调函数示例
-function mediaEnded(){
-    // 自动播放下一曲逻辑
-    playNextSong();
+        // 过滤空歌词
+        if(txt !== ''){
+            result.push({
+                time: time,
+                word: txt
+            })
+        }
+    })
+    // 根据时间从小到大排序
+    result.sort((a,b)=> a.time - b.time)
+    return result;
 }
