@@ -730,12 +730,11 @@ body::after{
     <div class="lyric-line prev-line" id="prevLyric"></div>
     <div class="lyric-line curr-line" id="currLyric"></div>
 </div>
-<!-- 修复：闭合audio标签 -->
 <audio id="mainAudio" preload="auto">
 <script>
 const API_BASE = "https://api.busisi.com";
 let currentPlayList = [];
-let currentTabType = "music"; // 默认打开音乐分类
+let currentTabType = "music";
 let allResourceList = [];
 let nowPlayingItem = null;
 let parsedLyricList = [];
@@ -786,13 +785,52 @@ const dom = {
     submitCommentBtn:document.getElementById("btn‑submit‑comment")
 };
 
-//【核心修复：页面DOM加载完毕立刻绑定全部点击事件，不等后端资源接口】
+// 新增格式判断函数
+function isPlayableMedia(key){
+    const k = key.toLowerCase();
+    const audioVideo = [".mp3",".flac",".wav",".m4a",".mp4",".mov"];
+    const skipFolder = ["图片/","lyric/","歌词/","赞赏/"];
+    
+    for(let folder of skipFolder){
+        if(key.startsWith(folder)) return false;
+    }
+    return audioVideo.some(suffix => k.endsWith(suffix));
+}
+
 window.addEventListener("DOMContentLoaded",async function(){
     bindAllPlayerEvents();
     await loadResourceList();
 })
 
-//绑定全部播放器按键事件
+async function loadResourceList(){
+    const res = await fetch(`${API_BASE}/getResourceList`);
+    const jsonList = await res.json();
+    allResourceList = jsonList.data.filter(item=>isPlayableMedia(item.key));
+    renderCard(allResourceList);
+}
+
+function renderCard(list){
+    dom.cardContainer.innerHTML = "";
+    if(list.length === 0){
+        dom.cardContainer.innerHTML = `<div class="load-tip">暂无资源</div>`;
+        return;
+    }
+    list.forEach(item=>{
+        const div = document.createElement("div");
+        div.className = "music-card";
+        div.onclick = ()=>{
+            playMedia(item);
+        }
+        div.innerHTML = `
+        <div class="cover-box">
+            <img alt="封面">
+        </div>
+        <div class="card-text">${item.key}</div>
+        `;
+        dom.cardContainer.appendChild(div);
+    })
+}
+
 function bindAllPlayerEvents(){
 dom.minWinBtn.onclick = ()=>{
     dom.floatWindow.classList.add("minimize-state");
@@ -969,7 +1007,6 @@ dom.videoFullBtn.onclick = ()=>{
     })
 })();
 
-//加载播放次数和评论
 async function loadSongComment(songKey){
     if(!songKey) return;
     const resList = await fetch(`${API_BASE}/getResourceList`);
@@ -986,7 +1023,6 @@ async function loadSongComment(songKey){
     const ret = await resComment.json();
     renderComment(ret.data||[]);
 }
-//渲染评论列表
 function renderComment(list){
     dom.commentListBox.innerHTML = "";
     if(list.length ===0){
@@ -1004,7 +1040,6 @@ function renderComment(list){
         dom.commentListBox.appendChild(div);
     })
 }
-//发送评论
 dom.submitCommentBtn.onclick = async ()=>{
     if(!nowPlayingItem) return alert("请先播放歌曲");
     const key = nowPlayingItem.key;
@@ -1023,7 +1058,6 @@ dom.submitCommentBtn.onclick = async ()=>{
     renderComment(result.data);
     dom.commentInput.value = "";
 }
-//XSS过滤
 function escapeHtml(str){
     return String(str)
     .replaceAll("&","&amp;")
@@ -1079,18 +1113,11 @@ dom.progressWrap.onclick = function(e){
     const percent = (e.clientX - rect.left) / rect.width;
     media.currentTime = percent * media.duration;
 }
-}
-// 新增格式判断函数
-function isPlayableMedia(key){
-    const k = key.toLowerCase();
-    const audioVideo = [".mp3",".flac",".wav",".m4a",".mp4",".mov"];
-    const skipFolder = ["图片/","lyric/","歌词/","赞赏/"];
-    
-    // 跳过指定目录内文件
-    for(let folder of skipFolder){
-        if(key.startsWith(folder)) return false;
-    }
-    // 判断后缀是否属于可播放媒体
-    return audioVideo.some(suffix => k.endsWith(suffix));
-}
 
+function playMedia(item){
+    nowPlayingItem = item;
+    loadSongComment(item.key);
+}
+</script>
+</body>
+</html>
