@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>步丝丝音乐 前台客户端</title>
+<title>步丝丝《朝歌》</title>
 <style>
 *{
     margin: 0;
@@ -12,1110 +12,688 @@
     font-family: "Microsoft Yahei", sans-serif;
 }
 body{
-    /* 玄幻星空底层渐变 */
-    background:
-        radial-gradient(circle at 10% 20%, rgba(255,255,255,0.8) 0%, transparent 8%),
-        radial-gradient(circle at 30% 10%, rgba(180,140,255,0.6) 0%, transparent 10%),
-        radial-gradient(circle at 70% 15%, rgba(100,180,255,0.6) 0%, transparent 12%),
-        radial-gradient(circle at 50% 50%, rgba(255,210,255,0.5) 0%, transparent 16%),
-        radial-gradient(circle at 80% 60%, rgba(140,110,220,0.6) 0%, transparent 10%),
-        radial-gradient(circle at 20% 80%, rgba(100,200,255,0.5) 0%, transparent 12%),
-        linear-gradient(160deg, #0f172a 0%, #1e293b 45%, #312e81 100%);
+    background: linear-gradient(160deg, #a8e0ff 0%, #e0f4ff 100%);
     min-height: 100vh;
     overflow-x: hidden;
-    padding-bottom: 160px;
-    position: relative;
+    padding-bottom: 380px;
 }
-/* 星光闪烁层 */
-body::before{
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
-    background-image:
-        radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,0.6) 1px, transparent 1px),
-        radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px);
-    background-size: 20px 20px, 35px 35px, 50px 50px;
-    background-position: 0 0, 10px 10px, 25px 25px;
-    animation: twinkle 8s infinite ease-in-out;
-}
-/* 顶部星云紫光光晕 */
-body::after{
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-    background: radial-gradient(circle at 50% 0%, rgba(160,110,255,0.18), transparent 35%);
-}
-@keyframes twinkle{
-    0%{ opacity: 0.6; }
-    50%{ opacity: 1; }
-    100%{ opacity: 0.6; }
+.top-header{
+    width: 95%;
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0 10px;
 }
 .main-title{
-    text-align: center;
-    padding: 20px 0 12px;
-    font-size: 42px;
-    font-family: "KaiTi","STKaiti",serif;
-    /* 钻石粉晶文字渐变 */
-    background: linear-gradient(135deg,#ffc6e8,#c3b2ff,#90d8ff);
+    font-size: 48px;
+    font-family: "STXingkai","KaiTi",serif;
+    font-style: italic;
+    letter-spacing: 5px;
+    background: linear-gradient(135deg,#1d428a,#4178d8);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 3px;
-    position: relative;
-    z-index: 2;
+    color: transparent;
+}
+.user-info{
+    padding: 8px 16px;
+    background: #fff;
+    border-radius: 30px;
+    font-size: 14px;
+    color: #2c6b99;
+}
+.nav-wrap{
+    width: 95%;
+    max-width: 1300px;
+    margin: 0 auto 26px;
+    display: flex;
+    gap:12px;
+    align-items:center;
 }
 .nav-bar{
-    width: 94%;
-    max-width: 1400px;
-    margin: 0 auto 16px;
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 2;
+    gap: 12px;
 }
 .nav-btn{
-    padding: 8px 18px;
-    border-radius: 999px;
+    padding: 9px 24px;
+    background: #ffffff;
     border: none;
+    border-radius: 30px;
     font-size: 15px;
     cursor: pointer;
     transition: 0.2s;
-    /* 水晶玻璃质感 */
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    color:#f0dfff;
-    border: 1px solid rgba(255,220,250,0.25);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -5px 12px rgba(180,140,255,0.25), 0 4px 0 rgba(90,60,180,0.25), 0 8px 18px rgba(30,60,150,0.18);
-    backdrop-filter: blur(6px);
 }
 .nav-btn.active{
-    background: linear-gradient(145deg, #d888ff, #7298ff);
-    color:#fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -6px 14px rgba(90,60,180,0.45), 0 4px 0 #422d88, 0 8px 20px rgba(190,130,255,0.35);
+    background: #4299e1;
+    color: #fff;
 }
-.nav-btn:hover:not(.active){
-    transform: translateY(1px);
-    background: linear-gradient(145deg, rgba(255,230,250,0.35), rgba(190,210,255,0.25));
+.nav-btn:hover{
+    background: #d0e8fb;
 }
 .search-bar{
-    width: 94%;
-    max-width: 1400px;
-    margin: 0 auto 24px;
     display: flex;
-    position: relative;
-    z-index: 2;
+    flex:1;
+    max-width:520px;
 }
 .search-bar input{
     flex: 1;
-    padding: 12px 16px;
-    border: 1px solid rgba(255,220,250,0.25);
+    padding: 10px 16px;
+    border: none;
     border-radius: 999px 0 0 999px;
+    font-size: 14px;
     outline: none;
-    font-size: 15px;
-    background: rgba(255,255,255,0.08);
-    color:#fff;
-    backdrop-filter: blur(6px);
-    box-shadow: inset 0 2px 6px rgba(150,120,220,0.15);
-}
-.search-bar input::placeholder{
-    color:rgba(255,255,255,0.55);
 }
 .search-bar button{
-    padding: 0 22px;
+    padding: 0 20px;
     border: none;
-    background: linear-gradient(145deg, #d888ff, #7298ff);
+    background: #4299e1;
     color: #fff;
     border-radius: 0 999px 999px 0;
     cursor: pointer;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), 0 4px 0 #422d88, 0 8px 20px rgba(190,130,255,0.35);
-}
-.main-wrap{
-    width: 94%;
-    max-width: 1400px;
-    margin:0 auto;
-    display:flex;
-    gap:24px;
-    align-items:flex-start;
-    position: relative;
-    z-index: 2;
-}
-.left-card-area{
-    width:100%;
 }
 .card-wrap{
+    width: 95%;
+    max-width: 1400px;
+    margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(7, 1fr);
     gap: 16px;
 }
 .music-card{
-    background: rgba(255,255,255,0.06);
-    border:1px solid rgba(230,200,255,0.22);
-    border-radius: 16px;
-    padding: 12px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
     cursor: pointer;
-    transition: transform 0.2s;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    backdrop-filter: blur(8px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 4px 12px rgba(150,110,220,0.12);
+    transition: 0.25s;
 }
 .music-card:hover{
-    transform: translateY(-4px);
-    border-color: rgba(220,170,255,0.45);
-    box-shadow: 0 6px 18px rgba(180,120,255,0.25);
+    transform: translateY(-6px);
+    box-shadow: 0 10px 20px #b1d6f3;
 }
-.cover-box{
-    width: 100%;
-    aspect-ratio: 1/1;
-    border-radius: 12px;
-    overflow: hidden;
-    background: rgba(255,255,255,0.06);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #e8d6ff;
-    font-size: 16px;
-}
-.cover-box img{
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.card-text{
-    font-size: 13px;
-    text-align: center;
-    color:#e8d6ff;
-}
-.card-text small{
-    font-size:11px;
-    opacity:0.7;
-}
-.load-tip{
-    text-align: center;
-    font-size: 16px;
-    color: #e8d6ff;
-    padding: 40px 0;
-    grid-column:1/-1;
-}
-
-/* ===== 悬浮播放器窗口 ===== */
-.right-big-container{
+.player-box{
     position: fixed;
-    top:140px;
-    right:2%;
-    width:400px;
-    height:300px;
-    min-width:360px;
-    min-height:280px;
-    background:rgba(25,15,45,0.55);
-    border:1px solid rgba(220,180,255,0.25);
-    border-radius:20px;
-    overflow:hidden;
-    display:flex;
-    z-index:99;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 10px 28px rgba(120,80,200,0.25);
+    bottom: 20px;
+    right: 20px;
+    width: 460px;
+    height: 360px;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 6px 30px #8fbde0;
+    overflow: hidden;
+    resize: both;
+    user-select: none;
+    cursor: move;
+    z-index:98;
 }
-.right-big-container.minimize-state{
-    display:none;
+.video-view{
+    width: 100%;
+    height: 48%;
+    background: #000;
 }
-.drag-handle{
-    position:absolute;
-    width:100%;
-    height:28px;
-    top:0;
-    left:0;
-    cursor:move;
-    z-index:5;
-    display:flex;
-    justify-content: flex-end;
-    align-items:center;
-    padding-right:8px;
+.fullscreen-btn{
+    position: absolute;
+    top: 10px;
+    right: 75px;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 9;
 }
-.minimize-win-btn{
-    width:28px;
-    height:22px;
-    border:none;
-    border-radius:999px;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    color:#e8d6ff;
-    border: 1px solid rgba(255,220,250,0.25);
-    font-weight:bold;
-    cursor:pointer;
-    backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
-}
-.resize-handle{
-    position:absolute;
-    z-index:10;
-}
-.resize-t{top:0;left:12px;right:12px;height:6px;cursor:n-resize;}
-.resize-b{bottom:0;left:12px;right:12px;height:6px;cursor:s-resize;}
-.resize-l{left:0;top:12px;bottom:12px;width:6px;cursor:w-resize;}
-.resize-r{right:0;top:12px;bottom:12px;width:6px;cursor:e-resize;}
-.resize-lt{left:0;top:0;width:12px;height:12px;cursor:nw-resize;}
-.resize-rt{right:0;top:0;width:12px;height:12px;cursor:ne-resize;}
-.resize-lb{left:0;bottom:0;width:12px;height:12px;cursor:sw-resize;}
-.resize-rb{right:0;bottom:0;width:12px;height:12px;cursor:se-resize;}
-
-.playlist-sidebar{
-    width:38%;
-    border-right:1px solid rgba(220,180,255,0.22);
-    display:flex;
-    flex-direction:column;
-    background:rgba(40,20,60,0.35);
-}
-.player-window{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    position:relative;
-}
-.sidebar-head{
-    padding:12px 16px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:1px solid rgba(220,180,255,0.22);
-    margin-top:28px;
-}
-.sidebar-head h4{
-    font-size:18px;
-    color:#e8d6ff;
-}
-.hideSideBtn{
-    border:none;
-    border-radius:999px;
-    padding:4px 10px;
-    cursor:pointer;
-    color:#e8d6ff;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    border: 1px solid rgba(255,220,250,0.25);
-    backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
-}
-.playlist-scroll{
-    flex:1;
-    overflow-y:auto;
-    padding:10px;
-}
-.playlist-scroll::-webkit-scrollbar{
-    width:4px;
-}
-.playlist-scroll::-webkit-scrollbar-thumb{
-    background:rgba(210,160,255,0.35);
-    border-radius:4px;
-}
-.playlist-item{
-    padding:8px 10px;
-    border-radius:12px;
-    margin-bottom:6px;
-    background:rgba(255,255,255,0.06);
-    font-size:13px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    cursor:pointer;
-    color:#e8d6ff;
-    transition:0.15s;
-    border: 1px solid transparent;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
-}
-.playlist-item.active{
-    background: linear-gradient(145deg, #d888ff, #7298ff);
-    color:#fff;
-    border-color:rgba(255,255,255,0.3);
-}
-.playlist-item:hover{
-    background:rgba(255,255,255,0.12);
-    border-color:rgba(220,180,255,0.35);
-}
-.playlist-item.active:hover{
-    background: linear-gradient(145deg, #c670ee, #6088ee);
-}
-.item-name{
-    overflow:hidden;
-    white-space:nowrap;
-    text-overflow:ellipsis;
-    max-width:82%;
-}
-.item-del{
-    width:22px;
-    height:22px;
-    border-radius:999px;
-    background: linear-gradient(145deg,#ff8fb3,#f05b8c);
+.openKaraokeBtn{
+    position: absolute;
+    top: 10px;
+    right: 135px;
+    background:#22c55e;
     color:#fff;
     border:none;
+    border-radius:6px;
+    padding:3px 6px;
     font-size:12px;
     cursor:pointer;
-    flex-shrink:0;
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.4),0 2px 6px rgba(220,80,130,0.25);
+    z-index: 9;
 }
-
-.video-container{
-    flex:1;
-    padding:8px;
-    position:relative;
-    margin-top:28px;
-}
-#mainVideo{
-    width:100%;
-    height:100%;
-    background:#000;
-    border-radius:12px;
-    object-fit:contain;
-}
-.fullscreen-video-btn{
-    position:absolute;
-    top:10px;
-    right:10px;
-    padding:4px 10px;
-    border:none;
-    border-radius:999px;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    color:#e8d6ff;
-    border: 1px solid rgba(255,220,250,0.25);
-    cursor:pointer;
-    font-size:12px;
-    backdrop-filter: blur(4px);
-    box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), inset 0 -4px 10px rgba(180,140,255,0.25), 0 3px 8px rgba(90,60,180,0.2);
-}
-
-/* ========== 底部播放器布局 ========== */
-.bottom-player{
-    position:fixed;
-    left:0;
-    bottom:0;
-    width:100%;
-    background: linear-gradient(180deg, rgba(45,25,75,0.65), rgba(25,12,45,0.75));
-    backdrop-filter: blur(16px);
-    border-top: 1px solid rgba(220,180,255,0.22);
-    padding:12px 20px 18px;
-    z-index:999;
-}
-.bottom-player .inner-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    width:100%;
-}
-.left-control-group{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-shrink:0;
-}
-.mid-progress-area{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    margin:0 16px;
-}
-.right-control-group{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    flex-shrink:0;
-}
-.progress-wrap{
-    width:100%;
-    height:10px;
-    background:rgba(255,255,255,0.08);
-    border-radius:999px;
-    cursor:pointer;
-    border: 1px solid rgba(220,180,255,0.15);
-    box-shadow: inset 0 2px 5px rgba(140,100,210,0.15);
-}
-.progress-bar{
-    height:100%;
-    width:0%;
-    background: linear-gradient(90deg,#d888ff,#7298ff);
-    border-radius:999px;
-}
-.time-row{
-    display:flex;
-    justify-content:space-between;
-    font-size:13px;
-    color:#e8d6ff;
-}
-.player-control-row{
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    align-items:center;
-}
-/* 水晶钻石胶囊按钮 */
-.control-btn{
-    border: none;
-    border-radius: 999px;
-    background: linear-gradient(145deg, rgba(255,230,250,0.25), rgba(190,210,255,0.15));
-    border: 1px solid rgba(255,220,250,0.25);
-    color:#e8d6ff;
-    font-size:16px;
-    cursor:pointer;
-    padding:8px 14px;
-    backdrop-filter: blur(4px);
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.35),
-        inset 0 -5px 12px rgba(180,140,255,0.25),
-        0 4px 0 rgba(90,60,180,0.25),
-        0 8px 18px rgba(30,60,150,0.18);
-    transition: all 0.12s ease;
-}
-.control-btn:active{
-    transform: translateY(2px);
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.35),
-        inset 0 -3px 8px rgba(180,140,255,0.25),
-        0 2px 0 rgba(90,60,180,0.25),
-        0 4px 10px rgba(30,60,150,0.12);
-}
-.control-btn.play-main{
-    padding:8px 22px;
-    background: linear-gradient(145deg, #d888ff, #7298ff);
+.search-lyric-btn{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background:#4299e1;
     color:#fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.45),
-        inset 0 -6px 14px rgba(90,60,180,0.45),
-        0 4px 0 #422d88,
-        0 8px 20px rgba(190,130,255,0.35);
+    border:none;
+    border-radius:6px;
+    padding:3px 6px;
+    font-size:12px;
+    cursor:pointer;
+    z-index:9;
 }
-.control-btn.play-main:active{
-    box-shadow:
-        inset 0 1px 1px rgba(255,255,255,0.45),
-        inset 0 -3px 8px rgba(90,60,180,0.45),
-        0 2px 0 #422d88,
-        0 4px 12px rgba(190,130,255,0.25);
+.control-area{
+    height: 52%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
 }
-
+.play-list-wrap{
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 8px;
+}
+.list-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: #f0f7fc;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+.list-num{
+    color: #4299e1;
+    margin-right: 8px;
+}
+.del-cross{
+    width: 18px;
+    height: 18px;
+    background: #ff6b6b;
+    color: #fff;
+    text-align: center;
+    line-height: 18px;
+    border-radius: 50%;
+    font-size: 12;
+    cursor: pointer;
+}
 .lyric-area{
     text-align: center;
-    font-size: 16px;
-    color: #e8d6ff;
-    margin-top: 8px;
-    line-height: 1.8;
-    padding:8px;
-    min-height:80px;
+    font-size: 15px;
+    color: #666;
+    min-height: 40px;
+    line-height: 28px;
+    overflow:hidden;
 }
-.lyric-normal{color:#b8a2dd;}
-.lyric-active{color:#ffb8ee;font-weight:bold;}
-
-/* =========【酷狗样式悬浮歌词】========= */
-.float-lyric-wrap{
-    position: fixed;
-    bottom: 170px;
-    left: 30px;
-    min-width:260px;
-    min-height:90px;
-    width:340px;
-    z-index:9999;
+.lyric-line.active{
+    color:#1d428a;
+    font-weight:bold;
+    font-size:17px;
+}
+.karaoke-win{
+    position:fixed;
+    left:30px;
+    top:30px;
+    width:500px;
+    height:380px;
+    background:rgba(0,0,0.78);
+    border-radius:12px;
+    resize:both;
+    overflow:hidden;
     cursor:move;
     user-select:none;
-    overflow:hidden;
-    display:block;
+    z-index:999;
+    display:none;
+}
+.karaoke-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
     padding:10px 14px;
-    border-radius:14px;
-    /* 默认：透明，无背景无边框，只显示文字 */
-    background: transparent;
-    border:1px solid transparent;
-    transition: all 0.25s ease;
+    color:#fff;
+    border-bottom:1px solid #333;
 }
-/* 鼠标移入才显示拖拽外框 */
-.float-lyric-wrap:hover{
-    background:rgba(40,20,70,0.22);
-    border: 1px solid rgba(210,170,255,0.35);
-    backdrop-filter: blur(4px);
+.karaoke-header button{
+    background:#444;
+    color:#fff;
+    border:none;
+    padding:2px 6px;
+    border-radius:4px;
+    margin-left:6px;
+    cursor:pointer;
 }
-.lyric-line{
-    padding:8px 14px;
-    margin:4px 0;
-    border-radius:12px;
-    background:transparent;
-    font-size:clamp(16px,2vw,26px);
-    letter-spacing:2px;
-    text-shadow:0 0 6px rgba(240,180,255,0.55);
+.karaoke-close{
+    background:#e53e3e !important;
 }
-.prev-line{
-    color:#ffffff;
-    opacity:0.55;
-    text-align:left;
+.karaoke-box{
+    height:calc(100% - 46px);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:0 10px;
 }
-.curr-line{
-    text-align:right;
+.kara-line{
+    text-align:center;
+    margin:14px 0;
+    font-size:24px;
+    color:#cccccc;
+    position:relative;
+    white-space:nowrap;
+}
+.kara-fill{
+    position:absolute;
+    left:0;
+    top:0;
+    height:100%;
+    overflow:hidden;
+    color:#ffdd00;
+}
+.setMask{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0.5);
+    display:none;
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+.setBox{
+    background:#fff;
+    padding:20px;
+    border-radius:8px;
+    width:340px;
+}
+.set-row{
+    margin:12px 0;
+}
+.set-row label{
+    display:block;
+    margin-bottom:4px;
+}
+.set-row input{
+    width:100%;
+    padding:6;
 }
 </style>
 </head>
 <body>
-<div class="main-title">步丝丝《朝歌》</div>
-
-<div class="nav-bar">
-    <button class="nav-btn active" data-type="all">首页 Home</button>
-    <button class="nav-btn" data-type="music">音乐 Music</button>
-    <button class="nav-btn" data-type="video">视频 Video</button>
-    <button class="nav-btn" data-type="image">图片</button>
-    <button class="nav-btn" data-type="reward">赞赏</button>
+<div class="top-header">
+    <div class="main-title">步丝丝《朝歌》</div>
+    <div class="user-info">客户账号：游客001</div>
 </div>
-
-<div class="search-bar">
-    <input id="searchInput" placeholder="搜索歌曲名、歌手">
-    <button id="searchBtn">搜索 Search</button>
+<div class="nav-wrap">
+    <div class="nav-bar">
+        <button class="nav-btn active" data-type="all">首页</button>
+        <button class="nav-btn" data-type="music">音乐</button>
+        <button class="nav-btn" data-type="video">视频</button>
+        <button class="nav-btn" data-type="image">图片</button>
+        <button class="nav-btn" data-type="reward">赞赏</button>
+    </div>
+    <div class="search-bar">
+        <input id="searchInput" placeholder="搜索歌曲、歌手">
+        <button id="searchBtn">搜索</button>
+    </div>
 </div>
-
-<div class="main-wrap">
-    <div class="left-card-area">
-        <div class="card-wrap" id="cardContainer">
-            <div class="load-tip">正在加载资源，请稍等...</div>
+<div class="card-wrap" id="cardContainer"></div>
+<div class="player-box" id="playerWrap">
+    <div class="fullscreen-btn" id="fullBtn">⛶</div>
+    <button class="openKaraokeBtn" id="openKBtn">打开歌词窗</button>
+    <button class="search-lyric-btn" id="searchLyricBtn">搜歌词</button>
+    <video class="video-view" id="mainVideo" controls></video>
+    <div class="control-area">
+        <div class="play-list-wrap" id="playListBox"></div>
+        <div class="lyric-area" id="lyricBox">暂无歌词，点击右上角搜歌词</div>
+    </div>
+</div>
+<div class="karaoke-win" id="karaWin">
+    <div class="karaoke-header" id="karaDrag">
+        <span>悬浮歌词窗口</span>
+        <div>
+            <button id="karaSetBtn">设置</button>
+            <button class="kara-close" id="karaCloseBtn">关闭</button>
+        </div>
+    </div>
+    <div class="karaoke-box" id="karaContent"></div>
+</div>
+<div class="setMask" id="setMask">
+    <div class="setBox">
+        <h4>歌词样式设置</h4>
+        <div class="set-row">
+            <label>普通文字颜色</label>
+            <input type="color" id="colorNormal" value="#cccccc">
+        </div>
+        <div class="set-row">
+            <label>滚动高亮颜色</label>
+            <input type="color" id="colorActive" value="#ffdd00">
+        </div>
+        <div class="set-row">
+            <label>字体大小</label>
+            <input type="number" id="fontSize" min="16" max="48" value="24">
+        </div>
+        <div style="margin-top:15px;display:flex;gap:8px;">
+            <button id="saveSet" style="padding:6px 10px;background:#2563eb;color:#fff;border:none;border-radius:4px;">保存</button>
+            <button id="closeSet" style="padding:6px 10px;background:#999;color:#fff;border:none;border-radius:4px;">取消</button>
         </div>
     </div>
 </div>
-
-<!-- 右侧悬浮播放器窗口 -->
-<div class="right-big-container" id="floatWindow">
-    <div class="drag-handle" id="dragHandle">
-        <button class="minimize-win-btn" id="minWinBtn">−</button>
-    </div>
-    <div class="resize-handle resize-t" data-dir="t"></div>
-    <div class="resize-handle resize-b" data-dir="b"></div>
-    <div class="resize-handle resize-l" data-dir="l"></div>
-    <div class="resize-handle resize-r" data-dir="r"></div>
-    <div class="resize-handle resize-lt" data-dir="lt"></div>
-    <div class="resize-handle resize-rt" data-dir="rt"></div>
-    <div class="resize-handle resize-lb" data-dir="lb"></div>
-    <div class="resize-handle resize-rb" data-dir="rb"></div>
-
-    <div class="playlist-sidebar" id="playlistSide">
-        <div class="sidebar-head">
-            <h4>播放目录</h4>
-            <button class="hideSideBtn" id="hideSideBtn">收起</button>
-        </div>
-        <div class="playlist-scroll" id="playlistScroll"></div>
-    </div>
-
-    <div class="player-window">
-        <div class="video-container">
-            <video id="mainVideo" preload="auto" playsinline webkit-playsinline></video>
-            <button class="fullscreen-video-btn" id="videoFullBtn">全屏</button>
-        </div>
-    </div>
-</div>
-
-<!-- 底部播放器：最终布局 -->
-<div class="bottom-player">
-    <div class="inner-row">
-        <!-- 左侧：播放目录切换按钮 + 播放控制 -->
-        <div class="left-control-group">
-            <button class="control-btn" id="togglePlaylistBtn">目录</button>
-            <div class="player-control-row">
-                <button class="control-btn" id="prevBtn">◀◀</button>
-                <button class="control-btn" id="rewindBtn">◀</button>
-                <button class="control-btn play-main" id="playPauseBtn">▶</button>
-                <button class="control-btn" id="forwardBtn">▶</button>
-                <button class="control-btn" id="nextBtn">▶▶</button>
-            </div>
-        </div>
-        <!-- 中间：进度条+时间 -->
-        <div class="mid-progress-area">
-            <div class="progress-wrap" id="progressWrap">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-            <div class="time-row">
-                <span id="currentTimeText">00:00</span>
-                <span id="totalTimeText">00:00</span>
-            </div>
-        </div>
-        <!-- 右侧：打开播放器按钮（和进度条水平平齐） -->
-        <div class="right-control-group">
-            <button class="control-btn play-main" id="openPlayerBtn">打开播放器</button>
-        </div>
-    </div>
-</div>
-
-<div class="float-lyric-wrap" id="floatLyricWrap">
-    <div class="lyric-line prev-line" id="prevLyric"></div>
-    <div class="lyric-line curr-line" id="currLyric"></div>
-</div>
-
-<audio id="mainAudio" preload="auto">
-
 <script>
 const API_BASE = "https://api.busisi.com";
 let currentPlayList = [];
 let currentTabType = "all";
 let allResourceList = [];
-let nowPlayingItem = null;
-let parsedLyricList = [];
-let lastPlayTime = 0;
-
-const dom = {
-    floatWindow: document.getElementById("floatWindow"),
-    dragHandle: document.getElementById("dragHandle"),
-    cardContainer: document.getElementById("cardContainer"),
-    searchInput: document.getElementById("searchInput"),
-    searchBtn: document.getElementById("searchBtn"),
-    navBtns: document.querySelectorAll(".nav-btn"),
-    mainVideo: document.getElementById("mainVideo"),
-    mainAudio: document.getElementById("mainAudio"),
-    floatLyricWrap: document.getElementById("floatLyricWrap"),
-    prevLyric: document.getElementById("prevLyric"),
-    currLyric: document.getElementById("currLyric"),
-    playlistSide:document.getElementById("playlistSide"),
-    playlistScroll:document.getElementById("playlistScroll"),
-    hideSideBtn:document.getElementById("hideSideBtn"),
-    togglePlaylistBtn:document.getElementById("togglePlaylistBtn"),
-    prevBtn:document.getElementById("prevBtn"),
-    rewindBtn:document.getElementById("rewindBtn"),
-    forwardBtn:document.getElementById("forwardBtn"),
-    nextBtn:document.getElementById("nextBtn"),
-    playPauseBtn:document.getElementById("playPauseBtn"),
-    progressWrap:document.getElementById("progressWrap"),
-    progressBar:document.getElementById("progressBar"),
-    currentTimeText:document.getElementById("currentTimeText"),
-    totalTimeText:document.getElementById("totalTimeText"),
-    videoFullBtn:document.getElementById("videoFullBtn"),
-    minWinBtn:document.getElementById("minWinBtn"),
-    openPlayerBtn:document.getElementById("openPlayerBtn")
+let currentPlayItem = null;
+let lyricLines = [];
+let dragStatus = {isDown:false,offsetX:0,offsetY:0};
+const playerWrap = document.getElementById("playerWrap");
+let karaDragStatus = {isDown:false,ox:0,oy:0};
+const karaWin = document.getElementById("karaWin");
+const karaDragArea = document.getElementById("karaDrag");
+let karaConfig = {
+    normal:"#cccccc",
+    active:"#ffdd00",
+    size:24
 };
 
-// 最小化悬浮播放器
-dom.minWinBtn.onclick = ()=>{
-    dom.floatWindow.classList.add("minimize-state");
-}
-// 底部右侧按钮恢复悬浮播放器
-dom.openPlayerBtn.onclick = ()=>{
-    dom.floatWindow.classList.remove("minimize-state");
-}
-// 底部左侧目录按钮：切换播放列表侧边栏显示隐藏
-dom.togglePlaylistBtn.onclick = ()=>{
-    dom.playlistSide.style.display = dom.playlistSide.style.display === "none" ? "flex" : "none";
-}
-dom.hideSideBtn.onclick = ()=>{
-    dom.playlistSide.style.display = "none";
-}
-
-// ========= 窗口拖拽移动 =========
-(function initWindowDrag(){
-    let dragging = false;
-    let startX, startY, winStartLeft, winStartTop;
-    dom.dragHandle.addEventListener("mousedown", e=>{
-        dragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        winStartLeft = dom.floatWindow.offsetLeft;
-        winStartTop = dom.floatWindow.offsetTop;
-        dom.floatWindow.style.zIndex = 999;
-        e.preventDefault();
-    })
-    document.addEventListener("mousemove",e=>{
-        if(!dragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        dom.floatWindow.style.left = `${winStartLeft + dx}px`;
-        dom.floatWindow.style.top = `${winStartTop + dy}px`;
-    })
-    document.addEventListener("mouseup",()=>{
-        dragging = false;
-        dom.floatWindow.style.zIndex = 99;
-    })
-})();
-
-// ========= 窗口四边四角拉伸缩放 =========
-(function initWindowResize(){
-    const handles = document.querySelectorAll(".resize-handle");
-    let resizing = false;
-    let dir;
-    let startX, startY;
-    let startW, startH;
-    let startL, startT;
-
-    handles.forEach(hd=>{
-        hd.addEventListener("mousedown",e=>{
-            resizing = true;
-            dir = hd.dataset.dir;
-            startX = e.clientX;
-            startY = e.clientY;
-            startW = dom.floatWindow.offsetWidth;
-            startH = dom.floatWindow.offsetHeight;
-            startL = dom.floatWindow.offsetLeft;
-            startT = dom.floatWindow.offsetTop;
-            dom.floatWindow.style.zIndex = 999;
-            e.preventDefault();
-        })
-    })
-    document.addEventListener("mousemove",e=>{
-        if(!resizing) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        const minW = parseInt(dom.floatWindow.style.minWidth);
-        const minH = parseInt(dom.floatWindow.style.minHeight);
-
-        if(dir === "r") dom.floatWindow.style.width = `${Math.max(minW, startW + dx)}px`;
-        if(dir === "b") dom.floatWindow.style.height = `${Math.max(minH, startH + dy)}px`;
-        if(dir === "rb"){
-            dom.floatWindow.style.width = `${Math.max(minW, startW + dx)}px`;
-            dom.floatWindow.style.height = `${Math.max(minH, startH + dy)}px`;
-        }
-        if(dir === "l"){
-            const newW = startW - dx;
-            if(newW >= minW){
-                dom.floatWindow.style.width = `${newW}px`;
-                dom.floatWindow.style.left = `${startL + dx}px`;
-            }
-        }
-        if(dir === "t"){
-            const newH = startH - dy;
-            if(newH >= minH){
-                dom.floatWindow.style.height = `${newH}px`;
-                dom.floatWindow.style.top = `${startT + dy}px`;
-            }
-        }
-        if(dir === "lt"){
-            const newW = startW - dx;
-            const newH = startH - dy;
-            if(newW >= minW){
-                dom.floatWindow.style.width = `${newW}px`;
-                dom.floatWindow.style.left = `${startL + dx}px`;
-            }
-            if(newH >= minH){
-                dom.floatWindow.style.height = `${newH}px`;
-                dom.floatWindow.style.top = `${startT + dy}px`;
-            }
-        }
-        if(dir === "rt"){
-            dom.floatWindow.style.width = `${Math.max(minW, startW + dx)}px`;
-            const newH = startH - dy;
-            if(newH >= minH){
-                dom.floatWindow.style.height = `${newH}px`;
-                dom.floatWindow.style.top = `${startT + dy}px`;
-            }
-        }
-        if(dir === "lb"){
-            const newW = startW - dx;
-            if(newW >= minW){
-                dom.floatWindow.style.width = `${newW}px`;
-                dom.floatWindow.style.left = `${startL + dx}px`;
-            }
-            dom.floatWindow.style.height = `${Math.max(minH, startH + dy)}px`;
-        }
-    })
-    document.addEventListener("mouseup",()=>{
-        resizing = false;
-        dom.floatWindow.style.zIndex = 99;
-    })
-})();
-
-// 视频全屏
-dom.videoFullBtn.onclick = ()=>{
-    if (dom.mainVideo.requestFullscreen) dom.mainVideo.requestFullscreen();
-    else if (dom.mainVideo.webkitRequestFullscreen) dom.mainVideo.webkitRequestFullscreen();
-}
-
-// =========【优化后的悬浮歌词拖拽】=========
-(function initLyricDrag(){
-    const wrap = dom.floatLyricWrap;
-    let dragging = false, startX, startY, initLeft, initTop;
-    wrap.addEventListener("mousedown",e=>{
-        dragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        const rect = wrap.getBoundingClientRect();
-        initLeft = rect.left;
-        initTop = rect.top;
-        wrap.style.zIndex = 10000;
-        e.preventDefault();
-    });
-    document.addEventListener("mousemove",e=>{
-        if(!dragging) return;
-        const moveX = initLeft + (e.clientX - startX);
-        const moveY = initTop + (e.clientY - startY);
-        // 边界限制，防止拖出屏幕
-        wrap.style.left = `${Math.max(0, Math.min(moveX, window.innerWidth - wrap.offsetWidth))}px`;
-        wrap.style.top = `${Math.max(0, Math.min(moveY, window.innerHeight - wrap.offsetHeight))}px`;
-    });
-    document.addEventListener("mouseup",()=>{
-        dragging = false;
-        wrap.style.zIndex = 9999;
-    })
-})();
-
-function getCurrentMedia(){
-    return nowPlayingItem?.type==="video"?dom.mainVideo:dom.mainAudio;
-}
-function formatTime(s){
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-}
-
-dom.rewindBtn.onclick = ()=>{
-    const m = getCurrentMedia(); if(!m) return; m.currentTime -=10;
-}
-dom.forwardBtn.onclick = ()=>{
-    const m = getCurrentMedia(); if(!m) return; m.currentTime +=10;
-}
-dom.playPauseBtn.onclick = ()=>{
-    const m = getCurrentMedia(); if(!m) return;
-    m.paused ? m.play() : m.pause();
-}
-dom.prevBtn.onclick = ()=>{
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.id === nowPlayingItem.id);
-    idx--;
-    if(idx <0) idx = currentPlayList.length -1;
-    playMedia(currentPlayList[idx]);
-}
-dom.nextBtn.onclick = ()=>{
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.id === nowPlayingItem.id);
-    idx++;
-    if(idx >= currentPlayList.length) idx = 0;
-    playMedia(currentPlayList[idx]);
-}
-function syncPlayBtnStatus(){
-    const m = getCurrentMedia();
-    if(!m){
-        dom.playPauseBtn.innerText="▶";
-        return;
+playerWrap.addEventListener("mousedown",e=>{
+    dragStatus.isDown = true;
+    dragStatus.offsetX = e.clientX - playerWrap.getBoundingClientRect().left;
+    dragStatus.offsetY = e.clientY - playerWrap.getBoundingClientRect().top;
+    playerWrap.style.cursor = "grabbing";
+});
+document.addEventListener("mousemove",e=>{
+    if(dragStatus.isDown){
+        playerWrap.style.left = (e.clientX - dragStatus.offsetX)+"px";
+        playerWrap.style.top = (e.clientY - dragStatus.offsetY)+"px";
+        playerWrap.style.right = "auto";
+        playerWrap.style.bottom = "auto";
     }
-    dom.playPauseBtn.innerText = m.paused ? "▶" : "⏸";
-}
-
-dom.progressWrap.onclick = function(e){
-    const media = getCurrentMedia();
-    if(!media || !media.duration) return;
-    const rect = this.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    media.currentTime = percent * media.duration;
-}
-
-function parseLRC(text){
-    const result = [];
-    const reg = /\[(\d{2}):(\d{2})(?:\.(\d{1,3}))?\](.*)/;
-    text.split("\n").forEach(line=>{
-        line=line.trim();
-        const m=line.match(reg);
-        if(!m)return;
-        const time = parseInt(m[1])*60 + parseInt(m[2]) + (parseInt(m[3]||0)/1000);
-        const txt=m[4].trim();
-        if(!txt) return;
-        result.push({time, text:txt});
-    });
-    return result.sort((a,b)=>a.time-b.time);
-}
-function renderKaraokeLine(lineText, progressRatio){
-    let html = "";
-    for(let i=0;i<lineText.length;i++){
-        const isActive = i < Math.floor(lineText.length * progressRatio);
-        html += `<span class="${isActive?'lyric-active':'lyric-normal'}">${lineText[i]}</span>`;
-    }
-    return html;
-}
-function updateFloatLyric(nowT){
-    lastPlayTime = nowT;
-    syncPlayBtnStatus();
-    const media = getCurrentMedia();
-    if(media?.duration){
-        const pct = (nowT/media.duration)*100;
-        dom.progressBar.style.width = `${pct}%`;
-        dom.currentTimeText.innerText = formatTime(nowT);
-        dom.totalTimeText.innerText = formatTime(media.duration);
-    }
-    if(!parsedLyricList.length){
-        dom.prevLyric.innerText="";
-        dom.currLyric.innerHTML="<span class='lyric-normal'>暂无歌词</span>";
-        return;
-    }
-    let currIndex=0;
-    for(let i=0;i<parsedLyricList.length;i++){
-        if(nowT>=parsedLyricList[i].time) currIndex=i;
-        else break;
-    }
-    const currLine = parsedLyricList[currIndex];
-    const nextTime = parsedLyricList[currIndex+1]?.time || (currLine.time + 5);
-    const linePassDuration = nowT - currLine.time;
-    const ratio = Math.min(1, linePassDuration / (nextTime - currLine.time));
-    dom.prevLyric.innerText=parsedLyricList[currIndex-1]?.text||"";
-    dom.currLyric.innerHTML = renderKaraokeLine(currLine.text, ratio);
-}
-
-document.addEventListener("keydown",e=>{
-    const targetTag = e.target.tagName;
-    if(targetTag === "INPUT" || targetTag === "TEXTAREA") return;
-    const media = getCurrentMedia();
-    if(!media) return;
-    switch(e.code){
-        case "Space":
-            e.preventDefault();
-            media.paused ? media.play().catch(()=>{}) : media.pause();
-            syncPlayBtnStatus();
-            break;
-        case "ArrowLeft":
-            e.preventDefault();
-            media.currentTime -=10;
-            break;
-        case "ArrowRight":
-            e.preventDefault();
-            media.currentTime +=10;
-            break;
-    }
-})
-
-window.addEventListener("load", async () => {
-    if(location.protocol==="file:"){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">禁止本地双击打开HTML，必须网页托管访问</div>`;
-        return;
-    }
-    dom.navBtns.forEach(btn=>{
-        btn.addEventListener("click",()=>{
-            dom.navBtns.forEach(b=>b.classList.remove("active"));
-            btn.classList.add("active");
-            currentTabType=btn.dataset.type;
-            renderFilterList();
-        });
-    });
-    dom.searchBtn.addEventListener("click",searchResource);
-    dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
-
-    const timeUpdateFunc = function(){
-        updateFloatLyric(this.currentTime);
-    }
-    dom.mainVideo.ontimeupdate = timeUpdateFunc;
-    dom.mainAudio.ontimeupdate = timeUpdateFunc;
-    dom.mainVideo.onended = playNext;
-    dom.mainAudio.onended = playNext;
-
-    try{
-        const res=await fetch(`${API_BASE}/getResourceList`);
-        if(!res.ok) throw new Error(`接口状态码:${res.status}`);
-        allResourceList=await res.json();
-        renderFilterList();
-    }catch(err){
-        dom.cardContainer.innerHTML=`<div class="load-tip" style="color:#ffc6e8">接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}</div>`;
-        console.error(err);
+    if(karaDragStatus.isDown){
+        karaWin.style.left = (e.clientX - karaDragStatus.ox)+"px";
+        karaWin.style.top = (e.clientY - karaDragStatus.oy)+"px";
     }
 });
-function playNext(){
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.id === nowPlayingItem.id);
-    idx++;
-    if(idx >= currentPlayList.length) idx = 0;
-    playMedia(currentPlayList[idx]);
+document.addEventListener("mouseup",()=>{
+    dragStatus.isDown = false;
+    karaDragStatus.isDown = false;
+    playerWrap.style.cursor = "move";
+});
+karaDragArea.onmousedown = e=>{
+    karaDragStatus.isDown = true;
+    karaDragStatus.ox = e.clientX - karaWin.getBoundingClientRect().left;
+    karaDragStatus.oy = e.clientY - karaWin.getBoundingClientRect().top;
 }
-function renderFilterList(){
-    let list=allResourceList;
-    if(currentTabType!=="all") list=list.filter(i=>i.type===currentTabType);
-    renderCard(list);
+
+function parseLRC(rawText){
+    const timeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
+    let lines = [];
+    rawText.split("\n").forEach(row=>{
+        const timeMatches = [...row.matchAll(timeReg)];
+        const textContent = row.replace(timeReg,"").trim();
+        if(!textContent) return;
+        timeMatches.forEach(item=>{
+            const minute = Number(item[1]);
+            const second = Number(item[2]);
+            const ms = Number(item[3].padEnd(3,"0"));
+            const totalSec = minute * 60 + second + ms / 1000;
+            lines.push({time: totalSec, text: textContent});
+        })
+    })
+    lines.sort((a,b)=>a.time - b.time);
+    return lines;
+}
+function renderLyric(){
+    if(!lyricLines.length || !currentPlayItem) return;
+    const video = document.getElementById("mainVideo");
+    const nowTime = video.currentTime;
+    let activeIndex = 0;
+    lyricLines.forEach((line,idx)=>{
+        if(nowTime >= line.time) activeIndex = idx;
+    })
+    let htmlStr = "";
+    lyricLines.forEach((line,idx)=>{
+        htmlStr += `<div class="lyric-line ${idx === activeIndex ? 'active' : ''}">${line.text}</div>`
+    })
+    document.getElementById("lyricBox").innerHTML = htmlStr;
+}
+function renderKaraoke(){
+    const box = document.getElementById("karaContent");
+    box.innerHTML = "";
+    if(!lyricLines.length || !currentPlayItem){
+        box.innerHTML = `<div style="color:#aaa;text-align:center;margin-top:100px">暂无歌词，请先搜索歌词</div>`;
+        return;
+    }
+    const video = document.getElementById("mainVideo");
+    const now = video.currentTime;
+    let curIdx = 0;
+    lyricLines.forEach((item,i)=>{
+        if(item.time <= now) curIdx = i;
+    })
+    lyricLines.forEach((item,idx)=>{
+        const div = document.createElement("div");
+        div.className = "kara-line";
+        div.style.fontSize = karaConfig.size + "px";
+        div.style.color = karaConfig.normal;
+        const span = document.createElement("span");
+        span.className = "kara-fill";
+        span.textContent = item.text;
+        let rate = 0;
+        if(idx === curIdx){
+            const nextT = lyricLines[idx+1]?.time || (now+10);
+            const dur = nextT - item.time;
+            const pass = now - item.time;
+            rate = Math.min(100, pass / dur * 100);
+        }
+        span.style.width = rate + "%";
+        span.style.color = karaConfig.active;
+        div.append(span, item.text);
+        box.appendChild(div);
+    })
+    const allLines = box.querySelectorAll(".kara-line");
+    if(allLines[curIdx]){
+        box.scrollTop = allLines[curIdx].offsetTop - box.clientHeight / 2;
+    }
+}
+setInterval(()=>{
+    renderLyric();
+    renderKaraoke();
+}, 500);
+
+async function searchLyricByName(){
+    if(!currentPlayItem){
+        alert("请先播放一首歌曲再搜索歌词");
+        return;
+    }
+    const lyricBox = document.getElementById("lyricBox");
+    lyricBox.innerText = "正在请求服务器匹配同名歌词...";
+    lyricLines = [];
+    try{
+        const urlObj = new URL(`${API_BASE}/getLyric`);
+        urlObj.searchParams.append("name", currentPlayItem.showName);
+        const res = await fetch(urlObj.href);
+        if(res.ok){
+            const rawLrc = await res.text();
+            lyricLines = parseLRC(rawLrc);
+            lyricBox.innerText = "歌词加载成功";
+        }else{
+            lyricBox.innerText = "服务器未找到同名歌词";
+        }
+    }catch(err){
+        lyricBox.innerText = "接口请求失败，请检查Worker部署";
+        console.error("歌词接口错误：",err);
+    }
+}
+document.getElementById("searchLyricBtn").onclick = searchLyricByName;
+document.getElementById("openKBtn").onclick = ()=>{
+    karaWin.style.display = "block";
+}
+document.getElementById("karaCloseBtn").onclick = ()=>{
+    karaWin.style.display = "none";
+}
+document.getElementById("karaSetBtn").onclick = ()=>{
+    document.getElementById("setMask").style.display = "flex";
+    document.getElementById("colorNormal").value = karaConfig.normal;
+    document.getElementById("colorActive").value = karaConfig.active;
+    document.getElementById("fontSize").value = karaConfig.size;
+}
+document.getElementById("closeSet").onclick = ()=>{
+    document.getElementById("setMask").style.display = "none";
+}
+document.getElementById("saveSet").onclick = ()=>{
+    karaConfig.normal = document.getElementById("colorNormal").value;
+    karaConfig.active = document.getElementById("colorActive");
+    karaConfig.size = Number(document.getElementById("fontSize").value);
+    document.getElementById("setMask").style.display = "none";
+    renderKaraoke();
+}
+
+window.onload = async ()=>{
+    console.log("开始加载资源列表");
+    try{
+        // 首页带type=all，不会过滤为空
+        const res = await fetch(`${API_BASE}/getPublicResourceList?type=all`);
+        allResourceList = await res.json();
+        console.log("接口返回资源：",allResourceList);
+    }catch(err){
+        console.error("接口加载失败，启用兜底数据",err);
+        allResourceList = [
+            {
+                id:"99999",
+                type:"music",
+                showName:"情路沧桑",
+                originName:"情路沧桑",
+                singer:"步丝丝",
+                audioLink:"",
+                videoLink:"",
+                imgLink:"",
+                lyricName:"情路沧桑",
+                lyricLink:"",
+                showIndex:true,
+                showMusic:true,
+                showVideo:false,
+                showImage:false,
+                showReward:false,
+                lyricStatus:true
+            }
+        ];
+    }
+    filterAndRender();
+    bindTabClick();
+}
+function bindTabClick(){
+    const tabs = document.querySelectorAll(".nav-btn");
+    tabs.forEach(tab=>{
+        tab.onclick = function(){
+            tabs.forEach(t=>t.classList.remove("active"));
+            this.classList.add("active");
+            currentTabType = this.dataset.type;
+            reloadResource(currentTabType);
+        }
+    })
+}
+// 切换栏目重新拉取对应分类数据
+async function reloadResource(type){
+    try{
+        const res = await fetch(`${API_BASE}/getPublicResourceList?type=${type}`);
+        allResourceList = await res.json();
+    }catch(e){
+        console.log("切换栏目加载失败，保留原有数据");
+    }
+    filterAndRender();
+}
+function filterAndRender(){
+    let filterList = [...allResourceList];
+    if(currentTabType === "all"){
+        filterList = filterList.filter(item => item.showIndex === true);
+    }else if(currentTabType === "music"){
+        filterList = filterList.filter(item => item.type === "music" && item.showMusic === true);
+    }else if(currentTabType === "video"){
+        filterList = filterList.filter(item => item.type === "video" && item.showVideo === true);
+    }else if(currentTabType === "image"){
+        filterList = filterList.filter(item => item.type === "image" && item.showImage === true);
+    }else if(currentTabType === "reward"){
+        filterList = filterList.filter(item => item.showReward === true);
+    }
+    renderCard(filterList);
 }
 function renderCard(list){
-    dom.cardContainer.innerHTML="";
-    if(!list.length){
-        dom.cardContainer.innerHTML='<div class="load-tip">暂无资源</div>';
+    const container = document.getElementById("cardContainer");
+    container.innerHTML = "";
+    if(list.length === 0){
+        container.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;font-size:18px;color:#666'>暂无资源</div>";
         return;
     }
     list.forEach(item=>{
-        const card=document.createElement("div");
-        card.className="music-card";
-        const cover=item.coverImg?`<div class="cover-box"><img src="${item.coverImg}"></div>`:`<div class="cover-box">无封面</div>`;
-        card.innerHTML=`${cover}<div class="card-text">${item.name}<br><small>${item.singer||"未知歌手"}</small></div>`;
-        card.onclick=()=>{
-            addPlaylist(item);
+        const div = document.createElement("div");
+        div.className = "music-card";
+        div.innerText = `${item.singer || "未知歌手"} - ${item.showName}`;
+        div.onclick = ()=>{
+            addToList(item);
             playMedia(item);
-        };
-        dom.cardContainer.appendChild(card);
+        }
+        container.appendChild(div);
     })
 }
-
-function addPlaylist(item){
-    if(currentPlayList.some(i=>i.id===item.id))return;
+function addToList(item){
+    const exist = currentPlayList.find(v=>v.id === item.id);
+    if(exist) return;
     currentPlayList.push(item);
-    renderPlaylist();
+    renderPlayList();
 }
-
-function renderPlaylist(){
-    dom.playlistScroll.innerHTML="";
-    if(currentPlayList.length===0){
-        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#b8a2dd">播放目录为空</div>';
-        return;
-    }
+function renderPlayList(){
+    const box = document.getElementById("playListBox");
+    box.innerHTML = "";
     currentPlayList.forEach((item,index)=>{
-        const div=document.createElement("div");
-        div.className="playlist-item";
-        if(nowPlayingItem && nowPlayingItem.id===item.id) div.classList.add("active");
-        div.innerHTML=`
-            <div class="item-name">${index+1}. ${item.name}</div>
-            <button class="item-del">×</button>
+        const div = document.createElement("div");
+        div.className = "list-item";
+        div.innerHTML = `
+            <span><span class="list-num">${index+1}</span>${item.singer||"未知"}-${item.showName}</span>
+            <span class="del-cross" data-id="${item.id}">×</span>
         `;
-        div.ondblclick = ()=>{
+        div.onclick = (e)=>{
+            if(e.target.classList.contains("del-cross")) return;
             playMedia(item);
         }
-        div.querySelector(".item-del").onclick=(e)=>{
+        div.querySelector(".del-cross").onclick = (e)=>{
             e.stopPropagation();
-            currentPlayList = currentPlayList.filter(v=>v.id!==item.id);
-            renderPlaylist();
+            const delId = Number(e.target.dataset.id);
+            currentPlayList = currentPlayList.filter(v=>v.id !== delId);
+            renderPlayList();
         }
-        dom.playlistScroll.appendChild(div);
+        box.appendChild(div);
     })
 }
-
 async function playMedia(item){
-    nowPlayingItem=item;
-    dom.mainVideo.pause();
-    dom.mainVideo.src = "";
-    dom.mainAudio.pause();
-    dom.mainAudio.src = "";
-    parsedLyricList = [];
-    lastPlayTime = 0;
-    dom.prevLyric.innerText = "";
-    dom.currLyric.innerHTML = "<span class='lyric-normal'>加载中...</span>";
-
-    if(item.type === "video"){
-        dom.mainVideo.src = item.videoLink;
-        dom.mainVideo.load();
-        dom.mainVideo.play().catch(err=>{});
-    }else if(item.type === "music"){
-        dom.mainAudio.src = item.audioLink;
-        dom.mainAudio.load();
-        dom.mainAudio.play().catch(err=>{});
+    currentPlayItem = item;
+    lyricLines = [];
+    const video = document.getElementById("mainVideo");
+    video.pause();
+    video.src = "";
+    document.getElementById("lyricBox").innerText = "暂无歌词，点击右上角搜歌词";
+    if(item.type === "video" && item.videoLink){
+        video.src = item.videoLink;
+    }else if(item.audioLink){
+        video.src = item.audioLink;
     }
-    renderPlaylist();
-
-    if(!item.lyricName){
-        dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
-        return;
-    }
-    try{
-        const lyricRes=await fetch(`${API_BASE}/getLyric?name=${encodeURIComponent(item.lyricName)}`);
-        if(lyricRes.ok){
-            const txt=await lyricRes.text();
-            parsedLyricList=parseLRC(txt);
-            updateFloatLyric(0);
-        }else {
-            dom.currLyric.innerHTML = "<span class='lyric-normal'>暂无匹配歌词</span>";
-        }
-    }catch(err){
-        dom.currLyric.innerHTML = "<span class='lyric-normal'>歌词加载失败</span>";
+    if(video.src) video.play().catch(()=>{});
+}
+const fullBtn = document.getElementById("fullBtn");
+const video = document.getElementById("mainVideo");
+fullBtn.onclick = ()=>{
+    if(document.fullscreenElement){
+        document.exitFullscreen();
+        fullBtn.innerText = "⛶";
+    }else{
+        video.requestFullscreen?.();
+        fullBtn.innerText = "⊡";
     }
 }
-
-function searchResource(){
-    const kw=dom.searchInput.value.trim().toLowerCase();
-    if(!kw){
-        renderFilterList();
-        return;
-    }
-    let src=currentTabType==="all"?allResourceList:allResourceList.filter(i=>
+// 搜索按钮完整逻辑
+document.getElementById("searchBtn").onclick = ()=>{
+    const key = document.getElementById("searchInput").value.trim().toLowerCase();
+    // 先按当前分类过滤
+    const source = allResource.filter(item => {
+        switch(currentTabType){
+            case "all": return item.showIndex;
+            case "music": return item.type === "music" && item.showMusic;
+            case "video": return item.type === "video" && item.showVideo;
+            case "image": return item.type === "image" && item.showImage;
+            case "reward": return item.showReward;
+            default: return true;
+        }
+    });
+    // 匹配歌名/歌手
+    const result = source.filter(v=>{
+        const name = (v.showName||"").toLowerCase();
+        const singer = (v.singer||"").toLowerCase();
+        return name.includes(key) || singer.includes(key);
+    });
+    renderCard(result);
+}
+</script>
+</body>
+</html>
