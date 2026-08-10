@@ -521,7 +521,7 @@ body::after{
     bottom: 170px;
     left: 30px;
     min-width:260px;
-    min-height90px;
+    min-height:90px;
     width:340px;
     z-index:9999;
     cursor:move;
@@ -567,8 +567,9 @@ body::after{
 </head>
 <body>
 <div class="main-title">步丝丝《朝歌》</div>
+<!-- 已删除首页按钮，默认音乐激活 -->
 <div class="nav-bar">
-    <button class="nav-btn" data-type="music">音乐 Music</button>
+    <button class="nav-btn active" data-type="music">音乐 Music</button>
     <button class="nav-btn" data-type="video">视频 Video</button>
     <button class="nav-btn" data-type="image">图片</button>
     <button class="nav-btn" data-type="reward">赞赏</button>
@@ -652,7 +653,7 @@ body::after{
 <script>
 const API_BASE = "https://api.busisi.com";
 let currentPlayList = [];
-let currentTabType = "all";
+let currentTabType = "music"; // 默认打开音乐分类
 let allResourceList = [];
 let nowPlayingItem = null;
 let parsedLyricList = [];
@@ -697,6 +698,20 @@ const dom = {
     modeBtn: document.getElementById("modeBtn"),
     volumeSlider: document.getElementById("volumeSlider")
 };
+
+// 新增格式判断函数
+function isPlayableMedia(key){
+    const k = key.toLowerCase();
+    const audioVideo = [".mp3",".flac",".wav",".m4a",".mp4",".mov"];
+    const skipFolder = ["图片/","lyric/","歌词/","赞赏/"];
+    if(skipFolder.some(folder=>k.startsWith(folder))) return false;
+    return audioVideo.some(suf=>k.endsWith(suf));
+}
+function isImageFile(key){
+    const k = key.toLowerCase();
+    const imgSuffix = [".jpg",".jpeg",".png",".gif",".webp"];
+    return imgSuffix.some(suf=>k.endsWith(suf));
+}
 
 dom.minWinBtn.onclick = ()=>{
     dom.floatWindow.classList.add("minimize-state");
@@ -1042,144 +1057,176 @@ window.addEventListener("load", async () => {
             renderFilterList();
         });
     });
-    dom.searchBtn.addEventListener("click",searchResource);
-    dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
-    const timeUpdateFunc = function(){
-        updateFloatLyric(this.currentTime);
-    }
-    dom.mainVideo.ontimeupdate = timeUpdateFunc;
-    dom.mainAudio.ontimeupdate = timeUpdateFunc;
-    dom.mainVideo.onended = playNext;
-    dom.mainAudio.onended = playNext;
-    try{
-        const res=await fetch(`${API_BASE}/getResourceList`);
-        if(!res.ok) throw new Error(`接口状态码:${res.status}`);
-        const jsonData = await res.json();
-        // 核心修复：读取data数组
-        allResourceList = jsonData.data;
-        renderFilterList();
-    }catch(err){
-        dom.cardContainer.innerHTML=`
-        <div class="load-tip" style="color:#ffc6e8">
-            接口连接失败<br>检查Worker部署/R2绑定<br>${err.message}
-            <br><button id="retryBtn" class="nav-btn" style="margin-top:12px">重新加载</button>
-        </div>`;
-        document.getElementById("retryBtn").onclick = ()=>location.reload();
-        console.error(err);
-    }
-});
+ dom.searchBtn.addEventListener("click",searchResource);
+dom.searchInput.addEventListener("keydown",e=>e.key==="Enter"&&searchResource());
+const timeUpdateFunc = function(){
+    updateFloatLyric(this.currentTime);
+}
+// 音频、视频时间轴事件绑定
+dom.mainAudio.ontimeupdate = timeUpdateFunc;
+dom.mainVideo.ontimeupdate = timeUpdateFunc;
 
-function playNext(){
-    if(!currentPlayList.length || !nowPlayingItem) return;
-    let idx = currentPlayList.findIndex(v=>v.key === nowPlayingItem.key);
-    if(playMode === "loop"){
-        playMedia(currentPlayList[idx]);
+// 播放结束监听
+dom.mainAudio.onended = mediaEnded;
+dom.mainVideo.onended = mediaEnded;
+
+// 资源搜索
+function searchResource(){
+    const keyword = dom.searchInput.value.trim().toLowerCase();
+    if(!keyword){
+        renderFilterList();
         return;
-    }else if(playMode === "random"){
-        idx = Math.floor(Math.random() * currentPlayList.length);
+    }
+    const filterArr = allResourceList.filter(item=>item.key.toLowerCase().includes(keyword));
+    renderCardList(filterArr);
+}
+
+// 根据当前标签筛选资源
+function renderFilterList(){
+    let list;
+    switch (currentTabType){
+        case "music":
+            list = allResourceList.filter(i=>isPlayableMedia(i.key));
+            break;
+        case "video":
+            list = allResourceList.filter(i=>{
+                const k = i.key.toLowerCase();
+                return k.endsWith(".mp4") || k.endsWith(".mov");
+            })
+            break;
+        case "image":
+            list = allResourceList.filter(i=>isImageFile(i.key));
+            break;
+        case "reward":
+            list = allResourceList.filter(i=>i.key.toLowerCase().startsWith("赞赏/"));
+            break;
+    }
+    renderCardList(list);
+}
+
+// 渲染卡片
+function renderCardList(arr){
+    dom.cardContainer.innerHTML = "";
+    if(arr.length === 0){
+        dom.cardContainer.innerHTML = `<div class="load-tip">暂无资源</div>`;
+        return;
+    }
+    arr.forEach(file=>{
+        const card = document.createElement('div');
+        card.className = "music-card";
+        let coverUrl = "";
+        // 自动匹配同名封面
+        const fileName = file.key.substring(file.key.lastIndexOf('/')+1,file.key.lastIndexOf('.'));
+        const imgExts = ['.jpg','.png','.jpeg','.webp'];
+        for(let ext of imgExts){
+            const testName = fileName + ext;
+            const findImg = allResourceList.find(res=>res.key.endsWith(testName));
+            if(findImg){
+                coverUrl = `${API_BASE}/${findImg.key}`;
+                break;
+            }
+        }
+        card.innerHTML=`
+            <div class="cover-box">
+                ${coverUrl?`<img src="${coverUrl}" alt="封面">`:"♪"}
+            </div>
+            <div class="card-text">${fileName}</div>
+        `
+        card.onclick = ()=>{
+            if(isPlayableMedia(file.key)){
+                playMedia(file);
+            }
+        }
+        dom.cardContainer.appendChild(card);
+    })
+}
+
+// 加载全部R2资源
+async function loadAllResources(){
+    try{
+        const res = await fetch(`${API_BASE}/list`);
+        allResourceList = await res.json();
+        renderFilterList();
+    }catch (err){
+        dom.cardContainer.innerHTML=`<div class="load-tip">资源加载失败</div>`
+    }
+}
+
+// 播放媒体
+async function playMedia(fileItem){
+    nowPlayingItem = fileItem;
+    const url = `${API_BASE}/${fileItem.key}`;
+    const lowKey = fileItem.key.toLowerCase();
+    // 切换播放器
+    if(lowKey.endsWith(".mp4")||lowKey.endsWith(".mov")){
+        dom.mainAudio.pause();
+        dom.mainAudio.src = "";
+        dom.mainVideo.src = url;
+        dom.mainVideo.play();
     }else{
-        idx++;
+        dom.mainVideo.pause();
+        dom.mainVideo.src = "";
+        dom.mainAudio.src = url;
+        dom.mainAudio.play();
+    }
+    // 加载对应歌词
+    parsedLyricList = [];
+    const pureName = fileItem.key.substring(fileItem.key.lastIndexOf('/')+1,fileItem.key.lastIndexOf('.'));
+    const lyricFile = allResourceList.find(r=>r.key.includes(pureName)&&r.key.endsWith(".lrc"));
+    if(lyricFile){
+        const lrcRes = await fetch(`${API_BASE}/${lyricFile.key}`);
+        const lrcText = await lrcRes.text();
+        parsedLyricList = parseLRC(lrcText);
+    }
+    // 添加进播放列表
+    const exist = currentPlayList.some(p=>p.key === fileItem.key);
+    if(!exist){
+        currentPlayList.push(fileItem);
+        localStorage.setItem(STORAGE_KEYS.playList,JSON.stringify(currentPlayList));
+    }
+    renderPlaylist();
+}
+
+// 渲染播放列表
+function renderPlaylist(){
+    dom.playlistScroll.innerHTML = "";
+    currentPlayList.forEach((item,index)=>{
+        const li = document.createElement("div");
+        li.className = "playlist-item"+(nowPlayingItem&&nowPlayingItem.key===item.key?" active":"");
+        li.innerHTML = `
+            <span class="item-name">${item.key.substring(item.key.lastIndexOf('/')+1)}</span>
+            <button class="item-del">−</button>
+        `
+        li.onclick = (e)=>{
+            if(e.target.className === "item-del"){
+                currentPlayList.splice(index,1);
+                localStorage.setItem(STORAGE_KEYS.playList,JSON.stringify(currentPlayList));
+                renderPlaylist();
+                return;
+            }
+            playMedia(item);
+        }
+        dom.playlistScroll.appendChild(li);
+    })
+}
+
+// 歌曲播放完毕逻辑
+function mediaEnded(){
+    if (playMode === "loop"){
+        getCurrentMedia().currentTime = 0;
+        getCurrentMedia().play();
+        return;
+    }
+    let idx = currentPlayList.findIndex(x=>nowPlayingItem.key === x.key);
+    if(playMode === "random"){
+        idx = Math.floor(Math.random()*currentPlayList.length);
+    }else{
+        idx +=1;
         if(idx >= currentPlayList.length) idx = 0;
     }
     playMedia(currentPlayList[idx]);
 }
-function renderFilterList(){
-    let list=allResourceList;
-    if(currentTabType!=="all") list=list.filter(i=>i.key.includes(currentTabType));
-    renderCard(list);
-}
-function renderCard(list){
-    dom.cardContainer.innerHTML="";
-    if(!Array.isArray(list)||!list.length){
-        dom.cardContainer.innerHTML='<div class="load-tip">暂无资源</div>';
-        return;
-    }
-    list.forEach(item=>{
-        const card=document.createElement("div");
-        card.className="music-card";
-        const fileName = item.key;
-        const cover=`<div class="cover-box">${fileName}</div>`;
-        card.innerHTML=`${cover}<div class="card-text">${fileName}</div>`;
-        card.onclick=()=>{
-            addPlaylist(item);
-            playMedia(item);
-        };
-        dom.cardContainer.appendChild(card);
-    })
-}
-function addPlaylist(item){
-    if(currentPlayList.some(i=>i.key===item.key))return;
-    currentPlayList.push(item);
-    localStorage.setItem(STORAGE_KEYS.playList, JSON.stringify(currentPlayList));
-    renderPlaylist();
-}
-function renderPlaylist(){
-    dom.playlistScroll.innerHTML="";
-    if(currentPlayList.length===0){
-        dom.playlistScroll.innerHTML='<div style="text-align:center;padding:20px;color:#b8a2dd">播放目录为空</div>';
-        return;
-    }
-    currentPlayList.forEach((item,index)=>{
-        const div=document.createElement("div");
-        div.className="playlist-item";
-        if(nowPlayingItem && nowPlayingItem.key===item.key) div.classList.add("active");
-        div.innerHTML=`
-            <div class="item-name">${index+1}. ${item.key}</div>
-            <button class="item-del">×</button>
-        `;
-        div.ondblclick = ()=>{
-            playMedia(item);
-        }
-        div.querySelector(".item-del").onclick=(e)=>{
-            e.stopPropagation();
-            currentPlayList = currentPlayList.filter(v=>v.key!==item.key);
-            localStorage.setItem(STORAGE_KEYS.playList, JSON.stringify(currentPlayList));
-            renderPlaylist();
-        }
-        dom.playlistScroll.appendChild(div);
-    })
-}
-async function playMedia(item){
-    nowPlayingItem=item;
-    dom.mainVideo.pause();
-    dom.mainAudio.pause();
-    dom.mainVideo.src = "";
-    dom.mainAudio.src = "";
-    parsedLyricList = [];
-    lastPlayTime = 0;
-    dom.prevLyric.innerText = "";
-    dom.currLyric.innerHTML = "<span class='lyric-normal'>加载中...</span>";
-    dom.floatWindow.classList.remove("minimize-state");
-    const fileUrl = `${API_BASE}/${encodeURIComponent(item.key)}`;
-    if(item.key.endsWith(".mp4")||item.key.endsWith(".mov")){
-        dom.mainVideo.src = fileUrl;
-        dom.mainVideo.load();
-        dom.mainVideo.volume = lastVolume;
-        dom.mainVideo.play().catch(err=>{});
-    }else{
-        dom.mainAudio.src = fileUrl;
-        dom.mainAudio.load();
-        dom.mainAudio.volume = lastVolume;
-        dom.mainAudio.play().catch(err=>{});
-    }
-    renderPlaylist();
-}
-function searchResource(){
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(()=>{
-        const kw=dom.searchInput.value.trim().toLowerCase();
-        if(!kw){
-            renderFilterList();
-            return;
-        }
-        let src=currentTabType==="all"?allResourceList:allResourceList.filter(i=>i.key.includes(currentTabType));
-        const res=src.filter(v=>{
-            const n=(v.key||"").toLowerCase();
-            return n.includes(kw);
-        });
-        renderCard(res);
-    },300)
-}
-</script>
-</body>
-</html>
+
+// 启动加载资源
+loadAllResources();
+})
