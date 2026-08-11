@@ -125,9 +125,13 @@ function getResourceUrl(fileKey){
 }
 
 async function loadAllFiles(){
-    const res = await fetch(`${WORKER_HOST}/list`);
-    allFileList = await res.json();
-    renderList("music");
+    try{
+        const res = await fetch(`${WORKER_HOST}/list`);
+        allFileList = await res.json();
+        renderList("music");
+    }catch(e){
+        console.error("读取文件列表失败",e);
+    }
 }
 
 function renderList(typeKey){
@@ -136,18 +140,20 @@ function renderList(typeKey){
     const filterArr = allFileList.filter(item=> item.startsWith(typeKey+"/"));
     filterArr.forEach(key=>{
         let fileName = key.split("/")[1];
-        let showName = fileName;
         let card = document.createElement("div");
         card.className = "item-card";
         card.innerHTML = `
             <img src="" alt="封面">
-            <div>${showName}</div>
+            <div>${fileName}</div>
         `;
         card.onclick = ()=>playMedia(key,fileName);
         dom.appendChild(card);
 
         let baseName = fileName.split(".")[0];
-        let coverKey = allFileList.find(f=>f.startsWith("images/") && f.split("/")[1].split(".")[0] === baseName);
+        let coverKey = allFileList.find(f=>{
+            const fn = f.split("/")[1];
+            return f.startsWith("images/") && fn.split(".")[0] === baseName;
+        });
         if(coverKey){
             card.querySelector("img").src = getResourceUrl(coverKey);
         }
@@ -164,30 +170,35 @@ async function playMedia(fileKey,fileName){
         let audio = document.createElement("audio");
         audio.controls = true;
         audio.src = mediaUrl;
-        audio.autoplay = true;
         mediaDom.appendChild(audio);
+        // 用户交互后再播放，浏览器策略限制autoplay
     }else if(fileKey.startsWith("video/")){
         let video = document.createElement("video");
         video.controls = true;
         video.src = mediaUrl;
-        video.autoplay = true;
         mediaDom.appendChild(video);
     }
-
     await loadLyric(currentSongName);
 }
 
 async function loadLyric(songBase){
     const lyricDom = document.getElementById("lyric-dom");
     lyricDom.innerText = "加载歌词...";
-    let lyricKey = allFileList.find(f=> f.startsWith("lyric/") && f.split("/")[1].split(".")[0] === songBase);
+    let lyricKey = allFileList.find(f=>{
+        const fn = f.split("/")[1];
+        return f.startsWith("lyric/") && fn.split(".")[0] === songBase;
+    });
     if(!lyricKey){
         lyricDom.innerText = "暂无歌词";
         return;
     }
-    const res = await fetch(getResourceUrl(lyricKey));
-    const text = await res.text();
-    lyricDom.innerText = text;
+    try{
+        const res = await fetch(getResourceUrl(lyricKey));
+        const text = await res.text();
+        lyricDom.innerText = text;
+    }catch(err){
+        lyricDom.innerText = "歌词读取失败";
+    }
 }
 
 document.querySelectorAll(".tab-btn").forEach(btn=>{
@@ -212,7 +223,10 @@ document.getElementById("search-btn").onclick=()=>{
         card.onclick = ()=>playMedia(key,fileName);
         dom.appendChild(card);
         let baseName = fileName.split(".")[0];
-        let coverKey = allFileList.find(f=>f.startsWith("images/") && f.split("/")[1].split(".")[0] === baseName);
+        let coverKey = allFileList.find(f=>{
+            const fn = f.split("/")[1];
+            return f.startsWith("images/") && fn.split(".")[0] === baseName;
+        });
         if(coverKey) card.querySelector("img").src = getResourceUrl(coverKey);
     })
 }
