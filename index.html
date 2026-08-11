@@ -88,7 +88,7 @@ body{
     border: none;
     background: #4299e1;
     color: #fff;
-    border-radius: 0 999px 0;
+    border-radius: 0 999px 999px 0;
     cursor: pointer;
 }
 .card-wrap{
@@ -198,7 +198,7 @@ body{
     text-align: center;
     line-height: 18px;
     border-radius: 50%;
-    font-size: 12;
+    font-size: 12px;
     cursor: pointer;
 }
 .lyric-area{
@@ -220,8 +220,8 @@ body{
     top:30px;
     width:500px;
     height:380px;
-    background:rgba(0,0.78);
-    border-radius:12;
+    background:rgba(0,0,0.78);
+    border-radius:12px;
     resize:both;
     overflow:hidden;
     cursor:move;
@@ -241,7 +241,7 @@ body{
     background:#444;
     color:#fff;
     border:none;
-    padding:2px 6;
+    padding:2px 6px;
     border-radius:4px;
     margin-left:6px;
     cursor:pointer;
@@ -378,6 +378,8 @@ let karaConfig = {
     active:"#ffdd00",
     size:24
 };
+
+// 播放器拖拽
 playerWrap.addEventListener("mousedown",e=>{
     dragStatus.isDown = true;
     dragStatus.offsetX = e.clientX - playerWrap.getBoundingClientRect().left;
@@ -401,11 +403,14 @@ document.addEventListener("mouseup",()=>{
     karaDragStatus.isDown = false;
     playerWrap.style.cursor = "move";
 });
+// 悬浮歌词窗口拖拽
 karaDragArea.onmousedown = e=>{
     karaDragStatus.isDown = true;
     karaDragStatus.ox = e.clientX - karaWin.getBoundingClientRect().left;
     karaDragStatus.oy = e.clientY - karaWin.getBoundingClientRect().top;
 }
+
+// LRC歌词解析函数
 function parseLRC(rawText){
     const timeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
     let lines = [];
@@ -421,9 +426,11 @@ function parseLRC(rawText){
             lines.push({time: totalSec, text: textContent});
         })
     })
-    lines.sort((a,b)=>a.time);
+    lines.sort((a,b)=>a.time - b.time);
     return lines;
 }
+
+// 底部简易歌词渲染
 function renderLyric(){
     if(!lyricLines.length || !currentPlayItem) return;
     const video = document.getElementById("mainVideo");
@@ -438,6 +445,8 @@ function renderLyric(){
     })
     document.getElementById("lyricBox").innerHTML = htmlStr;
 }
+
+// 悬浮卡拉OK逐字滚动歌词
 function renderKaraoke(){
     const box = document.getElementById("karaContent");
     box.innerHTML = "";
@@ -476,10 +485,14 @@ function renderKaraoke(){
         box.scrollTop = allLines[curIdx].offsetTop - box.clientHeight / 2;
     }
 }
+
+// 定时刷新歌词
 setInterval(()=>{
     renderLyric();
     renderKaraoke();
 }, 500);
+
+// 请求歌词
 async function searchLyricByName(){
     if(!currentPlayItem){
         alert("请先播放一首歌曲再搜索歌词");
@@ -490,7 +503,7 @@ async function searchLyricByName(){
     lyricLines = [];
     try{
         const urlObj = new URL(`${API_BASE}/getLyric`);
-        urlObj.searchParams.append("name", currentPlayItem.showName);
+        urlObj.searchParams.append("name", currentPlayItem.showName + ".lrc");
         const res = await fetch(urlObj.href);
         if(res.ok){
             const rawLrc = await res.text();
@@ -504,29 +517,27 @@ async function searchLyricByName(){
         console.error("歌词接口错误：",err);
     }
 }
+
+// 绑定按钮事件
 document.getElementById("searchLyricBtn").onclick = searchLyricByName;
-document.getElementById("openKBtn").onclick = ()=>{
-    karaWin.style.display = "block";
-}
-document.getElementById("karaCloseBtn").onclick = ()=>{
-    karaWin.style.display = "none";
-}
+document.getElementById("openKBtn").onclick = ()=> karaWin.style.display = "block";
+document.getElementById("karaCloseBtn").onclick = ()=> karaWin.style.display = "none";
 document.getElementById("karaSetBtn").onclick = ()=>{
     document.getElementById("setMask").style.display = "flex";
     document.getElementById("colorNormal").value = karaConfig.normal;
     document.getElementById("colorActive").value = karaConfig.active;
     document.getElementById("fontSize").value = karaConfig.size;
-}
-document.getElementById("closeSet").onclick = ()=>{
-    document.getElementById("setMask").style.display = "none";
-}
+};
+document.getElementById("closeSet").onclick = ()=> document.getElementById("setMask").style.display = "none";
 document.getElementById("saveSet").onclick = ()=>{
     karaConfig.normal = document.getElementById("colorNormal").value;
-    karaConfig.active = document.getElementById("colorActive");
+    karaConfig.active = document.getElementById("colorActive").value;
     karaConfig.size = Number(document.getElementById("fontSize").value);
     document.getElementById("setMask").style.display = "none";
     renderKaraoke();
-}
+};
+
+// 页面初始化加载资源
 window.onload = async ()=>{
     console.log("开始加载资源列表");
     try{
@@ -559,6 +570,8 @@ window.onload = async ()=>{
     filterAndRender();
     bindTabClick();
 }
+
+// 分类切换绑定
 function bindTabClick(){
     const tabs = document.querySelectorAll(".nav-btn");
     tabs.forEach(tab=>{
@@ -570,6 +583,8 @@ function bindTabClick(){
         }
     })
 }
+
+// 切换分类重新拉取数据
 async function reloadResource(){
     try{
         const res = await fetch(`${API_BASE}/getPublicResourceList?type=${currentTabType}`);
@@ -579,6 +594,8 @@ async function reloadResource(){
     }
     filterAndRender();
 }
+
+// 按分类过滤资源
 function filterAndRender(){
     let filterList = [...allResourceList];
     if(currentTabType === "all"){
@@ -594,7 +611,8 @@ function filterAndRender(){
     }
     renderCard(filterList);
 }
-// 修复：带封面渲染卡片
+
+// 渲染歌曲卡片（带封面）
 function renderCard(list){
     const container = document.getElementById("cardContainer");
     container.innerHTML = "";
@@ -627,12 +645,16 @@ function renderCard(list){
         container.appendChild(div);
     })
 }
+
+// 添加到播放列表（去重）
 function addToList(item){
     const exist = currentPlayList.find(v=>v.id === item.id);
     if(exist) return;
     currentPlayList.push(item);
     renderPlayList();
 }
+
+// 渲染播放列表
 function renderPlayList(){
     const box = document.getElementById("playListBox");
     box.innerHTML = "";
@@ -649,12 +671,15 @@ function renderPlayList(){
         }
         div.querySelector(".del-cross").onclick = (e)=>{
             e.stopPropagation();
-            currentPlayList = currentPlayList.filter(v=>v.id !== item.id);
+            const delId = item.id;
+            currentPlayList = currentPlayList.filter(v=>v.id !== delId);
             renderPlayList();
         }
         box.appendChild(div);
     })
 }
+
+// 播放音视频核心函数（修复播放失效逻辑）
 async function playMedia(item){
     currentPlayItem = item;
     lyricLines = [];
@@ -662,13 +687,21 @@ async function playMedia(item){
     video.pause();
     video.src = "";
     document.getElementById("lyricBox").innerText = "暂无歌词，点击右上角搜歌词";
+    // 优先视频，无视频播放音频
     if(item.type === "video" && item.videoLink){
         video.src = item.videoLink;
     }else if(item.audioLink){
         video.src = item.audioLink;
     }
-    if(video.src) video.play().catch(()=>{});
+    // 自动播放捕获浏览器拦截
+    if(video.src){
+        video.play().catch(err=>{
+            console.log("自动播放被浏览器限制，手动点击播放按钮即可");
+        });
+    }
 }
+
+// 全屏按钮
 const fullBtn = document.getElementById("fullBtn");
 const video = document.getElementById("mainVideo");
 fullBtn.onclick = ()=>{
@@ -680,7 +713,8 @@ fullBtn.onclick = ()=>{
         fullBtn.innerText = "⊡";
     }
 }
-// 修复搜索函数变量 allResourceList
+
+// 搜索功能（修复变量allResource错误）
 document.getElementById("searchBtn").onclick = ()=>{
     const key = document.getElementById("searchInput").value.trim().toLowerCase();
     const source = allResourceList.filter(item => {
