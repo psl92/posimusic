@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>步丝丝《朝歌》</title>
+<title>步丝丝音乐 前台客户端</title>
 <style>
 *{
     margin: 0;
@@ -12,728 +12,212 @@
     font-family: "Microsoft Yahei", sans-serif;
 }
 body{
-    background: linear-gradient(160deg, #a8e0ff 0%, #e0f4ff 100%);
+    background: linear-gradient(160deg, #ffd8ee 0%, #d0edff 100%);
     min-height: 100vh;
     overflow-x: hidden;
-    padding-bottom: 380px;
-}
-.top-header{
-    width: 95%;
-    max-width: 1300px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0 10px;
+    padding-bottom: 160px;
+    position: relative;
 }
 .main-title{
-    font-size: 48px;
-    font-family: "STXingkai","KaiTi",serif;
-    font-style: italic;
-    letter-spacing: 5px;
-    background: linear-gradient(135deg,#1d428a,#4178d8);
-    -webkit-background-clip: text;
-    color: transparent;
+    text-align: center;
+    padding:20px 0 12px;
+    font-size:42px;
+    color:#224477;
 }
-.user-info{
-    padding: 8px 16px;
-    background: #fff;
-    border-radius: 30px;
-    font-size: 14px;
-    color: #2c6b99;
+.top-tab{
+    display:flex;
+    gap:8px;
+    padding:12px 20px;
 }
-.nav-wrap{
-    width: 95%;
-    max-width: 1300px;
-    margin: 0 auto 26px;
-    display: flex;
-    gap:12px;
-    align-items:center;
+.tab-btn{
+    padding:8px 16px;
+    border-radius:8px;
+    background:#ffffff;
+    cursor:pointer;
 }
-.nav-bar{
-    display: flex;
-    gap: 12px;
+.search-wrap{
+    display:flex;
+    gap:6px;
+    padding:0 20px 16px;
 }
-.nav-btn{
-    padding: 9px 24px;
-    background: #ffffff;
-    border: none;
-    border-radius: 30px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.nav-btn.active{
-    background: #4299e1;
-    color: #fff;
-}
-.nav-btn:hover{
-    background: #d0e8fb;
-}
-.search-bar{
-    display: flex;
+#search-input{
     flex:1;
-    max-width:520px;
+    padding:8px 12px;
+    border-radius:6px;
+    border:1px solid #ccc;
 }
-.search-bar input{
-    flex: 1;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 999px 0 0 999px;
-    font-size: 14px;
-    outline: none;
+#search-btn{
+    padding:8px 14px;
+    background:#4088ee;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
 }
-.search-bar button{
-    padding: 0 20px;
-    border: none;
-    background: #4299e1;
-    color: #fff;
-    border-radius: 0 999px 999px 0;
-    cursor: pointer;
+.content-wrap{
+    padding:0 20px;
+    display:grid;
+    grid-template-columns: repeat(auto-fill,minmax(140px,1fr));
+    gap:14px;
 }
-.card-wrap{
-    width: 95%;
-    max-width: 1400px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 16px;
+.item-card{
+    background:#fff;
+    border-radius:10px;
+    padding:10px;
+    cursor:pointer;
 }
-.music-card{
-    background: #fff;
-    border-radius: 14px;
-    padding: 14px;
-    cursor: pointer;
-    transition: 0.25s;
-}
-.music-card:hover{
-    transform: translateY(-6px);
-    box-shadow: 0 10px 20px #b1d6f3;
+.item-card img{
+    width:100%;
+    height:120px;
+    object-fit:cover;
+    border-radius:6px;
+    background:#eee;
 }
 .player-box{
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 460px;
-    height: 360px;
-    background: #fff;
-    border-radius: 18px;
-    box-shadow: 0 6px 30px #8fbde0;
-    overflow: hidden;
-    resize: both;
-    user-select: none;
-    cursor: move;
-    z-index:98;
-}
-.video-view{
-    width: 100%;
-    height: 48%;
-    background: #000;
-}
-.fullscreen-btn{
-    position: absolute;
-    top: 10px;
-    right: 75px;
-    color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-    z-index: 9;
-}
-.openKaraokeBtn{
-    position: absolute;
-    top: 10px;
-    right: 135px;
-    background:#22c55e;
-    color:#fff;
-    border:none;
-    border-radius:6px;
-    padding:3px 6px;
-    font-size:12px;
-    cursor:pointer;
-    z-index: 9;
-}
-.search-lyric-btn{
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background:#4299e1;
-    color:#fff;
-    border:none;
-    border-radius:6px;
-    padding:3px 6px;
-    font-size:12px;
-    cursor:pointer;
-    z-index:9;
-}
-.control-area{
-    height: 52%;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-}
-.play-list-wrap{
-    flex: 1;
-    overflow-y: auto;
-    margin-bottom: 8px;
-}
-.list-item{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 8px;
-    background: #f0f7fc;
-    border-radius: 6px;
-    margin-bottom: 6px;
-    font-size: 13px;
-}
-.list-num{
-    color: #4299e1;
-    margin-right: 8px;
-}
-.del-cross{
-    width: 18px;
-    height: 18px;
-    background: #ff6b6b;
-    color: #fff;
-    text-align: center;
-    line-height: 18px;
-    border-radius: 50%;
-    font-size: 12px;
-    cursor: pointer;
-}
-.lyric-area{
-    text-align: center;
-    font-size: 15px;
-    color: #666;
-    min-height: 40px;
-    line-height: 28px;
-    overflow:hidden;
-}
-.lyric-line.active{
-    color:#1d428a;
-    font-weight:bold;
-    font-size:17px;
-}
-.karaoke-win{
     position:fixed;
-    left:30px;
-    top:30px;
-    width:500px;
-    height:380px;
-    background:rgba(0,0,0.78);
-    border-radius:12px;
-    resize:both;
-    overflow:hidden;
-    cursor:move;
-    user-select:none;
-    z-index:999;
-    display:none;
-}
-.karaoke-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:10px 14px;
-    color:#fff;
-    border-bottom:1px solid #333;
-}
-.karaoke-header button{
-    background:#444;
-    color:#fff;
-    border:none;
-    padding:2px 6px;
-    border-radius:4px;
-    margin-left:6px;
-    cursor:pointer;
-}
-.karaoke-close{
-    background:#e53e3e !important;
-}
-.karaoke-box{
-    height:calc(100% - 46px);
-    overflow:hidden;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    padding:0 10px;
-}
-.kara-line{
-    text-align:center;
-    margin:14px 0;
-    font-size:24px;
-    color:#cccccc;
-    position:relative;
-    white-space:nowrap;
-}
-.kara-fill{
-    position:absolute;
-    left:0;
-    top:0;
-    height:100%;
-    overflow:hidden;
-    color:#ffdd00;
-}
-.setMask{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0.5);
-    display:none;
-    z-index:1000;
-    align-items:center;
-    justify-content:center;
-}
-.setBox{
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
     background:#fff;
-    padding:20px;
-    border-radius:8px;
-    width:340px;
+    width:90%;
+    max-width:600px;
+    border-radius:12px;
+    padding:14px;
+    box-shadow:0 2px 12px #00000022;
 }
-.set-row{
-    margin:12px 0;
-}
-.set-row label{
-    display:block;
-    margin-bottom:4px;
-}
-.set-row input{
+audio,video{
     width:100%;
-    padding:6px;
+}
+.lyric-box{
+    margin-top:8px;
+    max-height:100px;
+    overflow:auto;
+    font-size:14px;
+    color:#444;
 }
 </style>
 </head>
 <body>
-<div class="top-header">
-    <div class="main-title">步丝丝《朝歌》</div>
-    <div class="user-info">客户账号：游客001</div>
+<div class="main-title">《朝歌》</div>
+<div class="top-tab">
+    <div class="tab-btn" data-type="music">音乐</div>
+    <div class="tab-btn" data-type="video">视频</div>
+    <div class="tab-btn" data-type="images">图片</div>
 </div>
-<div class="nav-wrap">
-    <div class="nav-bar">
-        <button class="nav-btn active" data-type="all">首页</button>
-        <button class="nav-btn" data-type="music">音乐</button>
-        <button class="nav-btn" data-type="video">视频</button>
-        <button class="nav-btn" data-type="image">图片</button>
-        <button class="nav-btn" data-type="reward">赞赏</button>
-    </div>
-    <div class="search-bar">
-        <input id="searchInput" placeholder="搜索歌曲、歌手">
-        <button id="searchBtn">搜索</button>
-    </div>
+<div class="search-wrap">
+    <input id="search-input" placeholder="搜索歌曲、歌手">
+    <button id="search-btn">搜索</button>
 </div>
-<div class="card-wrap" id="cardContainer"></div>
-<div class="player-box" id="playerWrap">
-    <div class="fullscreen-btn" id="fullBtn">⛶</div>
-    <button class="openKaraokeBtn" id="openKBtn">打开歌词窗</button>
-    <button class="search-lyric-btn" id="searchLyricBtn">搜歌词</button>
-    <video class="video-view" id="mainVideo" controls></video>
-    <div class="control-area">
-        <div class="play-list-wrap" id="playListBox"></div>
-        <div class="lyric-area" id="lyricBox">暂无歌词，点击右上角搜歌词</div>
-    </div>
+<div class="content-wrap" id="content"></div>
+
+<div class="player-box">
+    <div id="media-container"></div>
+    <div class="lyric-box" id="lyric-dom">暂无歌词</div>
 </div>
-<div class="karaoke-win" id="karaWin">
-    <div class="karaoke-header" id="karaDrag">
-        <span>悬浮歌词窗口</span>
-        <div>
-            <button id="karaSetBtn">设置</button>
-            <button class="kara-close" id="karaCloseBtn">关闭</button>
-        </div>
-    </div>
-    <div class="karaoke-box" id="karaContent"></div>
-</div>
-<div class="setMask" id="setMask">
-    <div class="setBox">
-        <h4>歌词样式设置</h4>
-        <div class="set-row">
-            <label>普通文字颜色</label>
-            <input type="color" id="colorNormal" value="#cccccc">
-        </div>
-        <div class="set-row">
-            <label>滚动高亮颜色</label>
-            <input type="color" id="colorActive" value="#ffdd00">
-        </div>
-        <div class="set-row">
-            <label>字体大小</label>
-            <input type="number" id="fontSize" min="16" max="48" value="24">
-        </div>
-        <div style="margin-top:15px;display:flex;gap:8px;">
-            <button id="saveSet" style="padding:6px 10px;background:#2563eb;color:#fff;border:none;border-radius:4px;">保存</button>
-            <button id="closeSet" style="padding:6px 10px;background:#999;color:#fff;border:none;border-radius:4px;">取消</button>
-        </div>
-    </div>
-</div>
+
 <script>
-const API_BASE = "https://api.busisi.com";
-let currentPlayList = [];
-let currentTabType = "all";
-let allResourceList = [];
-let currentPlayItem = null;
-let lyricLines = [];
-let dragStatus = {isDown:false,offsetX:0,offsetY:0};
-const playerWrap = document.getElementById("playerWrap");
-let karaDragStatus = {isDown:false,ox:0,oy:0};
-const karaWin = document.getElementById("karaWin");
-const karaDragArea = document.getElementById("karaDrag");
-let karaConfig = {
-    normal:"#cccccc",
-    active:"#ffdd00",
-    size:24
-};
+const WORKER_HOST = "https://api.busisi.com";
+let allFileList = [];
+let currentSongName = "";
 
-// 播放器拖拽
-playerWrap.addEventListener("mousedown",e=>{
-    dragStatus.isDown = true;
-    dragStatus.offsetX = e.clientX - playerWrap.getBoundingClientRect().left;
-    dragStatus.offsetY = e.clientY - playerWrap.getBoundingClientRect().top;
-    playerWrap.style.cursor = "grabbing";
-});
-document.addEventListener("mousemove",e=>{
-    if(dragStatus.isDown){
-        playerWrap.style.left = (e.clientX - dragStatus.offsetX)+"px";
-        playerWrap.style.top = (e.clientY - dragStatus.offsetY)+"px";
-        playerWrap.style.right = "auto";
-        playerWrap.style.bottom = "auto";
-    }
-    if(karaDragStatus.isDown){
-        karaWin.style.left = (e.clientX - karaDragStatus.ox)+"px";
-        karaWin.style.top = (e.clientY - karaDragStatus.oy)+"px";
-    }
-});
-document.addEventListener("mouseup",()=>{
-    dragStatus.isDown = false;
-    karaDragStatus.isDown = false;
-    playerWrap.style.cursor = "move";
-});
-// 悬浮歌词窗口拖拽
-karaDragArea.onmousedown = e=>{
-    karaDragStatus.isDown = true;
-    karaDragStatus.ox = e.clientX - karaWin.getBoundingClientRect().left;
-    karaDragStatus.oy = e.clientY - karaWin.getBoundingClientRect().top;
+function getResourceUrl(fileKey){
+    return `${WORKER_HOST}/r2?path=${encodeURIComponent(fileKey)}`
 }
 
-// LRC歌词解析函数
-function parseLRC(rawText){
-    const timeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
-    let lines = [];
-    rawText.split("\n").forEach(row=>{
-        const timeMatches = [...row.matchAll(timeReg)];
-        const textContent = row.replace(timeReg,"").trim();
-        if(!textContent) return;
-        timeMatches.forEach(item=>{
-            const minute = Number(item[1]);
-            const second = Number(item[2]);
-            const ms = Number(item[3].padEnd(3,"0"));
-            const totalSec = minute * 60 + second + ms / 1000;
-            lines.push({time: totalSec, text: textContent});
-        })
-    })
-    lines.sort((a,b)=>a.time - b.time);
-    return lines;
+async function loadAllFiles(){
+    const res = await fetch(`${WORKER_HOST}/list`);
+    allFileList = await res.json();
+    renderList("music");
 }
 
-// 底部简易歌词渲染
-function renderLyric(){
-    if(!lyricLines.length || !currentPlayItem) return;
-    const video = document.getElementById("mainVideo");
-    const nowTime = video.currentTime;
-    let activeIndex = 0;
-    lyricLines.forEach((line,idx)=>{
-        if(nowTime >= line.time) activeIndex = idx;
-    })
-    let htmlStr = "";
-    lyricLines.forEach((line,idx)=>{
-        htmlStr += `<div class="lyric-line ${idx === activeIndex ? 'active' : ''}">${line.text}</div>`
-    })
-    document.getElementById("lyricBox").innerHTML = htmlStr;
-}
-
-// 悬浮卡拉OK逐字滚动歌词
-function renderKaraoke(){
-    const box = document.getElementById("karaContent");
-    box.innerHTML = "";
-    if(!lyricLines.length || !currentPlayItem){
-        box.innerHTML = `<div style="color:#aaa;text-align:center;margin-top:100px">暂无歌词，请先搜索歌词</div>`;
-        return;
-    }
-    const video = document.getElementById("mainVideo");
-    const now = video.currentTime;
-    let curIdx = 0;
-    lyricLines.forEach((item,i)=>{
-        if(item.time <= now) curIdx = i;
-    })
-    lyricLines.forEach((item,idx)=>{
-        const div = document.createElement("div");
-        div.className = "kara-line";
-        div.style.fontSize = karaConfig.size + "px";
-        div.style.color = karaConfig.normal;
-        const span = document.createElement("span");
-        span.className = "kara-fill";
-        span.textContent = item.text;
-        let rate = 0;
-        if(idx === curIdx){
-            const nextT = lyricLines[idx+1]?.time || (now+10);
-            const dur = nextT - item.time;
-            const pass = now - item.time;
-            rate = Math.min(100, pass / dur * 100);
-        }
-        span.style.width = rate + "%";
-        span.style.color = karaConfig.active;
-        div.append(span, item.text);
-        box.appendChild(div);
-    })
-    const allLines = box.querySelectorAll(".kara-line");
-    if(allLines[curIdx]){
-        box.scrollTop = allLines[curIdx].offsetTop - box.clientHeight / 2;
-    }
-}
-
-// 定时刷新歌词
-setInterval(()=>{
-    renderLyric();
-    renderKaraoke();
-}, 500);
-
-// 请求歌词
-async function searchLyricByName(){
-    if(!currentPlayItem){
-        alert("请先播放一首歌曲再搜索歌词");
-        return;
-    }
-    const lyricBox = document.getElementById("lyricBox");
-    lyricBox.innerText = "正在请求服务器匹配同名歌词...";
-    lyricLines = [];
-    try{
-        const urlObj = new URL(`${API_BASE}/getLyric`);
-        urlObj.searchParams.append("name", currentPlayItem.showName + ".lrc");
-        const res = await fetch(urlObj.href);
-        if(res.ok){
-            const rawLrc = await res.text();
-            lyricLines = parseLRC(rawLrc);
-            lyricBox.innerText = "歌词加载成功";
-        }else{
-            lyricBox.innerText = "服务器未找到同名歌词";
-        }
-    }catch(err){
-        lyricBox.innerText = "接口请求失败，请检查Worker部署";
-        console.error("歌词接口错误：",err);
-    }
-}
-
-// 绑定按钮事件
-document.getElementById("searchLyricBtn").onclick = searchLyricByName;
-document.getElementById("openKBtn").onclick = ()=> karaWin.style.display = "block";
-document.getElementById("karaCloseBtn").onclick = ()=> karaWin.style.display = "none";
-document.getElementById("karaSetBtn").onclick = ()=>{
-    document.getElementById("setMask").style.display = "flex";
-    document.getElementById("colorNormal").value = karaConfig.normal;
-    document.getElementById("colorActive").value = karaConfig.active;
-    document.getElementById("fontSize").value = karaConfig.size;
-};
-document.getElementById("closeSet").onclick = ()=> document.getElementById("setMask").style.display = "none";
-document.getElementById("saveSet").onclick = ()=>{
-    karaConfig.normal = document.getElementById("colorNormal").value;
-    karaConfig.active = document.getElementById("colorActive").value;
-    karaConfig.size = Number(document.getElementById("fontSize").value);
-    document.getElementById("setMask").style.display = "none";
-    renderKaraoke();
-};
-
-// 页面初始化加载资源
-window.onload = async ()=>{
-    console.log("开始加载资源列表");
-    try{
-        const res = await fetch(`${API_BASE}/getPublicResourceList?type=all`);
-        allResourceList = await res.json();
-        console.log("接口返回资源：",allResourceList);
-    }catch(err){
-        console.error("接口加载失败，启用兜底数据",err);
-        allResourceList = [
-            {
-                id:"99999",
-                type:"music",
-                showName:"情路沧桑",
-                originName:"情路沧桑",
-                singer:"步丝丝",
-                audioLink:"",
-                videoLink:"",
-                imgLink:"",
-                lyricName:"情路沧桑",
-                lyricLink:"",
-                showIndex:true,
-                showMusic:true,
-                showVideo:false,
-                showImage:false,
-                showReward:false,
-                lyricStatus:true
-            }
-        ];
-    }
-    filterAndRender();
-    bindTabClick();
-}
-
-// 分类切换绑定
-function bindTabClick(){
-    const tabs = document.querySelectorAll(".nav-btn");
-    tabs.forEach(tab=>{
-        tab.onclick = function(){
-            tabs.forEach(t=>t.classList.remove("active"));
-            this.classList.add("active");
-            currentTabType = this.dataset.type;
-            reloadResource();
-        }
-    })
-}
-
-// 切换分类重新拉取数据
-async function reloadResource(){
-    try{
-        const res = await fetch(`${API_BASE}/getPublicResourceList?type=${currentTabType}`);
-        allResourceList = await res.json();
-    }catch(e){
-        console.log("切换栏目加载失败，保留原有数据");
-    }
-    filterAndRender();
-}
-
-// 按分类过滤资源
-function filterAndRender(){
-    let filterList = [...allResourceList];
-    if(currentTabType === "all"){
-        filterList = filterList.filter(item => item.showIndex === true);
-    }else if(currentTabType === "music"){
-        filterList = filterList.filter(item => item.type === "music" && item.showMusic === true);
-    }else if(currentTabType === "video"){
-        filterList = filterList.filter(item => item.type === "video" && item.showVideo === true);
-    }else if(currentTabType === "image"){
-        filterList = filterList.filter(item => item.type === "image" && item.showImage === true);
-    }else if(currentTabType === "reward"){
-        filterList = filterList.filter(item => item.showReward === true);
-    }
-    renderCard(filterList);
-}
-
-// 渲染歌曲卡片（带封面）
-function renderCard(list){
-    const container = document.getElementById("cardContainer");
-    container.innerHTML = "";
-    if(list.length === 0){
-        container.innerHTML = "<div style='grid-column:1/-1;text-align:center;padding:40px;font-size:18px;color:#666'>暂无资源</div>";
-        return;
-    }
-    list.forEach(item=>{
-        const div = document.createElement("div");
-        div.className = "music-card";
-        let coverHtml = "";
-        if(item.imgLink){
-            coverHtml = `<div style="width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;margin-bottom:8px;">
-                <img src="${item.imgLink}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerText='无封面'">
-            </div>`;
-        }else{
-            coverHtml = `<div style="width:100%;aspect-ratio:1;border-radius:10px;background:#e8edf3;display:flex;align-items:center;justify-content:center;color:#666;margin-bottom:8px;">无封面</div>`;
-        }
-        div.innerHTML = `
-            ${coverHtml}
-            <div style="text-align:center;">
-                <div style="font-weight:500;">${item.showName}</div>
-                <div style="font-size:12px;color:#777;margin-top:4px;">${item.singer||"未知歌手"}</div>
-            </div>
+function renderList(typeKey){
+    const dom = document.getElementById("content");
+    dom.innerHTML = "";
+    const filterArr = allFileList.filter(item=> item.startsWith(typeKey+"/"));
+    filterArr.forEach(key=>{
+        let fileName = key.split("/")[1];
+        let showName = fileName;
+        let card = document.createElement("div");
+        card.className = "item-card";
+        card.innerHTML = `
+            <img src="" alt="封面">
+            <div>${showName}</div>
         `;
-        div.onclick = ()=>{
-            addToList(item);
-            playMedia(item);
+        card.onclick = ()=>playMedia(key,fileName);
+        dom.appendChild(card);
+
+        let baseName = fileName.split(".")[0];
+        let coverKey = allFileList.find(f=>f.startsWith("images/") && f.split("/")[1].split(".")[0] === baseName);
+        if(coverKey){
+            card.querySelector("img").src = getResourceUrl(coverKey);
         }
-        container.appendChild(div);
     })
 }
 
-// 添加到播放列表（去重）
-function addToList(item){
-    const exist = currentPlayList.find(v=>v.id === item.id);
-    if(exist) return;
-    currentPlayList.push(item);
-    renderPlayList();
+async function playMedia(fileKey,fileName){
+    currentSongName = fileName.split(".")[0];
+    const mediaDom = document.getElementById("media-container");
+    mediaDom.innerHTML = "";
+    let mediaUrl = getResourceUrl(fileKey);
+
+    if(fileKey.startsWith("music/")){
+        let audio = document.createElement("audio");
+        audio.controls = true;
+        audio.src = mediaUrl;
+        audio.autoplay = true;
+        mediaDom.appendChild(audio);
+    }else if(fileKey.startsWith("video/")){
+        let video = document.createElement("video");
+        video.controls = true;
+        video.src = mediaUrl;
+        video.autoplay = true;
+        mediaDom.appendChild(video);
+    }
+
+    await loadLyric(currentSongName);
 }
 
-// 渲染播放列表
-function renderPlayList(){
-    const box = document.getElementById("playListBox");
-    box.innerHTML = "";
-    currentPlayList.forEach((item,index)=>{
-        const div = document.createElement("div");
-        div.className = "list-item";
-        div.innerHTML = `
-            <span><span class="list-num">${index+1}</span>${item.singer||"未知"}-${item.showName}</span>
-            <span class="del-cross" data-id="${item.id}">×</span>
-        `;
-        div.onclick = (e)=>{
-            if(e.target.classList.contains("del-cross")) return;
-            playMedia(item);
-        }
-        div.querySelector(".del-cross").onclick = (e)=>{
-            e.stopPropagation();
-            const delId = item.id;
-            currentPlayList = currentPlayList.filter(v=>v.id !== delId);
-            renderPlayList();
-        }
-        box.appendChild(div);
+async function loadLyric(songBase){
+    const lyricDom = document.getElementById("lyric-dom");
+    lyricDom.innerText = "加载歌词...";
+    let lyricKey = allFileList.find(f=> f.startsWith("lyric/") && f.split("/")[1].split(".")[0] === songBase);
+    if(!lyricKey){
+        lyricDom.innerText = "暂无歌词";
+        return;
+    }
+    const res = await fetch(getResourceUrl(lyricKey));
+    const text = await res.text();
+    lyricDom.innerText = text;
+}
+
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.onclick=()=>{
+        renderList(btn.dataset.type);
+    }
+})
+
+document.getElementById("search-btn").onclick=()=>{
+    let kw = document.getElementById("search-input").value.trim().toLowerCase();
+    const dom = document.getElementById("content");
+    dom.innerHTML = "";
+    const filterArr = allFileList.filter(item=>{
+        const name = item.split("/")[1].toLowerCase();
+        return name.includes(kw);
+    });
+    filterArr.forEach(key=>{
+        let fileName = key.split("/")[1];
+        let card = document.createElement("div");
+        card.className = "item-card";
+        card.innerHTML = `<img src="" alt="封面"><div>${fileName}</div>`;
+        card.onclick = ()=>playMedia(key,fileName);
+        dom.appendChild(card);
+        let baseName = fileName.split(".")[0];
+        let coverKey = allFileList.find(f=>f.startsWith("images/") && f.split("/")[1].split(".")[0] === baseName);
+        if(coverKey) card.querySelector("img").src = getResourceUrl(coverKey);
     })
 }
 
-// 播放音视频核心函数（修复播放失效逻辑）
-async function playMedia(item){
-    currentPlayItem = item;
-    lyricLines = [];
-    const video = document.getElementById("mainVideo");
-    video.pause();
-    video.src = "";
-    document.getElementById("lyricBox").innerText = "暂无歌词，点击右上角搜歌词";
-    // 优先视频，无视频播放音频
-    if(item.type === "video" && item.videoLink){
-        video.src = item.videoLink;
-    }else if(item.audioLink){
-        video.src = item.audioLink;
-    }
-    // 自动播放捕获浏览器拦截
-    if(video.src){
-        video.play().catch(err=>{
-            console.log("自动播放被浏览器限制，手动点击播放按钮即可");
-        });
-    }
-}
-
-// 全屏按钮
-const fullBtn = document.getElementById("fullBtn");
-const video = document.getElementById("mainVideo");
-fullBtn.onclick = ()=>{
-    if(document.fullscreenElement){
-        document.exitFullscreen();
-        fullBtn.innerText = "⛶";
-    }else{
-        video.requestFullscreen?.();
-        fullBtn.innerText = "⊡";
-    }
-}
-
-// 搜索功能（修复变量allResource错误）
-document.getElementById("searchBtn").onclick = ()=>{
-    const key = document.getElementById("searchInput").value.trim().toLowerCase();
-    const source = allResourceList.filter(item => {
-        switch(currentTabType){
-            case "all": return item.showIndex;
-            case "music": return item.type === "music" && item.showMusic;
-            case "video": return item.type === "video" && item.showVideo;
-            case "image": return item.type === "image" && item.showImage;
-            case "reward": return item.showReward;
-            default: return true;
-        }
-    });
-    const result = source.filter(v=>{
-        const name = (v.showName||"").toLowerCase();
-        const singer = (v.singer||"").toLowerCase();
-        return name.includes(key) || singer.includes(key);
-    });
-    renderCard(result);
-}
+loadAllFiles();
 </script>
 </body>
 </html>
