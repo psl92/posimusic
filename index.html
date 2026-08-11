@@ -169,12 +169,13 @@ async function playMedia(fileKey,fileName){
     if(fileKey.startsWith("music/")){
         let audio = document.createElement("audio");
         audio.controls = true;
+        audio.preload="auto";
         audio.src = mediaUrl;
         mediaDom.appendChild(audio);
-        // 用户交互后再播放，浏览器策略限制autoplay
     }else if(fileKey.startsWith("video/")){
         let video = document.createElement("video");
         video.controls = true;
+        video.preload="auto";
         video.src = mediaUrl;
         mediaDom.appendChild(video);
     }
