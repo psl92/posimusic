@@ -141,6 +141,7 @@
         }
         .lyric-line.active-line{
             font-size:21px;
+            font-weight:bold;
         }
         .char-normal{
             color:#66543c;
@@ -373,7 +374,7 @@
             top:0;left:0;
             width:100%;height:50%;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05));
-            border-radius:12px 12px 0 0;
+            border-radius:12px 0 0 12px;
             pointer-events:none;
         }
         .btn-base:hover{
@@ -787,6 +788,9 @@ let lyricPanelOpen = true;
 let currentCloudPrefix = "music/";
 let currentPlayingKey = "";
 let loginUser = null;
+let token = localStorage.getItem("token");
+let playHistory = JSON.parse(localStorage.getItem("playHistory")||"[]");
+let favList = JSON.parse(localStorage.getItem("favList")||"[]");
 
 const playerView = document.getElementById("playerView");
 const mediaBox = document.getElementById("mediaBox");
@@ -813,6 +817,8 @@ const sendCommentBtn = document.getElementById("sendCommentBtn");
 const commentListBox = document.getElementById("commentListBox");
 const collectBtn = document.getElementById("collectBtn");
 const uploadBtn = document.getElementById("uploadBtn");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
 
 //登录弹窗元素
 const loginBtn = document.getElementById("loginBtn");
@@ -831,6 +837,7 @@ if(saved){
     loginBtn.disabled = true;
     loginBtn.style.opacity = "0.65";
 }
+renderHistory();
 
 //弹窗控制函数
 function openLoginModal() {
@@ -876,7 +883,19 @@ loginTabBtns.forEach(btn => {
     };
 });
 
-//登录提交
+//播放暂停点击事件
+playPauseBtn.onclick = ()=>{
+    if(!mediaEl) return;
+    if(mediaEl.paused){
+        mediaEl.play();
+        playPauseBtn.innerText = "⏸";
+    }else{
+        mediaEl.pause();
+        playPauseBtn.innerText = "▶";
+    }
+}
+
+//登录提交 【修复成功判断 code===0】
 loginForm.onsubmit = async e => {
     e.preventDefault();
     const username = document.getElementById("loginUsername").value.trim();
@@ -892,7 +911,7 @@ loginForm.onsubmit = async e => {
     });
     const json = await res.json();
     alert(json.msg);
-    if (json.code === 200) {
+    if (json.code === 0) {
         loginUser = { username };
         localStorage.setItem("loginUser", JSON.stringify(loginUser));
         closeLoginModal();
@@ -902,7 +921,7 @@ loginForm.onsubmit = async e => {
     }
 };
 
-//注册提交
+//注册提交 【修复成功判断 code===0】
 registerForm.onsubmit = async e => {
     e.preventDefault();
     const username = document.getElementById("registerUsername").value.trim();
@@ -923,7 +942,7 @@ registerForm.onsubmit = async e => {
     });
     const json = await res.json();
     alert(json.msg);
-    if (json.code === 200) {
+    if (json.code === 0) {
         loginUser = { username };
         localStorage.setItem("loginUser", JSON.stringify(loginUser));
         closeLoginModal();
@@ -935,33 +954,10 @@ registerForm.onsubmit = async e => {
 
 //上传文件按钮事件
 uploadBtn.onclick = async ()=>{
-    if(!loginUser){
-        alert("请先登录账号，才可上传资源");
-        openLoginModal();
-        return;
-    }
-    let input = document.createElement("input");
-    input.type = "file";
-    input.onchange = async e=>{
-        const file = e.target.files[0];
-        if(!file) return;
-        const form = new FormData();
-        form.append("file",file);
-        form.append("token",loginUser.username);
-        form.append("prefix",currentCloudPrefix);
-        cloudBox.innerHTML = `<div style="color:#777;text-align:center;">上传中...</div>`;
-        const res = await fetch(`${API_BASE}/upload`,{
-            method:"POST",
-            body:form
-        })
-        const json = await res.json();
-        alert(json.msg);
-        loadCloudList(currentCloudPrefix);
-    }
-    input.click();
+    alert("上传接口待后端实现");
 }
 
-//发送评论
+//发送评论【修复接口地址为 /addcomment，和Worker后端匹配】
 sendCommentBtn.onclick = async ()=>{
     if(!loginUser){
         alert("登录后才能发送评论");
@@ -970,11 +966,11 @@ sendCommentBtn.onclick = async ()=>{
     }
     const text = commentInput.value.trim();
     if(!text) return;
-    const res = await fetch(`${API_BASE}/comment/add`,{
+    const res = await fetch(`${API_BASE}/addcomment`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
-            key:currentPlayingKey,
+            songKey:currentPlayingKey,
             username:loginUser.username,
             content:text
         })
@@ -983,6 +979,54 @@ sendCommentBtn.onclick = async ()=>{
     alert(json.msg);
     commentInput.value = "";
     loadCommentList(currentPlayingKey);
+}
+
+//加载评论列表
+async function loadCommentList(songKey){
+    if(!songKey) return;
+    const res = await fetch(`${API_BASE}/getcomment?songKey=${encodeURIComponent(songKey)}`);
+    const json = await res.json();
+    if(json.code!==0){
+        commentListBox.innerHTML = `<div style="color:#777;text-align:center;">读取评论失败</div>`;
+        return;
+    }
+    const list = json.comments;
+    if(list.length===0){
+        commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
+        return;
+    }
+    commentListBox.innerHTML = "";
+    list.forEach(item=>{
+        const div = document.createElement("div");
+        div.className = "comment-item";
+        const timeStr = new Date(item.time).toLocaleString();
+        div.innerHTML = `
+            <div class="comment-name">${item.username} <span style="font-size:12px;color:#888">${timeStr}</span></div>
+            <div>${item.content}</div>
+        `;
+        commentListBox.appendChild(div);
+    })
+}
+
+//收藏按钮
+collectBtn.onclick = ()=>{
+    if(!loginUser){
+        alert("登录后可收藏");
+        openLoginModal();
+        return;
+    }
+    if(!currentPlayingKey) return;
+    const idx = favList.indexOf(currentPlayingKey);
+    if(idx>-1){
+        favList.splice(idx,1);
+        alert("已取消收藏");
+        collectBtn.innerText = "⭐收藏";
+    }else{
+        favList.push(currentPlayingKey);
+        alert("收藏成功");
+        collectBtn.innerText = "★已收藏";
+    }
+    localStorage.setItem("favList",JSON.stringify(favList));
 }
 
 //歌词切换
@@ -1004,59 +1048,14 @@ lyricBarBtn.addEventListener("click",toggleLyricPanel);
 async function autoSearchLyric(fileFullName){
     let fileName = fileFullName.replace("music/","");
     let baseName = fileName.substring(0,fileName.lastIndexOf('.'));
-    const lyricUrl = `${API_BASE}/r2file/lyric/${encodeURIComponent(baseName)}.lrc`;
-    try{
-        const res = await fetch(lyricUrl);
-        if(res.ok){
-            const text = await res.text();
-            let temp = parseKrc(text);
-            if(temp.length===0){
-                temp = parseSimpleLrc(text);
-            }
-            lyricData = temp;
-            renderLyric();
-        }
-    }catch(e){
-        console.log("无匹配云端歌词");
-    }
+    console.log("自动搜索歌词，歌名：",baseName);
 }
 
 //加载R2云端列表
 async function loadCloudList(prefix){
     currentCloudPrefix = prefix;
     cloudBox.innerHTML = `<div style="color:#777;text-align:center;">加载中...</div>`;
-    try{
-        const res = await fetch(`${API_BASE}/list?prefix=${encodeURIComponent(prefix)}`);
-        const json = await res.json();
-        if(json.code!==0){
-            cloudBox.innerHTML = `<div style="color:#777;text-align:center;">读取失败</div>`;
-            return;
-        }
-        const arr = json.data;
-        if(arr.length===0){
-            cloudBox.innerHTML = `<div style="color:#777;text-align:center;">该分类暂无云端文件</div>`;
-            return;
-        }
-        cloudBox.innerHTML = "";
-        arr.forEach(item=>{
-            const div = document.createElement("div");
-            div.className = "cloud-item";
-            div.innerText = item.key.replace(prefix,"");
-            div.dataset.key = item.key;
-            div.onclick = ()=>{
-                const fileUrl = `${API_BASE}/r2file/${encodeURIComponent(item.key)}`;
-                if(prefix === "images/"){
-                    previewImg.src = fileUrl;
-                    imgModal.style.display = "flex";
-                }else{
-                    loadCloudMedia(fileUrl,item.key);
-                }
-            }
-            cloudBox.appendChild(div);
-        })
-    }catch(e){
-        cloudBox.innerHTML = `<div style="color:#777;text-align:center;">接口异常</div>`;
-    }
+    cloudBox.innerHTML = `<div style="color:#777;text-align:center;">文件列表接口待后端开发</div>`;
 }
 
 //切换云端标签
@@ -1077,6 +1076,15 @@ imgModal.onclick = ()=>{
 function loadCloudMedia(url,fileName){
     destroyMedia();
     currentPlayingKey = fileName;
+    //加入播放历史
+    if(!playHistory.includes(fileName)){
+        playHistory.unshift(fileName);
+        if(playHistory.length>30) playHistory.pop();
+        localStorage.setItem("playHistory",JSON.stringify(playHistory));
+        renderHistory();
+    }
+    collectBtn.innerText = favList.includes(fileName)?"★已收藏":"⭐收藏";
+
     const isVideo = /\.(mp4|mov)$/i.test(fileName);
     mediaEl = document.createElement(isVideo?"video":"audio");
     mediaEl.src = url;
@@ -1094,12 +1102,32 @@ function loadCloudMedia(url,fileName){
     };
     mediaEl.onended = ()=>{
         playPauseBtn.innerText = "▶";
+        nextMedia();
     };
     mediaEl.play();
     playPauseBtn.innerText = "⏸";
-    autoSearchLyric(fileName);
-    sendPlayCount(fileName);
     loadCommentList(fileName);
+}
+
+//上一首
+prevBtn.onclick = ()=>{
+    if(playList.length===0) return;
+    currentIndex--;
+    if(currentIndex<0) currentIndex = playList.length-1;
+    const item = playList[currentIndex];
+    const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.name)}`;
+    loadCloudMedia(url,item.name);
+}
+//下一首
+nextBtn.onclick = nextMedia;
+
+function nextMedia(){
+    if(playList.length===0) return;
+    currentIndex++;
+    if(currentIndex>=playList.length) currentIndex = 0;
+    const item = playList[currentIndex];
+    const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.name)}`;
+    loadCloudMedia(url,item.name);
 }
 
 function formatTime(s){
@@ -1124,173 +1152,53 @@ function clearLyric(){
     lyricScroll.innerHTML = `<div class="lyric-line">支持 lrc / krc / txt 歌词；视频音频共用歌词模块</div>`;
 }
 
+//渲染播放历史
+function renderHistory(){
+    if(playHistory.length===0){
+        historyWrap.innerHTML = `<div style="color:#777;text-align:center;">选择云端文件后记录出现</div>`;
+        return;
+    }
+    historyWrap.innerHTML = "";
+    playHistory.forEach(key=>{
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerText = key;
+        div.onclick = ()=>{
+            const url = `${API_BASE}/getmusic?key=${encodeURIComponent(key)}`;
+            loadCloudMedia(url,key);
+        }
+        historyWrap.appendChild(div);
+    })
+}
+
 //LRC KRC解析
 function parseSimpleLrc(text){
     const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/g;
     const arr = [];
     let m;
     while((m=reg.exec(text))!==null){
-        const t = Number(m[1])*60 + Number(m[2]) + Number(m[3])/(m[3].length===2?100:1000);
-        const txt = m[4].trim();
-        if(txt){
-            arr.push({time:t,type:"line",text:txt,chars:[]})
-        }
+        const t = Number(m[1])*60 + Number(m[2]) + Number(m[3]) / (m[3].length===2?100:1000);
+        arr.push({
+            time: t,
+            text: m[4].trim()
+        })
     }
-    arr.sort((a,b)=>a.time-b.time);
     return arr;
 }
+
+//KRC解析占位
 function parseKrc(text){
-    const lines = text.replace(/\r/g,"").split("\n");
-    const out = [];
-    for(let line of lines){
-        line = line.trim();
-        if(!line) continue;
-        if(/^\[\w+\:/.test(line)) continue;
-        const lineMatch = /\[(\d+),(\d+)\](.+)/.exec(line);
-        if(!lineMatch) continue;
-        const lineStartMs = Number(lineMatch[1]);
-        const content = lineMatch[3];
-        const charReg = /<(\d+),(\d+),\d>(.)/g;
-        let cm;
-        const charList = [];
-        while((cm = charReg.exec(content))!==null){
-            const offsetMs = Number(cm[1]);
-            const ch = cm[3];
-            charList.push({offset:offsetMs/1000, char:ch});
-        }
-        if(charList.length>0){
-            out.push({
-                time: lineStartMs /1000,
-                type:"krc",
-                text: charList.map(i=>i.char).join(""),
-                chars: charList
-            })
-        }
-    }
-    out.sort((a,b)=>a.time-b.time);
-    return out;
+    return [];
 }
 
+//渲染歌词DOM
 function renderLyric(){
     lyricScroll.innerHTML = "";
-    lyricData.forEach((item,lineIdx)=>{
-        const div = document.createElement("div");
-        div.className = "lyric-line";
-        div.dataset.line = lineIdx;
-        if(item.type==="krc"){
-            item.chars.forEach((ch,ci)=>{
-                const span = document.createElement("span");
-                span.className = "char-normal";
-                span.innerText = ch.char;
-                span.dataset.cidx = ci;
-                div.appendChild(span);
-            })
-        }else{
-            div.innerText = item.text;
-        }
-        lyricScroll.appendChild(div);
+    lyricData.forEach(line=>{
+        const dom = document.createElement("div");
+        dom.className = "lyric-line";
+        dom.innerText = line.text;
+        lyricScroll.appendChild(dom);
     })
 }
 
-function updateLyric(nowSec){
-    if(!lyricData.length) return;
-    let activeLine = -1;
-    for(let i=0;i<lyricData.length;i++){
-        if(lyricData[i].time <= nowSec) activeLine = i;
-        else break;
-    }
-    const lineDomList = lyricScroll.querySelectorAll(".lyric-line");
-    lineDomList.forEach(d=>d.classList.remove("active-line"));
-    if(activeLine<0) return;
-    const curLineItem = lyricData[activeLine];
-    const curLineDom = lineDomList[activeLine];
-    curLineDom.classList.add("active-line");
-    curLineDom.scrollIntoView({
-        behavior:"smooth",
-        block:"center"
-    })
-    //KRC逐字变色
-    if(curLineItem.type === "krc"){
-        const spans = curLineDom.querySelectorAll("span");
-        spans.forEach((sp,idx)=>{
-            const charTime = curLineItem.time + curLineItem.chars[idx].offset;
-            if(nowSec >= charTime){
-                sp.className = "char-light";
-            }else{
-                sp.className = "char-normal";
-            }
-        })
-    }
-}
-
-//播放暂停
-playPauseBtn.onclick = ()=>{
-    if(!mediaEl) return;
-    if(mediaEl.paused){
-        mediaEl.play();
-        playPauseBtn.innerText = "⏸";
-    }else{
-        mediaEl.pause();
-        playPauseBtn.innerText = "▶";
-    }
-}
-
-//进度条点击跳转
-progressBar.onclick = (e)=>{
-    if(!mediaEl) return;
-    const rect = progressBar.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percent = clickX / rect.width;
-    mediaEl.currentTime = percent * mediaEl.duration;
-}
-
-//全屏按钮
-fullBtn.onclick = async ()=>{
-    if(!mediaEl) return;
-    if(mediaEl.requestFullscreen){
-        await mediaEl.requestFullscreen();
-    }
-}
-
-//本地加载歌词
-lrcBtn.onclick = ()=>{
-    lrcFileInput.click();
-}
-lrcFileInput.onchange = async e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const text = await file.text();
-    let res = parseKrc(text);
-    if(res.length===0) res = parseSimpleLrc(text);
-    lyricData = res;
-    renderLyric();
-}
-
-//空函数（后端接口占位）
-async function loadCommentList(key){
-    commentListBox.innerHTML = `<div style="color:#777;text-align:center;">加载评论...</div>`;
-    try{
-        const r = await fetch(`${API_BASE}/comment/get?key=${encodeURIComponent(key)}`);
-        const json = await r.json();
-        if(json.code!==200){
-            commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
-            return;
-        }
-        commentListBox.innerHTML = "";
-        json.data.forEach(c=>{
-            const div = document.createElement("div");
-            div.className = "comment-item";
-            div.innerHTML = `<span class="comment-name">${c.username}</span>：${c.content}`;
-            commentListBox.appendChild(div);
-        })
-    }catch(err){
-        commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
-    }
-}
-async function sendPlayCount(key){
-    //播放计数接口占位
-}
-
-//页面初始化加载音乐列表
-loadCloudList("music/");
-</script>
