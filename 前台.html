@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posimusic｜音视频图片云端R2</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "思源宋体", "SimSun", serif;
+        }
+        body {
+            background-color: #f3ebd8;
+            padding:20px;
+            color:#3a2e20;
+        }
+        .app-container {
+            display: grid;
+            grid-template-columns: 60% 40%;
+            gap:24px;
+            max-width:1920px;
+            margin:0 auto;
+            border: 2px solid #b89b70;
+            padding:24px;
+            background-color:#f7efdd;
+            background-image: radial-gradient(#d9c9b0 1px, transparent 1px);
+            background-size:20px 20px;
+            position: relative;
+        }
+        .scroll-player-wrap {
+            border: 12px solid #c8a87c;
+            border-image: linear-gradient(#94744e,#e2cdad,#94744e) 1;
+            border-radius:8px;
+            position:relative;
+            background:#f9f1de;
+            min-height:480px;
+            display:flex;
+            flex-direction:column;
+        }
+        .scroll-left,.scroll-right{
+            position:absolute;
+            top:-10px;
+            bottom:-10px;
+            width:32px;
+            background:linear-gradient(90deg,#6b4c2e,#b89468,#6b4c2e);
+            border-radius:12px;
+        }
+        .scroll-left{left:-12px;}
+        .scroll-right{right:-12px;}
+
+        .player-view{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            position:relative;
+        }
+        .media-box{
+            position:relative;
+            width:100%;
+            max-height:240px;
+        }
+        video,audio{
+            width:100%;
+            max-height:220px;
+        }
+
+        .play-big-btn{
+            display:none !important;
+            width:120px;
+            height:120px;
+            border:2px solid #b89468;
+            background:rgba(247,239,221,0.65);
+            border-radius:8px;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+        }
+        .play-big-btn svg{
+            width:48px;height:48px;fill:#6b4c2e;
+        }
+        .music-icon-card{
+            display:none !important;
+            position:absolute;
+            right:40px;
+            bottom:30px;
+            width:100px;
+            height:120px;
+            border:1px solid #b89468;
+            background:rgba(247,239,221,0.7);
+            align-items:center;
+            justify-content:center;
+        }
+        .music-icon-card svg{
+            width:60px;height:60px;fill:#5a432c;
+        }
+
+        .lyric-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:4px 10px;
+            background:#e9ddc8;
+            border-bottom:1px solid #b89b70;
+        }
+        .lyric-title{
+            display:none;
+            font-size:14px;
+        }
+        .lyric-toggle-btn{
+            display:none;
+        }
+
+        .lyric-wrap{
+            width:100%;
+            margin-top:10px;
+            border:1px solid #b89b70;
+            border-radius:8px;
+            position:relative;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            transition: max-height 0.35s ease-out;
+        }
+        .lyric-scroll-container{
+            overflow:hidden;
+            transition: max-height 0.35s ease-out;
+            max-height:200px;
+        }
+        .lyric-scroll{
+            transition: transform 0.35s ease-out;
+        }
+        .lyric-line{
+            text-align:center;
+            padding:10px 4px;
+            font-size:18px;
+            color:#66543c;
+        }
+        .lyric-line.active-line{
+            font-size:21px;
+        }
+        .char-normal{
+            color:#66543c;
+        }
+        .char-light{
+            color:#e04420;
+            font-weight:bold;
+        }
+
+        .player-bottom-bar{
+            padding:16px 12px;
+        }
+        .progress-row{
+            display:flex;
+            gap:12px;
+            align-items:center;
+            margin-bottom:14px;
+        }
+        .time-text{
+            font-size:13px;
+            color:#66543c;
+            min-width:40px;
+        }
+        .progress-bar{
+            flex:1;
+            height:6px;
+            background:#c9b89e;
+            border-radius:3px;
+            position:relative;
+            cursor:pointer;
+        }
+        .progress-dot{
+            position:absolute;
+            width:14px;height:14px;
+            background:#4b3824;
+            border-radius:50%;
+            top:-4px;
+            left:0%;
+        }
+        .control-buttons{
+            display:flex;
+            gap:32px;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .ctrl-btn {
+            width: 46px;
+            height: 46px;
+            border: none;
+            background: linear-gradient(145deg, rgba(248, 244, 235, 0.95), rgba(218, 199, 175, 0.95));
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 22px;
+            color: #3a2e20;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(180, 150, 120, 0.6),
+                0 4px 12px rgba(90, 60, 40, 0.25),
+                0 2px 4px rgba(90, 60, 40, 0.15);
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+            transition: 0.18s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .ctrl-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05));
+            border-radius: 12px 12px 0 0;
+            pointer-events: none;
+        }
+        .ctrl-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(145deg, rgba(255, 250, 240, 0.98), rgba(225, 205, 180, 0.98));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -1px 0 rgba(180, 150, 120, 0.6),
+                0 6px 16px rgba(90, 60, 40, 0.35),
+                0 3px 6px rgba(90, 60, 40, 0.2);
+        }
+        .ctrl-btn:active {
+            transform: translateY(1px);
+            box-shadow:
+                inset 0 2px 4px rgba(90, 60, 40, 0.25),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.6),
+                0 2px 6px rgba(90, 60, 40, 0.2);
+        }
+
+        .play-pause {
+            width: 68px;
+            height: 68px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #f7efdd, #d9b38c);
+            color: #3a2e20;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow:
+                inset 0 2px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -2px 0 rgba(180, 140, 100, 0.6),
+                0 6px 16px rgba(90, 60, 40, 0.35),
+                0 3px 8px rgba(90, 60, 40, 0.2);
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+            transition: 0.18s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .play-pause::before {
+            content: "";
+            position: absolute;
+            top: 8%;
+            left: 12%;
+            width: 35%;
+            height: 25%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .play-pause:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(145deg, #fff7ea, #e0c9a6);
+            box-shadow:
+                inset 0 2px 0 rgba(255, 255, 255, 1),
+                inset 0 -2px 0 rgba(180, 140, 100, 0.6),
+                0 8px 20px rgba(90, 60, 40, 0.45),
+                0 4px 10px rgba(90, 60, 40, 0.25);
+        }
+        .play-pause:active {
+            transform: translateY(2px);
+            box-shadow:
+                inset 0 4px 8px rgba(90, 60, 40, 0.35),
+                inset 0 -2px 0 rgba(255, 255, 255, 0.8),
+                0 3px 10px rgba(90, 60, 40, 0.25);
+        }
+
+        .bottom-right-buttons{
+            margin-left: auto;
+            display:flex;
+            gap:10px;
+            align-items:center;
+        }
+        .fullscreen-bar-btn,
+        .lyric-bar-btn {
+            padding: 7px 14px;
+            background: linear-gradient(145deg, rgba(248, 244, 235, 0.95), rgba(218, 199, 175, 0.95));
+            border: 1px solid rgba(184, 155, 112, 0.65);
+            border-radius: 10px;
+            color: #3a2e20;
+            font-size: 14px;
+            font-family: "思源宋体", "SimSun", serif;
+            cursor: pointer;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(180, 150, 120, 0.6),
+                0 4px 12px rgba(90, 60, 40, 0.25),
+                0 2px 4px rgba(90, 60, 40, 0.15);
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+            transition:0.18s ease;
+            position:relative;
+            overflow:hidden;
+        }
+        .fullscreen-bar-btn::before,
+        .lyric-bar-btn::before{
+            content:"";
+            position:absolute;
+            top:0;left:0;
+            width:100%;height:45%;
+            background:linear-gradient(180deg,rgba(255,255,255,0.32),rgba(255,255,255,0.03));
+            pointer-events:none;
+        }
+        .fullscreen-bar-btn:hover,
+        .lyric-bar-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(145deg, rgba(255, 250, 240, 0.98), rgba(225, 205, 180, 0.98));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -1px 0 rgba(180, 150, 120, 0.6),
+                0 6px 16px rgba(90, 60, 40, 0.35),
+                0 3px 6px rgba(90, 60, 40, 0.2);
+        }
+        .fullscreen-bar-btn:active,
+        .lyric-bar-btn:active{
+            transform:translateY(1px);
+            box-shadow:
+                inset 0 2px 4px rgba(90, 60, 40, 0.25),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.6),
+                0 2px 6px rgba(90, 60, 40, 0.2);
+        }
+
+        .right-sidebar{
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+        }
+        .top-btn-group{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+        .btn-base{
+            padding:7px 12px;
+            border-radius:12px;
+            border:none;
+            font-size:14px;
+            cursor:pointer;
+            font-family:"思源宋体", "SimSun", serif;
+            background: linear-gradient(145deg, rgba(248, 244, 235, 0.95), rgba(218, 199, 175, 0.95));
+            color:#3a2e20;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(180, 150, 120, 0.6),
+                0 4px 12px rgba(90, 60, 40, 0.25),
+                0 2px 4px rgba(90, 60, 40, 0.15);
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+            transition:0.18s ease;
+            position:relative;
+            overflow:hidden;
+        }
+        .btn-base::before{
+            content:"";
+            position:absolute;
+            top:0;left:0;
+            width:100%;height:50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05));
+            border-radius:12px 12px 0 0;
+            pointer-events:none;
+        }
+        .btn-base:hover{
+            transform: translateY(-2px);
+            background: linear-gradient(145deg, rgba(255, 250, 240, 0.98), rgba(225, 205, 180, 0.98));
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -1px 0 rgba(180, 150, 120, 0.6),
+                0 6px 16px rgba(90, 60, 40, 0.35),
+                0 3px 6px rgba(90, 60, 40, 0.2);
+        }
+        .btn-base:active{
+            transform: translateY(1px);
+            box-shadow:
+                inset 0 2px 4px rgba(90, 60, 40, 0.25),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.6),
+                0 2px 6px rgba(90, 60, 40, 0.2);
+        }
+        .btn-upload{
+            background: linear-gradient(145deg, rgba(255,210,170,0.95), rgba(204,120,70,0.95));
+            color:#fff;
+            text-shadow:0 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-upload::before{
+            background:linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.05));
+        }
+        .btn-upload:hover{
+            background: linear-gradient(145deg, rgba(255,222,190,0.98), rgba(218,132,82,0.98));
+        }
+
+        .search-input{
+            width:100%;
+            padding:12px 16px;
+            border-radius:14px;
+            border:1px solid #b89b70;
+            background:#f9f1de;
+            font-size:16px;
+        }
+        .tab-group-cloud{
+            display:flex;
+            gap:8px;
+        }
+        .tab-cloud{
+            flex:1;
+            padding:10px;
+            border-radius:10px;
+            border:1px solid #b89b70;
+            text-align:center;
+            font-size:15px;
+            cursor:pointer;
+            background:#e9ddc8;
+        }
+        .tab-cloud.active{
+            background:#c8a87c;
+            color:#fff;
+        }
+
+        .cloud-resource-box{
+            border:1px solid #c8b494;
+            border-radius:12px;
+            padding:14px;
+            max-height:220px;
+            overflow-y:auto;
+        }
+        .cloud-item{
+            padding:8px 6px;
+            border-bottom:1px solid #ddcdb4;
+            cursor:pointer;
+        }
+        .cloud-item:hover{
+            background:#e9ddc8;
+        }
+        .history-box{
+            border:1px solid #c8b494;
+            border-radius:12px;
+            padding:16px;
+            flex:1;
+            max-height:240px;
+            overflow-y:auto;
+        }
+        .history-title{
+            display:flex;
+            justify-content:space-between;
+            font-size:22px;
+            margin-bottom:14px;
+        }
+        .history-item{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:12px 0;
+            border-bottom:1px solid #ddcdb4;
+            cursor:pointer;
+        }
+        .item-left{
+            display:flex;
+            gap:12px;
+            align-items:center;
+        }
+        .check-box{
+            width:20px;height:20px;
+            border:1px solid #8c7250;
+            border-radius:4px;
+        }
+        .back-arrow{
+            position:absolute;
+            top:16px;
+            left:16px;
+            font-size:32px;
+            cursor:pointer;
+        }
+        #localFileInput,#lrcFileInput{display:none;}
+
+        /*图片预览弹窗*/
+        .img-preview-modal{
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.85);
+            display:none;
+            align-items:center;
+            justify-content:center;
+            z-index:999;
+        }
+        .img-preview-modal img{
+            max-width:90vw;
+            max-height:90vh;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="back-arrow">←</div>
+    <div class="scroll-player-wrap">
+        <div class="scroll-left"></div>
+        <div class="scroll-right"></div>
+        <div class="player-view" id="playerView">
+            <div class="media-box" id="mediaBox">
+                <div class="play-big-btn" id="bigPlayBtn">
+                    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+            </div>
+            <div class="music-icon-card">
+                <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+            </div>
+        </div>
+
+        <div class="lyric-wrap" id="lyricWrap">
+            <div class="lyric-header">
+                <span class="lyric-title">歌词</span>
+            </div>
+            <div class="lyric-scroll-container" id="lyricScrollContainer">
+                <div class="lyric-scroll" id="lyricScroll">
+                    <div class="lyric-line">支持 lrc / krc / txt 歌词；视频音频共用歌词模块</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="player-bottom-bar">
+            <div class="progress-row">
+                <span class="time-text" id="curTime">00:00</span>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-dot" id="progressDot"></div>
+                </div>
+                <span class="time-text" id="totalTime">00:00</span>
+            </div>
+            <div class="control-buttons">
+                <button class="ctrl-btn" id="prevBtn">◀◀</button>
+                <button class="ctrl-btn play-pause" id="playPauseBtn">▶</button>
+                <button class="ctrl-btn" id="nextBtn">▶▶</button>
+
+                <div class="bottom-right-buttons">
+                    <button class="fullscreen-bar-btn" id="fullBtn">全屏</button>
+                    <button class="lyric-bar-btn" id="lyricBarBtn">📄 歌词</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-sidebar">
+        <div class="top-btn-group">
+            <button class="btn-base btn-login" id="loginBtn">🔐 登录注册</button>
+            <button class="btn-base btn-upload" id="uploadBtn">👤 上传公开</button>
+            <button class="btn-base btn-local" id="localBtn">📜 本地导入</button>
+            <button class="btn-base btn-lrc" id="lrcBtn">📄 加载歌词</button>
+            <input type="file" id="localFileInput" accept="audio/*,video/*" multiple>
+            <input type="file" id="lrcFileInput" accept=".lrc,.krc,.txt">
+        </div>
+        <input class="search-input" placeholder="🔍 搜索音乐、视频、图片" id="searchInput">
+
+        <div class="tab-group-cloud">
+            <div class="tab-cloud active" data-prefix="music/">音乐</div>
+            <div class="tab-cloud" data-prefix="video/">视频</div>
+            <div class="tab-cloud" data-prefix="image/">图片</div>
+        </div>
+
+        <div class="cloud-resource-box" id="cloudBox">
+            <div style="color:#777;text-align:center;">加载云端资源...</div>
+        </div>
+
+        <div class="history-box">
+            <div class="history-title">
+                <span>历史播放目录</span>
+                <span id="foldHistory">—</span>
+            </div>
+            <div id="historyWrap">
+                <div style="color:#777;text-align:center;">选择本地文件后记录出现</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--图片预览弹窗-->
+<div class="img-preview-modal" id="imgModal">
+    <img id="previewImg"/>
+</div>
+
+<script>
+const API_BASE = "https://api.busisi.com";
+
+let mediaEl = null;
+let mediaUrl = null;
+let playList = [];
+let currentIndex = -1;
+let lyricData = [];
+let lyricPanelOpen = true;
+let currentCloudPrefix = "music/";
+
+const playerView = document.getElementById("playerView");
+const mediaBox = document.getElementById("mediaBox");
+const playPauseBtn = document.getElementById("playPauseBtn");
+const bigPlayBtn = document.getElementById("bigPlayBtn");
+const fullBtn = document.getElementById("fullBtn");
+const lyricBarBtn = document.getElementById("lyricBarBtn");
+const lyricScrollContainer = document.getElementById("lyricScrollContainer");
+const lyricWrap = document.getElementById("lyricWrap");
+const curTimeDom = document.getElementById("curTime");
+const totalTimeDom = document.getElementById("totalTime");
+const progressBar = document.getElementById("progressBar");
+const progressDot = document.getElementById("progressDot");
+const localBtn = document.getElementById("localBtn");
+const localFileInput = document.getElementById("localFileInput");
+const historyWrap = document.getElementById("historyWrap");
+const lrcBtn = document.getElementById("lrcBtn");
+const lrcFileInput = document.getElementById("lrcFileInput");
+const lyricScroll = document.getElementById("lyricScroll");
+const cloudBox = document.getElementById("cloudBox");
+const tabCloudList = document.querySelectorAll(".tab-cloud");
+const imgModal = document.getElementById("imgModal");
+const previewImg = document.getElementById("previewImg");
+
+//歌词切换
+function toggleLyricPanel(){
+    lyricPanelOpen = !lyricPanelOpen;
+    if(lyricPanelOpen){
+        lyricWrap.style.maxHeight = "260px";
+        lyricScrollContainer.style.maxHeight = "200px";
+        lyricBarBtn.innerText = "📄 关闭歌词";
+    }else{
+        lyricWrap.style.maxHeight = "0px";
+        lyricScrollContainer.style.maxHeight = "0px";
+        lyricBarBtn.innerText = "📄 打开歌词";
+    }
+}
+lyricBarBtn.addEventListener("click",toggleLyricPanel);
+
+//加载R2云端列表
+async function loadCloudList(prefix){
+    currentCloudPrefix = prefix;
+    cloudBox.innerHTML = `<div style="color:#777;text-align:center;">加载中...</div>`;
+    try{
+        const res = await fetch(`${API_BASE}/list?prefix=${encodeURIComponent(prefix)}`);
+        const json = await res.json();
+        if(json.code!==0){
+            cloudBox.innerHTML = `<div style="color:#777;text-align:center;">读取失败</div>`;
+            return;
+        }
+        const arr = json.data;
+        if(arr.length===0){
+            cloudBox.innerHTML = `<div style="color:#777;text-align:center;">该分类暂无云端文件</div>`;
+            return;
+        }
+        cloudBox.innerHTML = "";
+        arr.forEach(item=>{
+            const div = document.createElement("div");
+            div.className = "cloud-item";
+            div.innerText = item.key.replace(prefix,"");
+            div.dataset.key = item.key;
+            div.onclick = ()=>{
+                const fileUrl = `${API_BASE}/r2file/${encodeURIComponent(item.key)}`;
+                if(prefix === "image/"){
+                    //图片打开预览弹窗
+                    previewImg.src = fileUrl;
+                    imgModal.style.display = "flex";
+                }else{
+                    //音乐视频加载播放器
+                    loadCloudMedia(fileUrl,item.key);
+                }
+            }
+            cloudBox.appendChild(div);
+        })
+    }catch(e){
+        cloudBox.innerHTML = `<div style="color:#777;text-align:center;">接口异常</div>`;
+    }
+}
+
+//切换云端标签
+tabCloudList.forEach(tab=>{
+    tab.onclick = ()=>{
+        tabCloudList.forEach(t=>t.classList.remove("active"));
+        tab.classList.add("active");
+        loadCloudList(tab.dataset.prefix);
+    }
+})
+
+//关闭图片弹窗
+imgModal.onclick = ()=>{
+    imgModal.style.display = "none";
+}
+
+//加载云端音视频
+function loadCloudMedia(url,fileName){
+    destroyMedia();
+    const isVideo = /\.(mp4|mov)$/i.test(fileName);
+    mediaEl = document.createElement(isVideo?"video":"audio");
+    mediaEl.src = url;
+    mediaBox.insertBefore(mediaEl, bigPlayBtn);
+    bigPlayBtn.style.display="none";
+
+    mediaEl.ontimeupdate = ()=>{
+        curTimeDom.innerText = formatTime(mediaEl.currentTime);
+        const pct = (mediaEl.currentTime/mediaEl.duration)*100;
+        progressDot.style.left = pct+"%";
+        updateLyric(mediaEl.currentTime);
+    };
+    mediaEl.onloadedmetadata = ()=>{
+        totalTimeDom.innerText = formatTime(mediaEl.duration||0);
+    };
+    mediaEl.onended = ()=>{
+        playPauseBtn.innerText = "▶";
+    };
+    mediaEl.play();
+    playPauseBtn.innerText = "⏸";
+}
+
+function formatTime(s){
+    const m = Math.floor(s/60);
+    const sec = Math.floor(s%60);
+    return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+
+function destroyMedia(){
+    if(mediaEl){
+        mediaEl.pause();
+        mediaEl.remove();
+        mediaEl = null;
+    }
+    if(mediaUrl){
+        URL.revokeObjectURL(mediaUrl);
+        mediaUrl = null;
+    }
+    bigPlayBtn.style.display="none";
+    clearLyric();
+}
+function clearLyric(){
+    lyricData = [];
+    lyricScroll.innerHTML = `<div class="lyric-line">支持 lrc / krc / txt 歌词；视频音频共用歌词模块</div>`;
+}
+
+//LRC KRC解析
+function parseSimpleLrc(text){
+    const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/g;
+    const arr = [];
+    let m;
+    while((m=reg.exec(text))!==null){
+        const t = Number(m[1])*60 + Number(m[2]) + Number(m[3])/(m[3].length===2?100:1000);
+        const txt = m[4].trim();
+        if(txt){
+            arr.push({time:t,type:"line",text:txt,chars:[]})
+        }
+    }
+    arr.sort((a,b)=>a.time-b.time);
+    return arr;
+}
+function parseKrc(text){
+    const lines = text.replace(/\r/g,"").split("\n");
+    const out = [];
+    for(let line of lines){
+        line = line.trim();
+        if(!line) continue;
+        if(/^\[\w+\:/.test(line)) continue;
+        const lineMatch = /\[(\d+),(\d+)\](.+)/.exec(line);
+        if(!lineMatch) continue;
+        const lineStartMs = Number(lineMatch[1]);
+        const content = lineMatch[3];
+        const charReg = /<(\d+),(\d+),\d>(.)/g;
+        let cm;
+        const charList = [];
+        while((cm = charReg.exec(content))!==null){
+            const offsetMs = Number(cm[1]);
+            const ch = cm[3];
+            charList.push({offset:offsetMs/1000, char:ch});
+        }
+        if(charList.length>0){
+            out.push({
+                time: lineStartMs /1000,
+                type:"krc",
+                text: charList.map(i=>i.char).join(""),
+                chars: charList
+            })
+        }
+    }
+    out.sort((a,b)=>a.time-b.time);
+    return out;
+}
+
+function renderLyric(){
+    lyricScroll.innerHTML = "";
+    lyricData.forEach((item,lineIdx)=>{
+        const div = document.createElement("div");
+        div.className = "lyric-line";
+        div.dataset.line = lineIdx;
+        if(item.type==="krc"){
+            item.chars.forEach((ch,ci)=>{
+                const span = document.createElement("span");
+                span.className = "char-normal";
+                span.innerText = ch.char;
+                span.dataset.cidx = ci;
+                div.appendChild(span);
+            })
+        }else{
+            div.innerText = item.text;
+        }
+        lyricScroll.appendChild(div);
+    })
+}
+
+function updateLyric(nowSec){
+    if(!lyricData.length) return;
+    let activeLine = -1;
+    for(let i=0;i<lyricData.length;i++){
+        if(lyricData[i].time <= nowSec) activeLine = i;
+        else break;
+    }
+    const lineDomList = lyricScroll.querySelectorAll(".lyric-line");
+    lineDomList.forEach(d=>d.classList.remove("active-line"));
+    if(activeLine<0) return;
+    const curLineItem = lyricData[activeLine];
+    const curLineDom = lineDomList[activeLine];
+    curLineDom.classList.add("active-line");
+    lyricScroll.style.transform = `translateY(${-curLineDom.offsetTop + 80}px)`;
+
+    if(curLineItem.type==="krc"){
+        const lineStartTime = curLineItem.time;
+        const localNow = nowSec - lineStartTime;
+        let passIndex = -1;
+        for(let c=0;c<curLineItem.chars.length;c++){
+            if(curLineItem.chars[c].offset <= localNow) passIndex = c;
+            else break;
+        }
+        const spanList = curLineDom.querySelectorAll("span");
+        spanList.forEach((sp,idx)=>{
+            sp.className = idx <= passIndex ? "char-light":"char-normal";
+        })
+    }
+}
+
+lrcBtn.addEventListener("click",()=>lrcFileInput.click());
+lrcFileInput.addEventListener("change",e=>{
+    const f = e.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload=ev=>{
+        const txt = ev.target.result;
+        let temp = parseKrc(txt);
+        if(temp.length===0){
+            temp = parseSimpleLrc(txt);
+        }
+        lyricData = temp;
+        renderLyric();
+    }
+    reader.readAsText(f,"utf-8");
+})
+
+//本地文件
+function createMedia(fileObj){
+    destroyMedia();
+    mediaUrl = URL.createObjectURL(fileObj);
+    const isVideo = fileObj.type.startsWith("video");
+    mediaEl = document.createElement(isVideo ? "video":"audio");
+    mediaEl.src = mediaUrl;
+    mediaBox.insertBefore(mediaEl, bigPlayBtn);
+    bigPlayBtn.style.display="none";
+
+    mediaEl.ontimeupdate = ()=>{
+        curTimeDom.innerText = formatTime(mediaEl.currentTime);
+        const pct = (mediaEl.currentTime/mediaEl.duration)*100;
+        progressDot.style.left = pct+"%";
+        updateLyric(mediaEl.currentTime);
+    };
+    mediaEl.onloadedmetadata = ()=>{
+        totalTimeDom.innerText = formatTime(mediaEl.duration||0);
+    };
+    mediaEl.onended = ()=>{
+        playPauseBtn.innerText = "▶";
+    };
+}
+
+function togglePlay(){
+    if(!mediaEl) return;
+    if(mediaEl.paused){
+        mediaEl.play();
+        playPauseBtn.innerText = "⏸";
+    }else{
+        mediaEl.pause();
+        playPauseBtn.innerText = "▶";
+    }
+}
+playPauseBtn.addEventListener("click",togglePlay);
+bigPlayBtn.addEventListener("click",togglePlay);
+
+progressBar.addEventListener("click",e=>{
+    if(!mediaEl||!mediaEl.duration) return;
+    const rect = progressBar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const rate = x / rect.width;
+    mediaEl.currentTime = rate * mediaEl.duration;
+})
+
+fullBtn.addEventListener("click",async ()=>{
+    if(!mediaEl) return;
+    try{
+        if(!document.fullscreenElement){
+            await mediaEl.requestFullscreen();
+            fullBtn.innerText="退出全屏";
+        }else{
+            await document.exitFullscreen();
+            fullBtn.innerText="全屏";
+        }
+    }catch(err){console.log(err)}
+})
+document.addEventListener("fullscreenchange",()=>{
+    fullBtn.innerText = document.fullscreenElement ? "退出全屏":"全屏";
+})
+
+localBtn.addEventListener("click",()=>localFileInput.click());
+localFileInput.addEventListener("change",e=>{
+    const files = Array.from(e.target.files);
+    if(!files.length) return;
+    playList = files;
+    currentIndex = 0;
+    createMedia(files[0]);
+    togglePlay();
+    renderHistoryLocal();
+})
+
+function renderHistoryLocal(){
+    historyWrap.innerHTML = "";
+    playList.forEach((f,idx)=>{
+        const div = document.createElement("div");
+        div.className = "history-item";
+        div.innerHTML = `
+            <div class="item-left">
+                <div class="check-box"></div>
+                <span>${f.name}</span>
+            </div>
+            <span>></span>
+        `;
+        div.onclick = ()=>{
+            currentIndex = idx;
+            createMedia(f);
+            togglePlay();
+        }
+        historyWrap.appendChild(div);
+    })
+}
+
+document.getElementById("prevBtn").addEventListener("click",()=>{
+    if(playList.length===0) return;
+    currentIndex = (currentIndex-1 + playList.length) % playList.length;
+    createMedia(playList[currentIndex]);
+    togglePlay();
+})
+document.getElementById("nextBtn").addEventListener("click",()=>{
+    if(playList.length===0) return;
+    currentIndex = (currentIndex+1) % playList.length;
+    createMedia(playList[currentIndex]);
+    togglePlay();
+})
+
+let foldState = false;
+document.getElementById("foldHistory").addEventListener("click",function(){
+    foldState = !foldState;
+    historyWrap.style.display = foldState ? "none":"block";
+    this.innerText = foldState ? "+":"—";
+})
+
+document.getElementById("loginBtn").onclick = ()=>{};
+document.getElementById("uploadBtn").onclick = ()=>{};
+document.querySelector(".back-arrow").onclick = ()=>{};
+
+//初始化加载音乐分类
+loadCloudList("music/");
+
+//键盘快捷键
+document.addEventListener("keydown",function(e){
+    if(document.activeElement.tagName === "INPUT") return;
+    if(!mediaEl) return;
+    switch(e.code){
+        case "Space":
+            e.preventDefault();
+            togglePlay();
+            break;
+        case "ArrowLeft":
+            e.preventDefault();
+            mediaEl.currentTime -=5;
+            break;
+        case "ArrowRight":
+            e.preventDefault();
+            mediaEl.currentTime +=5;
+            break;
+        case "ArrowUp":
+            e.preventDefault();
+            mediaEl.volume = Math.min(1, mediaEl.volume + 0.1);
+            break;
+        case "ArrowDown":
+            e.preventDefault();
+            mediaEl.volume = Math.max(0, mediaEl.volume - 0.1);
+            break;
+        case "KeyM":
+            e.preventDefault();
+            mediaEl.muted = !mediaEl.muted;
+            break;
+        case "KeyF":
+            e.preventDefault();
+            if(!document.fullscreenElement){
+                mediaEl.requestFullscreen();
+                fullBtn.innerText="退出全屏";
+            }else{
+                document.exitFullscreen();
+                fullBtn.innerText="全屏";
+            }
+            break;
+    }
+})
+</script>
+</body>
+</html>
