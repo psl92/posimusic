@@ -528,6 +528,111 @@
         .comment-name{
             font-weight:bold;
         }
+        /*登录弹窗样式*/
+        .login-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-modal {
+            width: 420px;
+            background: #f7efdd;
+            border: 2px solid #b89b70;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(90, 60, 40, 0.35);
+        }
+        .login-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: #e9ddc8;
+            border-bottom: 1px solid #b89b70;
+        }
+        .login-modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3a2e20;
+        }
+        .login-modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #66543c;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .login-modal-tabs {
+            display: flex;
+            border-bottom: 1px solid #b89b70;
+        }
+        .login-tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: #f9f1de;
+            color: #66543c;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .login-tab-btn.active {
+            background: #c8a87c;
+            color: #fff;
+        }
+        .login-modal-body {
+            padding: 20px;
+        }
+        .login-form,
+        .register-form {
+            display: none;
+        }
+        .login-form.active,
+        .register-form.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #3a2e20;
+            font-size: 14px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #b89b70;
+            border-radius: 8px;
+            background: #f9f1de;
+            color: #3a2e20;
+            font-size: 16px;
+        }
+        .login-submit-btn,
+        .register-submit-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(145deg, rgba(255, 210, 170, 0.95), rgba(204, 120, 70, 0.95));
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(90, 60, 40, 0.25);
+        }
+        .login-modal-footer {
+            padding: 12px 20px;
+            font-size: 13px;
+            color: #777;
+            text-align: center;
+            background: #e9ddc8;
+            border-top: 1px solid #b89b70;
+        }
     </style>
 </head>
 <body>
@@ -628,6 +733,51 @@
     <img id="previewImg"/>
 </div>
 
+<!--登录注册弹窗HTML-->
+<div class="login-modal-overlay" id="loginModalOverlay">
+    <div class="login-modal">
+        <div class="login-modal-header">
+            <span class="login-modal-title">账号登录</span>
+            <button class="login-modal-close" id="loginModalClose">×</button>
+        </div>
+        <div class="login-modal-tabs">
+            <button class="login-tab-btn active" data-tab="login">登录</button>
+            <button class="login-tab-btn" data-tab="register">注册</button>
+        </div>
+        <div class="login-modal-body">
+            <form class="login-form active" id="loginForm">
+                <div class="form-group">
+                    <label>账号</label>
+                    <input type="text" id="loginUsername" placeholder="请输入账号" />
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" />
+                </div>
+                <button type="submit" class="login-submit-btn">登录</button>
+            </form>
+            <form class="register-form" id="registerForm">
+                <div class="form-group">
+                    <label>账号</label>
+                    <input type="text" id="registerUsername" placeholder="请输入账号" />
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="registerPassword" placeholder="请输入密码" />
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input type="password" id="registerPassword2" placeholder="请再次输入密码" />
+                </div>
+                <button type="submit" class="register-submit-btn">注册</button>
+            </form>
+        </div>
+        <div class="login-modal-footer" id="loginModalFooter">
+            登录后可使用收藏、评论、上传功能
+        </div>
+    </div>
+</div>
+
 <script>
 const API_BASE = "https://api.busisi.com";
 
@@ -667,6 +817,125 @@ const commentInput = document.getElementById("commentInput");
 const sendCommentBtn = document.getElementById("sendCommentBtn");
 const commentListBox = document.getElementById("commentListBox");
 const collectBtn = document.getElementById("collectBtn");
+
+//登录弹窗元素
+const loginBtn = document.getElementById("loginBtn");
+const loginModalOverlay = document.getElementById("loginModalOverlay");
+const loginModalClose = document.getElementById("loginModalClose");
+const loginTabBtns = document.querySelectorAll(".login-tab-btn");
+const loginForm = document.getElementById("loginForm");
+const registerForm = document.getElementById("registerForm");
+const loginModalTitle = document.querySelector(".login-modal-title");
+
+//读取本地登录缓存
+const saved = localStorage.getItem("loginUser");
+if(saved){
+    loginUser = JSON.parse(saved);
+    loginBtn.innerText = `已登录：${loginUser.username}`;
+    loginBtn.disabled = true;
+    loginBtn.style.opacity = "0.65";
+}
+
+//弹窗控制函数
+function openLoginModal() {
+    loginModalOverlay.style.display = "flex";
+    resetLoginModal();
+}
+function closeLoginModal() {
+    loginModalOverlay.style.display = "none";
+}
+function resetLoginModal() {
+    loginTabBtns.forEach(btn => btn.classList.remove("active"));
+    loginTabBtns[0].classList.add("active");
+    loginForm.classList.add("active");
+    registerForm.classList.remove("active");
+    loginModalTitle.innerText = "账号登录";
+    document.getElementById("loginUsername").value = "";
+    document.getElementById("loginPassword").value = "";
+    document.getElementById("registerUsername").value = "";
+    document.getElementById("registerPassword").value = "";
+    document.getElementById("registerPassword2").value = "";
+}
+
+loginBtn.onclick = openLoginModal;
+loginModalClose.onclick = closeLoginModal;
+loginModalOverlay.onclick = e => {
+    if (e.target === loginModalOverlay) closeLoginModal();
+};
+
+loginTabBtns.forEach(btn => {
+    btn.onclick = () => {
+        loginTabBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        if (tab === "login") {
+            loginForm.classList.add("active");
+            registerForm.classList.remove("active");
+            loginModalTitle.innerText = "账号登录";
+        } else {
+            loginForm.classList.remove("active");
+            registerForm.classList.add("active");
+            loginModalTitle.innerText = "账号注册";
+        }
+    };
+});
+
+//登录提交
+loginForm.onsubmit = async e => {
+    e.preventDefault();
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    if (!username || !password) {
+        alert("请输入账号和密码");
+        return;
+    }
+    const res = await fetch(`${API_BASE}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
+    const json = await res.json();
+    alert(json.msg);
+    if (json.code === 200) {
+        loginUser = json.user;
+        localStorage.setItem("loginUser", JSON.stringify(loginUser));
+        closeLoginModal();
+        loginBtn.innerText = `已登录：${loginUser.username}`;
+        loginBtn.disabled = true;
+        loginBtn.style.opacity = "0.65";
+    }
+};
+
+//注册提交
+registerForm.onsubmit = async e => {
+    e.preventDefault();
+    const username = document.getElementById("registerUsername").value.trim();
+    const password = document.getElementById("registerPassword").value.trim();
+    const password2 = document.getElementById("registerPassword2").value.trim();
+    if (!username || !password || !password2) {
+        alert("请填写完整信息");
+        return;
+    }
+    if (password !== password2) {
+        alert("两次密码不一致");
+        return;
+    }
+    const res = await fetch(`${API_BASE}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+    });
+    const json = await res.json();
+    alert(json.msg);
+    if (json.code === 200) {
+        loginUser = { user_id: json.user_id, username };
+        localStorage.setItem("loginUser", JSON.stringify(loginUser));
+        closeLoginModal();
+        loginBtn.innerText = `已登录：${loginUser.username}`;
+        loginBtn.disabled = true;
+        loginBtn.style.opacity = "0.65";
+    }
+};
 
 //歌词切换
 function toggleLyricPanel(){
@@ -931,254 +1200,35 @@ function createMedia(fileObj){
     destroyMedia();
     mediaUrl = URL.createObjectURL(fileObj);
     const isVideo = fileObj.type.startsWith("video");
-    mediaEl = document.createElement(isVideo ? "video":"audio");
+    mediaEl = document.createElement(isVideo ? "audio":"video");
     mediaEl.src = mediaUrl;
-    mediaBox.insertBefore(mediaEl, bigPlayBtn);
-    bigPlayBtn.style.display="none";
-
-    mediaEl.ontimeupdate = ()=>{
-        curTimeDom.innerText = formatTime(mediaEl.currentTime);
-        const pct = (mediaEl.currentTime/mediaEl.duration)*100;
-        progressDot.style.left = pct+"%";
-        updateLyric(mediaEl.currentTime);
-    };
-    mediaEl.onloadedmetadata = ()=>{
-        totalTimeDom.innerText = formatTime(mediaEl.duration||0);
-    };
-    mediaEl.onended = ()=>{
-        playPauseBtn.innerText = "▶";
-    };
+    mediaBox.insertBefore(mediaEl, mediaBox.firstChild);
+    
+    //基础播放配置
+    mediaEl.controls = true;
+    mediaEl.preload = "auto";
+    if(isVideo){
+        mediaEl.style.width = "100%";
+        mediaEl.style.height = "auto";
+    }
+    //可选自动播放（浏览器限制，移动端大概率失效）
+    //mediaEl.play().catch(e=>{});
 }
 
-function togglePlay(){
-    if(!mediaEl) return;
-    if(mediaEl.paused){
-        mediaEl.play();
-        playPauseBtn.innerText = "⏸";
-    }else{
+//销毁媒体释放内存
+function destroyMedia(){
+    if(mediaEl){
         mediaEl.pause();
-        playPauseBtn.innerText = "▶";
+        mediaEl.currentTime = 0;
+        mediaEl.src = "";
+        mediaEl.load();
+    }
+    if(mediaUrl){
+        URL.revokeObjectURL(mediaUrl);
+        mediaUrl = "";
+    }
+    if(mediaEl){
+        mediaEl.remove();
+        mediaEl = null;
     }
 }
-playPauseBtn.addEventListener("click",togglePlay);
-bigPlayBtn.addEventListener("click",togglePlay);
-
-progressBar.addEventListener("click",e=>{
-    if(!mediaEl||!mediaEl.duration) return;
-    const rect = progressBar.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const rate = x / rect.width;
-    mediaEl.currentTime = rate * mediaEl.duration;
-})
-
-fullBtn.addEventListener("click",async ()=>{
-    if(!mediaEl) return;
-    try{
-        if(!document.fullscreenElement){
-            await mediaEl.requestFullscreen();
-            fullBtn.innerText="退出全屏";
-        }else{
-            await document.exitFullscreen();
-            fullBtn.innerText="全屏";
-        }
-    }catch(err){console.log(err)}
-})
-document.addEventListener("fullscreenchange",()=>{
-    fullBtn.innerText = document.fullscreenElement ? "退出全屏":"全屏";
-})
-
-localBtn.addEventListener("click",()=>localFileInput.click());
-localFileInput.addEventListener("change",e=>{
-    const files = Array.from(e.target.files);
-    if(!files.length) return;
-    playList = files;
-    currentIndex = 0;
-    createMedia(files[0]);
-    togglePlay();
-    renderHistoryLocal();
-})
-
-function renderHistoryLocal(){
-    historyWrap.innerHTML = "";
-    playList.forEach((f,idx)=>{
-        const div = document.createElement("div");
-        div.className = "history-item";
-        div.innerHTML = `
-            <div class="item-left">
-                <div class="check-box"></div>
-                <span>${f.name}</span>
-            </div>
-            <span>></span>
-        `;
-        div.onclick = ()=>{
-            currentIndex = idx;
-            createMedia(playList[currentIndex]);
-            togglePlay();
-        }
-        historyWrap.appendChild(div);
-    })
-}
-
-document.getElementById("prevBtn").addEventListener("click",()=>{
-    if(playList.length===0) return;
-    currentIndex = (currentIndex-1 + playList.length) % playList.length;
-    createMedia(playList[currentIndex]);
-    togglePlay();
-})
-document.getElementById("nextBtn").addEventListener("click",()=>{
-    if(playList.length===0) return;
-    currentIndex = (currentIndex+1) % playList.length;
-    createMedia(playList[currentIndex]);
-    togglePlay();
-})
-
-let foldState = false;
-document.getElementById("foldHistory").addEventListener("click",function(){
-    foldState = !foldState;
-    historyWrap.style.display = foldState ? "none":"block";
-    this.innerText = foldState ? "+":"—";
-})
-
-//==== 用户登录注册、收藏、评论、播放计数模块 ====
-async function openLoginModal(){
-    const act = prompt("请输入操作：login=登录，register=注册");
-    if(!act) return;
-    const username = prompt("账号");
-    if(!username)return;
-    const password = prompt("密码");
-    if(!password)return;
-
-    if(act==="register"){
-        const res = await fetch(`${API_BASE}/register`,{
-            method:"POST",
-            headers:{"Content‑Type":"application/json"},
-            body:JSON.stringify({username,password})
-        })
-        const json = await res.json();
-        alert(json.msg);
-        if(json.code===200){
-            loginUser = {user_id:json.user_id,username};
-        }
-    }else if(act==="login"){
-        const res = await fetch(`${API_BASE}/login`,{
-            method:"POST",
-            headers:{"Content‑Type":"application/json"},
-            body:JSON.stringify({username,password})
-        })
-        const json = await res.json();
-        alert(json.msg);
-        if(json.code===200){
-            loginUser = json.user;
-        }
-    }
-}
-document.getElementById("loginBtn").onclick = openLoginModal;
-
-//播放计数上报
-async function sendPlayCount(mediaId){
-    if(!mediaId) return;
-    await fetch(`${API_BASE}/playcount/${encodeURIComponent(mediaId)}`,{method:"POST"});
-}
-
-//添加收藏
-collectBtn.onclick = async ()=>{
-    if(!loginUser){alert("请先登录");return;}
-    if(!currentPlayingKey){alert("请先打开云端音视频");return;}
-    const res = await fetch(`${API_BASE}/collect/add`,{
-        method:"POST",
-        headers:{"Content‑Type":"application/json"},
-        body:JSON.stringify({user_id:loginUser.user_id,media_id:currentPlayingKey})
-    })
-    const json = await res.json();
-    alert(json.msg);
-}
-
-//发送评论
-sendCommentBtn.onclick = async ()=>{
-    if(!loginUser){alert("请先登录");return;}
-    if(!currentPlayingKey){alert("请先打开云端音视频");return;}
-    const content = commentInput.value.trim();
-    if(!content){alert("评论内容不能为空");return;}
-    const res = await fetch(`${API_BASE}/comment/add`,{
-        method:"POST",
-        headers:{"Content‑Type":"application/json"},
-        body:JSON.stringify({
-            media_id:currentPlayingKey,
-            user_id:loginUser.user_id,
-            username:loginUser.username,
-            content
-        })
-    })
-    const json = await res.json();
-    alert(json.msg);
-    commentInput.value = "";
-    loadCommentList(currentPlayingKey);
-}
-
-//读取评论列表
-async function loadCommentList(mediaId){
-    const res = await fetch(`${API_BASE}/comment/list/${encodeURIComponent(mediaId)}`);
-    const json = await res.json();
-    commentListBox.innerHTML = "";
-    if(!json.data || json.data.length===0){
-        commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
-        return;
-    }
-    json.data.forEach(c=>{
-        const div = document.createElement("div");
-        div.className = "comment-item";
-        div.innerHTML = `<div class="comment-name">${c.username}</div><div>${c.content}</div>`;
-        commentListBox.appendChild(div);
-    })
-}
-
-document.getElementById("uploadBtn").onclick = ()=>{};
-document.querySelector(".back-arrow").onclick = ()=>{};
-
-//初始化加载音乐分类
-loadCloudList("music/");
-
-//键盘快捷键
-document.addEventListener("keydown",function(e){
-    if(document.activeElement.tagName === "INPUT") return;
-    if(!mediaEl) return;
-    switch(e.code){
-        case "Space":
-            e.preventDefault();
-            togglePlay();
-            break;
-        case "ArrowLeft":
-            e.preventDefault();
-            mediaEl.currentTime -=5;
-            break;
-        case "ArrowRight":
-            e.preventDefault();
-            mediaEl.currentTime +=5;
-            break;
-        case "ArrowUp":
-            e.preventDefault();
-            mediaEl.volume = Math.min(1, mediaEl.volume + 0.1);
-            break;
-        case "ArrowDown":
-            e.preventDefault();
-            mediaEl.volume = Math.max(0, mediaEl.volume - 0.1);
-            break;
-        case "KeyM":
-            e.preventDefault();
-            mediaEl.muted = !mediaEl.muted;
-            break;
-        case "KeyF":
-            e.preventDefault();
-            if(!document.fullscreenElement){
-                mediaEl.requestFullscreen();
-                fullBtn.innerText="退出全屏";
-            }else{
-                document.exitFullscreen();
-                fullBtn.innerText="全屏";
-            }
-            break;
-    }
-})
-</script>
-</body>
-</html>
