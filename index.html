@@ -501,6 +501,33 @@
             max-width:90vw;
             max-height:90vh;
         }
+        /*评论区*/
+        .comment-wrap{
+            border:1px solid #c8b494;
+            border-radius:12px;
+            padding:14px;
+            max-height:260px;
+            overflow-y:auto;
+        }
+        .comment-input-row{
+            display:flex;
+            gap:8px;
+            margin-bottom:10px;
+        }
+        .comment-input{
+            flex:1;
+            padding:8px;
+            border-radius:8px;
+            border:1px solid #b89b70;
+            background:#f9f1de;
+        }
+        .comment-item{
+            padding:8px 4px;
+            border-bottom:1px solid #ddcdb4;
+        }
+        .comment-name{
+            font-weight:bold;
+        }
     </style>
 </head>
 <body>
@@ -555,6 +582,7 @@
     <div class="right-sidebar">
         <div class="top-btn-group">
             <button class="btn-base btn-login" id="loginBtn">🔐 登录注册</button>
+            <button class="btn-base" id="collectBtn">⭐收藏</button>
             <button class="btn-base btn-upload" id="uploadBtn">👤 上传公开</button>
             <button class="btn-base btn-local" id="localBtn">📜 本地导入</button>
             <button class="btn-base btn-lrc" id="lrcBtn">📄 加载歌词</button>
@@ -571,6 +599,16 @@
 
         <div class="cloud-resource-box" id="cloudBox">
             <div style="color:#777;text-align:center;">加载云端资源...</div>
+        </div>
+        <!--评论区面板-->
+        <div class="comment-wrap">
+            <div class="comment-input-row">
+                <input class="comment-input" id="commentInput" placeholder="写下你的评论">
+                <button class="btn-base" id="sendCommentBtn">发送</button>
+            </div>
+            <div id="commentListBox">
+                <div style="color:#777;text-align:center;">暂无评论</div>
+            </div>
         </div>
 
         <div class="history-box">
@@ -600,6 +638,8 @@ let currentIndex = -1;
 let lyricData = [];
 let lyricPanelOpen = true;
 let currentCloudPrefix = "music/";
+let currentPlayingKey = "";
+let loginUser = null;
 
 const playerView = document.getElementById("playerView");
 const mediaBox = document.getElementById("mediaBox");
@@ -623,6 +663,10 @@ const cloudBox = document.getElementById("cloudBox");
 const tabCloudList = document.querySelectorAll(".tab-cloud");
 const imgModal = document.getElementById("imgModal");
 const previewImg = document.getElementById("previewImg");
+const commentInput = document.getElementById("commentInput");
+const sendCommentBtn = document.getElementById("sendCommentBtn");
+const commentListBox = document.getElementById("commentListBox");
+const collectBtn = document.getElementById("collectBtn");
 
 //歌词切换
 function toggleLyricPanel(){
@@ -641,9 +685,7 @@ lyricBarBtn.addEventListener("click",toggleLyricPanel);
 
 //自动云端搜索歌词
 async function autoSearchLyric(fileFullName){
-    //去掉路径前缀 music/
     let fileName = fileFullName.replace("music/","");
-    //切掉后缀 .mp3 .wav
     let baseName = fileName.substring(0,fileName.lastIndexOf('.'));
     const lyricUrl = `${API_BASE}/r2file/lyric/${encodeURIComponent(baseName)}.lrc`;
     try{
@@ -687,11 +729,9 @@ async function loadCloudList(prefix){
             div.onclick = ()=>{
                 const fileUrl = `${API_BASE}/r2file/${encodeURIComponent(item.key)}`;
                 if(prefix === "images/"){
-                    //图片打开预览弹窗
                     previewImg.src = fileUrl;
                     imgModal.style.display = "flex";
                 }else{
-                    //音乐视频加载播放器
                     loadCloudMedia(fileUrl,item.key);
                 }
             }
@@ -719,6 +759,7 @@ imgModal.onclick = ()=>{
 //加载云端音视频
 function loadCloudMedia(url,fileName){
     destroyMedia();
+    currentPlayingKey = fileName;
     const isVideo = /\.(mp4|mov)$/i.test(fileName);
     mediaEl = document.createElement(isVideo?"video":"audio");
     mediaEl.src = url;
@@ -739,8 +780,9 @@ function loadCloudMedia(url,fileName){
     };
     mediaEl.play();
     playPauseBtn.innerText = "⏸";
-    //自动搜索云端歌词
     autoSearchLyric(fileName);
+    sendPlayCount(fileName);
+    loadCommentList(fileName);
 }
 
 function formatTime(s){
@@ -761,6 +803,8 @@ function destroyMedia(){
     }
     bigPlayBtn.style.display="none";
     clearLyric();
+    currentPlayingKey = "";
+    commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
 }
 function clearLyric(){
     lyricData = [];
@@ -995,7 +1039,99 @@ document.getElementById("foldHistory").addEventListener("click",function(){
     this.innerText = foldState ? "+":"—";
 })
 
-document.getElementById("loginBtn").onclick = ()=>{};
+//==== 用户登录注册、收藏、评论、播放计数模块 ====
+async function openLoginModal(){
+    const act = prompt("请输入操作：login=登录，register=注册");
+    if(!act) return;
+    const username = prompt("账号");
+    if(!username)return;
+    const password = prompt("密码");
+    if(!password)return;
+
+    if(act==="register"){
+        const res = await fetch(`${API_BASE}/register`,{
+            method:"POST",
+            headers:{"Content‑Type":"application/json"},
+            body:JSON.stringify({username,password})
+        })
+        const json = await res.json();
+        alert(json.msg);
+        if(json.code===200){
+            loginUser = {user_id:json.user_id,username};
+        }
+    }else if(act==="login"){
+        const res = await fetch(`${API_BASE}/login`,{
+            method:"POST",
+            headers:{"Content‑Type":"application/json"},
+            body:JSON.stringify({username,password})
+        })
+        const json = await res.json();
+        alert(json.msg);
+        if(json.code===200){
+            loginUser = json.user;
+        }
+    }
+}
+document.getElementById("loginBtn").onclick = openLoginModal;
+
+//播放计数上报
+async function sendPlayCount(mediaId){
+    if(!mediaId) return;
+    await fetch(`${API_BASE}/playcount/${encodeURIComponent(mediaId)}`,{method:"POST"});
+}
+
+//添加收藏
+collectBtn.onclick = async ()=>{
+    if(!loginUser){alert("请先登录");return;}
+    if(!currentPlayingKey){alert("请先打开云端音视频");return;}
+    const res = await fetch(`${API_BASE}/collect/add`,{
+        method:"POST",
+        headers:{"Content‑Type":"application/json"},
+        body:JSON.stringify({user_id:loginUser.user_id,media_id:currentPlayingKey})
+    })
+    const json = await res.json();
+    alert(json.msg);
+}
+
+//发送评论
+sendCommentBtn.onclick = async ()=>{
+    if(!loginUser){alert("请先登录");return;}
+    if(!currentPlayingKey){alert("请先打开云端音视频");return;}
+    const content = commentInput.value.trim();
+    if(!content){alert("评论内容不能为空");return;}
+    const res = await fetch(`${API_BASE}/comment/add`,{
+        method:"POST",
+        headers:{"Content‑Type":"application/json"},
+        body:JSON.stringify({
+            media_id:currentPlayingKey,
+            user_id:loginUser.user_id,
+            username:loginUser.username,
+            content
+        })
+    })
+    const json = await res.json();
+    alert(json.msg);
+    commentInput.value = "";
+    loadCommentList(currentPlayingKey);
+}
+
+//读取评论列表
+async function loadCommentList(mediaId){
+    const res = await fetch(`${API_BASE}/comment/list/${encodeURIComponent(mediaId)}`);
+    const json = await res.json();
+    commentListBox.innerHTML = "";
+    if(!json.data || json.data.length===0){
+        commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
+        return;
+    }
+    json.data.forEach(c=>{
+        const div = document.createElement("div");
+        div.className = "comment-item";
+        div.innerHTML = `<div class="comment-name">${c.username}</div><div>${c.content}</div>`;
+        commentListBox.appendChild(div);
+    })
+}
+
 document.getElementById("uploadBtn").onclick = ()=>{};
 document.querySelector(".back-arrow").onclick = ()=>{};
 
