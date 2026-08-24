@@ -66,6 +66,7 @@
         video,audio{
             width:100%;
             max-height:220px;
+            display:none;
         }
 
         .play-big-btn{
@@ -124,6 +125,7 @@
             display:flex;
             flex-direction:column;
             transition: max-height 0.35s ease-out;
+            max-height:260px;
         }
         .lyric-scroll-container{
             overflow:hidden;
@@ -652,6 +654,8 @@
         <div class="scroll-right"></div>
         <div class="player-view" id="playerView">
             <div class="media-box" id="mediaBox">
+                <audio id="audioEl">
+                <video id="videoEl"></video>
                 <div class="play-big-btn" id="bigPlayBtn">
                     <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
@@ -687,7 +691,7 @@
 
                 <div class="bottom-right-buttons">
                     <button class="fullscreen-bar-btn" id="fullBtn">全屏</button>
-                    <button class="lyric-bar-btn" id="lyricBarBtn">📄 歌词</button>
+                    <button class="lyric-bar-btn" id="lyricBarBtn">📄 关闭歌词</button>
                 </div>
             </div>
         </div>
@@ -854,6 +858,9 @@ if(saved){
 }
 renderHistory();
 
+//页面初始化加载音乐分类
+loadCloudList("music/");
+
 //弹窗控制函数
 function openLoginModal() {
     loginModalOverlay.style.display = "flex";
@@ -945,6 +952,15 @@ fullBtn.onclick = ()=>{
     }else{
         document.exitFullscreen();
     }
+}
+
+//进度条点击跳转
+progressBar.onclick = function(e){
+    if(!mediaEl || !mediaEl.duration) return;
+    const rect = progressBar.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const percent = offsetX / rect.width;
+    mediaEl.currentTime = percent * mediaEl.duration;
 }
 
 //登录提交
@@ -1199,166 +1215,122 @@ async function loadCloudList(prefix){
             if(metaJson.code===0){
                 metaText = ` ▶${metaJson.data.playCount} ⭐${metaJson.data.favCount}`;
             }
-            div.innerHTML = `<div>${obj.key}</div><div style="font-size:11px;color:#888">${metaText}</div>`;
+            div.innerHTML = `
+                <div class="item-name">${obj.key.replace(prefix,"")}</div>
+                <div class="item-meta">${metaText}</div>
+            `;
+            div.dataset.key = obj.key;
+            div.dataset.index = idx;
             div.onclick = ()=>{
-                currentIndex = idx;
+                currentIndex = Number(div.dataset.index);
                 const url = `${API_BASE}/getmusic?key=${encodeURIComponent(obj.key)}`;
-                loadCloudMedia(url,obj.key);
-            }
+                loadCloudMedia(url, obj.key);
+            };
             cloudBox.appendChild(div);
         }
     }catch(err){
-        console.error(err);
         cloudBox.innerHTML = `<div style="color:#777;text-align:center;">网络请求异常</div>`;
+        console.error(err);
     }
 }
 
-//切换云端标签
-tabCloudList.forEach(tab=>{
-    tab.onclick = ()=>{
-        tabCloudList.forEach(t=>t.classList.remove("active"));
-        tab.classList.add("active");
-        loadCloudList(tab.dataset.prefix);
-    }
-})
-
-//本地加载歌词文件
-lrcBtn.onclick = ()=>{
-    lrcFileInput.click();
-}
-lrcFileInput.onchange = async e=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const text = await file.text();
-    lyricData = parseSimpleLrc(text);
-    renderLyric();
-}
-
-//关闭图片弹窗
-imgModal.onclick = ()=>{
-    imgModal.style.display = "none";
-}
-
-//加载云端音视频
-function loadCloudMedia(url,fileName){
-    destroyMedia();
-    currentPlayingKey = fileName;
-    if(!playHistory.includes(fileName)){
-        playHistory.unshift(fileName);
-        if(playHistory.length>30) playHistory.pop();
+//加载云端媒体
+async function loadCloudMedia(url,key){
+    currentPlayingKey = key;
+    refreshMediaMeta(key);
+    loadCommentList(key);
+    autoSearchLyric(key);
+    const historyItem = {key,name:key};
+    const exist = playHistory.find(x=>x.key===key);
+    if(!exist){
+        playHistory.unshift(historyItem);
+        if(playHistory.length>50) playHistory.pop();
         localStorage.setItem("playHistory",JSON.stringify(playHistory));
         renderHistory();
     }
-    collectBtn.innerText = favList.includes(fileName)?"★已收藏":"⭐收藏";
-
-    const isVideo = /\.(mp4|webm|mov)$/i.test(fileName);
-    if(isVideo){
-        videoEl.src = url;
-        videoEl.style.display = "block";
-        audioEl.style.display = "none";
-        mediaEl = videoEl;
+    mediaEl = audioEl;
+    mediaEl.src = url;
+    await mediaEl.play();
+    playPauseBtn.innerText = "⏸";
+    if(favList.includes(currentPlayingKey)){
+        collectBtn.innerText = "★已收藏";
     }else{
-        audioEl.src = url;
-        audioEl.style.display = "block";
-        videoEl.style.display = "none";
-        mediaEl = audioEl;
+        collectBtn.innerText = "⭐收藏";
     }
-    //绑定媒体事件
-    bindMediaEvent();
-    //自动加载歌词
-    autoSearchLyric(fileName);
-    //加载评论
-    loadCommentList(fileName);
-    //加载元信息
-    refreshMediaMeta(fileName);
-    //播放
-    mediaEl.play().catch(e=>console.log("播放失败",e));
-}
-
-//销毁媒体
-function destroyMedia(){
-    if(mediaEl){
-        mediaEl.pause();
-        mediaEl.src = "";
-    }
-    audioEl.style.display = "none";
-    videoEl.style.display = "none";
-    mediaEl = null;
-    clearLyric();
-}
-
-//绑定媒体时间更新、元数据加载事件
-function bindMediaEvent(){
-    mediaEl.ontimeupdate = ()=>{
-        const cur = mediaEl.currentTime;
-        const total = mediaEl.duration||0;
-        curTimeDom.innerText = formatTime(cur);
-        totalTimeDom.innerText = formatTime(total);
-        const rate = cur / total ||0;
-        progressDot.style.left = (rate*100)+"%";
-        updateLyric(cur);
-    }
-    mediaEl.onended = ()=>{
-        nextBtn.click();
-    }
-}
-
-//格式化秒数转00:00
-function formatTime(s){
-    if(isNaN(s)) return "00:00";
-    const m = Math.floor(s/60);
-    const sec = Math.floor(s%60);
-    return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
 }
 
 //渲染播放历史
 function renderHistory(){
+    if(!historyWrap) return;
     historyWrap.innerHTML = "";
-    playHistory.forEach(key=>{
-        const div = document.createElement("div");
-        div.className = "history-item";
-        div.innerText = key;
-        div.onclick = ()=>{
-            const url = `${API_BASE}/getmusic?key=${encodeURIComponent(key)}`;
-            loadCloudMedia(url,key);
+    playHistory.forEach((item,i)=>{
+        const d = document.createElement("div");
+        d.className = "history-item";
+        d.innerText = item.key;
+        d.onclick = ()=>{
+            const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.key)}`;
+            loadCloudMedia(url,item.key);
         }
-        historyWrap.appendChild(div);
-    })
-}
-
-//解析lrc歌词
-function parseSimpleLrc(text){
-    const lines = text.split("\n");
-    const res = [];
-    const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
-    lines.forEach(line=>{
-        const match = line.match(reg);
-        if(!match) return;
-        const min = Number(match[1]);
-        const sec = Number(match[2]);
-        const ms = Number(match[3]);
-        const time = min*60 + sec + ms/1000;
-        const txt = line.replace(reg,"").trim();
-        if(txt){
-            res.push({time,text:txt})
-        }
-    })
-    return res.sort((a,b)=>a.time-b.time);
-}
-
-//渲染歌词DOM
-function renderLyric(){
-    lyricWrap.innerHTML = "";
-    lyricData.forEach(item=>{
-        const lineDom = document.createElement("div");
-        lineDom.className = "lyric-line";
-        lineDom.innerText = item.text;
-        lyricWrap.appendChild(lineDom);
+        historyWrap.appendChild(d);
     })
 }
 
 //清空歌词
 function clearLyric(){
     lyricData = [];
-    lyricWrap.innerHTML = `<div style="color:#999;text-align:center">暂无歌词</div>`;
+    if(lyricWrap) lyricWrap.innerHTML = "";
+}
+
+//解析简单lrc歌词
+function parseSimpleLrc(text){
+    const lines = text.split("\n");
+    const res = [];
+    const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
+    for(let line of lines){
+        const m = line.match(reg);
+        if(!m) continue;
+        const min = Number(m[1]);
+        const sec = Number(m[2]);
+        const ms = Number(m[3]);
+        const time = min*60 + sec + ms/1000;
+        const content = line.replace(reg,"").trim();
+        res.push({time,content});
+    }
+    return res.sort((a,b)=>a.time-b.time);
+}
+
+//渲染歌词DOM
+function renderLyric(){
+    if(!lyricWrap) return;
+    lyricWrap.innerHTML = "";
+    lyricData.forEach(item=>{
+        const lineDiv = document.createElement("div");
+        lineDiv.className = "lyric-line";
+        lineDiv.innerText = item.content;
+        lyricWrap.appendChild(lineDiv);
+    })
+}
+
+//媒体时间更新事件，驱动进度条、歌词高亮
+audioEl.ontimeupdate = function(){
+    if(!audioEl.duration) return;
+    const cur = audioEl.currentTime;
+    const total = audioEl.duration;
+    curTimeDom.innerText = formatTime(cur);
+    totalTimeDom.innerText = formatTime(total);
+    const percent = cur / total;
+    progressDot.style.left = (percent*100)+"%";
+    updateLyric(cur);
+}
+
+//格式化秒数为 00:00
+function formatTime(s){
+    const m = Math.floor(s/60);
+    const sec = Math.floor(s%60);
+    return String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+
+//播放结束自动下一曲
+audioEl.onended = function(){
+    nextBtn.click();
 }
