@@ -840,8 +840,6 @@ const nextBtn = document.getElementById("nextBtn");
 const mediaMetaInfo = document.getElementById("mediaMetaInfo");
 const searchInput = document.getElementById("searchInput");
 const backArrow = document.querySelector(".back-arrow");
-
-//登录弹窗元素
 const loginBtn = document.getElementById("loginBtn");
 const loginModalOverlay = document.getElementById("loginModalOverlay");
 const loginModalClose = document.getElementById("loginModalClose");
@@ -854,9 +852,9 @@ const loginModalTitle = document.querySelector(".login-modal-title");
 const saved = localStorage.getItem("loginUser");
 if(saved){
     loginUser = JSON.parse(saved);
-    loginBtn.innerText = `已登录：${loginUser.username}`;
-    loginBtn.disabled = true;
-    loginBtn.style.opacity = "0.65";
+    loginBtn.innerText = `已登录：${loginUser.username}【点击登出】`;
+    loginBtn.disabled = false;
+    loginBtn.style.opacity = "1";
 }
 renderHistory();
 
@@ -921,7 +919,18 @@ function resetLoginModal() {
     document.getElementById("registerPassword2").value = "";
 }
 
-loginBtn.onclick = openLoginModal;
+//登录按钮：已登录状态点击执行登出
+loginBtn.onclick = ()=>{
+    if(loginUser){
+        if(confirm(`确定退出账号 ${loginUser.username}？`)){
+            loginUser = null;
+            localStorage.removeItem("loginUser");
+            loginBtn.innerText = "登录/注册";
+        }
+    }else{
+        openLoginModal();
+    }
+};
 loginModalClose.onclick = closeLoginModal;
 loginModalOverlay.onclick = e => {
     if (e.target === loginModalOverlay) closeLoginModal();
@@ -1022,9 +1031,7 @@ loginForm.onsubmit = async e => {
         loginUser = { username };
         localStorage.setItem("loginUser", JSON.stringify(loginUser));
         closeLoginModal();
-        loginBtn.innerText = `已登录：${loginUser.username}`;
-        loginBtn.disabled = true;
-        loginBtn.style.opacity = "0.65";
+        loginBtn.innerText = `已登录：${loginUser.username}【点击登出】`;
     }
 };
 
@@ -1053,9 +1060,7 @@ registerForm.onsubmit = async e => {
         loginUser = { username };
         localStorage.setItem("loginUser", JSON.stringify(loginUser));
         closeLoginModal();
-        loginBtn.innerText = `已登录：${loginUser.username}`;
-        loginBtn.disabled = true;
-        loginBtn.style.opacity = "0.65";
+        loginBtn.innerText = `已登录：${loginUser.username}【点击登出】`;
     }
 };
 
@@ -1245,8 +1250,10 @@ async function loadCloudList(prefix){
 function renderCloudFileList(fileArr){
     if(!fileArr || fileArr.length === 0){
         cloudBox.innerHTML = `<div style="padding:20px;text-align:center;color:#999">该目录暂无文件</div>`;
+        playList = [];
         return;
     }
+    playList = [...fileArr];
     let html = "";
     fileArr.forEach(item=>{
         html += `
@@ -1260,6 +1267,8 @@ function renderCloudFileList(fileArr){
 //加载云端媒体
 async function loadCloudMedia(url,key){
     currentPlayingKey = key;
+    //同步更新播放索引
+    currentIndex = playList.findIndex(p=>p.key === key);
     //图片直接弹窗预览
     if(key.startsWith("images/")){
         previewImg.src = url;
