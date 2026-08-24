@@ -812,6 +812,7 @@ const commentInput = document.getElementById("commentInput");
 const sendCommentBtn = document.getElementById("sendCommentBtn");
 const commentListBox = document.getElementById("commentListBox");
 const collectBtn = document.getElementById("collectBtn");
+const uploadBtn = document.getElementById("uploadBtn");
 
 //登录弹窗元素
 const loginBtn = document.getElementById("loginBtn");
@@ -892,7 +893,7 @@ loginForm.onsubmit = async e => {
     const json = await res.json();
     alert(json.msg);
     if (json.code === 200) {
-        loginUser = json.user;
+        loginUser = { username };
         localStorage.setItem("loginUser", JSON.stringify(loginUser));
         closeLoginModal();
         loginBtn.innerText = `已登录：${loginUser.username}`;
@@ -923,7 +924,7 @@ registerForm.onsubmit = async e => {
     const json = await res.json();
     alert(json.msg);
     if (json.code === 200) {
-        loginUser = { user_id: json.user_id, username };
+        loginUser = { username };
         localStorage.setItem("loginUser", JSON.stringify(loginUser));
         closeLoginModal();
         loginBtn.innerText = `已登录：${loginUser.username}`;
@@ -931,6 +932,58 @@ registerForm.onsubmit = async e => {
         loginBtn.style.opacity = "0.65";
     }
 };
+
+//上传文件按钮事件
+uploadBtn.onclick = async ()=>{
+    if(!loginUser){
+        alert("请先登录账号，才可上传资源");
+        openLoginModal();
+        return;
+    }
+    let input = document.createElement("input");
+    input.type = "file";
+    input.onchange = async e=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        const form = new FormData();
+        form.append("file",file);
+        form.append("token",loginUser.username);
+        form.append("prefix",currentCloudPrefix);
+        cloudBox.innerHTML = `<div style="color:#777;text-align:center;">上传中...</div>`;
+        const res = await fetch(`${API_BASE}/upload`,{
+            method:"POST",
+            body:form
+        })
+        const json = await res.json();
+        alert(json.msg);
+        loadCloudList(currentCloudPrefix);
+    }
+    input.click();
+}
+
+//发送评论
+sendCommentBtn.onclick = async ()=>{
+    if(!loginUser){
+        alert("登录后才能发送评论");
+        openLoginModal();
+        return;
+    }
+    const text = commentInput.value.trim();
+    if(!text) return;
+    const res = await fetch(`${API_BASE}/comment/add`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+            key:currentPlayingKey,
+            username:loginUser.username,
+            content:text
+        })
+    })
+    const json = await res.json();
+    alert(json.msg);
+    commentInput.value = "";
+    loadCommentList(currentPlayingKey);
+}
 
 //歌词切换
 function toggleLyricPanel(){
@@ -1147,51 +1200,14 @@ function updateLyric(nowSec){
         else break;
     }
     const lineDomList = lyricScroll.querySelectorAll(".lyric-line");
-    lineDomList.forEach(d=>d.classList.remove("active-line"));
-    if(activeLine<0) return;
-    const curLineItem = lyricData[activeLine];
-    const curLineDom = lineDomList[activeLine];
-    curLineDom.classList.add("active-line");
-    lyricScroll.style.transform = `translateY(${-curLineDom.offsetTop + 80}px)`;
-
-    if(curLineItem.type==="krc"){
-        const lineStartTime = curLineItem.time;
-        const localNow = nowSec - lineStartTime;
-        let passIndex = -1;
-        for(let c=0;c<curLineItem.chars.length;c++){
-            if(curLineItem.chars[c].offset <= localNow) passIndex = c;
-            else break;
-        }
-        const spanList = curLineDom.querySelectorAll("span");
-        spanList.forEach((sp,idx)=>{
-            sp.className = idx <= passIndex ? "char-light":"char-normal";
-        })
-    }
-}
-
-lrcBtn.addEventListener("click",()=>lrcFileInput.click());
-lrcFileInput.addEventListener("change",e=>{
-    const f = e.target.files[0];
-    if(!f) return;
-    const reader = new FileReader();
-    reader.onload=ev=>{
-        const txt = ev.target.result;
-        let temp = parseKrc(txt);
-        if(temp.length===0){
-            temp = parseSimpleLrc(txt);
-        }
-        lyricData = temp;
-        renderLyric();
-    }
-    reader.readAsText(f,"utf-8");
+lineDomList.forEach(d=>d.classList.remove("active-line"));
+if(activeLine<0) return;
+const curLineItem = lyricData[activeLine];
+const curLineDom = lineDomList[activeLine];
+curLineDom.classList.add("active-line");
+// 居中滚动
+curLineDom.scrollIntoView({
+    behavior:"smooth",
+    block:"center"
 })
 
-//占位函数（后续Worker对接）
-function sendPlayCount(key){}
-function loadCommentList(key){}
-
-//页面初始化加载音乐列表
-loadCloudList("music/");
-</script>
-</body>
-</html>
