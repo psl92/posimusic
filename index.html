@@ -485,7 +485,7 @@
             font-size:32px;
             cursor:pointer;
         }
-        #localFileInput,#lrcFileInput{display:none;}
+        #lrcFileInput{display:none;}
 
         /*图片预览弹窗*/
         .img-preview-modal{
@@ -689,9 +689,7 @@
             <button class="btn-base btn-login" id="loginBtn">🔐 登录注册</button>
             <button class="btn-base" id="collectBtn">⭐收藏</button>
             <button class="btn-base btn-upload" id="uploadBtn">👤 上传公开</button>
-            <button class="btn-base btn-local" id="localBtn">📜 本地导入</button>
             <button class="btn-base btn-lrc" id="lrcBtn">📄 加载歌词</button>
-            <input type="file" id="localFileInput" accept="audio/*,video/*" multiple>
             <input type="file" id="lrcFileInput" accept=".lrc,.krc,.txt">
         </div>
         <input class="search-input" placeholder="🔍 搜索音乐、视频、图片" id="searchInput">
@@ -722,7 +720,7 @@
                 <span id="foldHistory">—</span>
             </div>
             <div id="historyWrap">
-                <div style="color:#777;text-align:center;">选择本地文件后记录出现</div>
+                <div style="color:#777;text-align:center;">选择云端文件后记录出现</div>
             </div>
         </div>
     </div>
@@ -782,7 +780,6 @@
 const API_BASE = "https://api.busisi.com";
 
 let mediaEl = null;
-let mediaUrl = null;
 let playList = [];
 let currentIndex = -1;
 let lyricData = [];
@@ -803,8 +800,6 @@ const curTimeDom = document.getElementById("curTime");
 const totalTimeDom = document.getElementById("totalTime");
 const progressBar = document.getElementById("progressBar");
 const progressDot = document.getElementById("progressDot");
-const localBtn = document.getElementById("localBtn");
-const localFileInput = document.getElementById("localFileInput");
 const historyWrap = document.getElementById("historyWrap");
 const lrcBtn = document.getElementById("lrcBtn");
 const lrcFileInput = document.getElementById("lrcFileInput");
@@ -1066,10 +1061,6 @@ function destroyMedia(){
         mediaEl.remove();
         mediaEl = null;
     }
-    if(mediaUrl){
-        URL.revokeObjectURL(mediaUrl);
-        mediaUrl = null;
-    }
     bigPlayBtn.style.display="none";
     clearLyric();
     currentPlayingKey = "";
@@ -1195,40 +1186,12 @@ lrcFileInput.addEventListener("change",e=>{
     reader.readAsText(f,"utf-8");
 })
 
-//本地文件
-function createMedia(fileObj){
-    destroyMedia();
-    mediaUrl = URL.createObjectURL(fileObj);
-    const isVideo = fileObj.type.startsWith("video");
-    mediaEl = document.createElement(isVideo ? "audio":"video");
-    mediaEl.src = mediaUrl;
-    mediaBox.insertBefore(mediaEl, mediaBox.firstChild);
-    
-    //基础播放配置
-    mediaEl.controls = true;
-    mediaEl.preload = "auto";
-    if(isVideo){
-        mediaEl.style.width = "100%";
-        mediaEl.style.height = "auto";
-    }
-    //可选自动播放（浏览器限制，移动端大概率失效）
-    //mediaEl.play().catch(e=>{});
-}
+//占位函数（后续Worker对接）
+function sendPlayCount(key){}
+function loadCommentList(key){}
 
-//销毁媒体释放内存
-function destroyMedia(){
-    if(mediaEl){
-        mediaEl.pause();
-        mediaEl.currentTime = 0;
-        mediaEl.src = "";
-        mediaEl.load();
-    }
-    if(mediaUrl){
-        URL.revokeObjectURL(mediaUrl);
-        mediaUrl = "";
-    }
-    if(mediaEl){
-        mediaEl.remove();
-        mediaEl = null;
-    }
-}
+//页面初始化加载音乐列表
+loadCloudList("music/");
+</script>
+</body>
+</html>
