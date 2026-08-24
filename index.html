@@ -895,7 +895,7 @@ playPauseBtn.onclick = ()=>{
     }
 }
 
-//登录提交 【修复成功判断 code===0】
+//登录提交
 loginForm.onsubmit = async e => {
     e.preventDefault();
     const username = document.getElementById("loginUsername").value.trim();
@@ -921,7 +921,7 @@ loginForm.onsubmit = async e => {
     }
 };
 
-//注册提交 【修复成功判断 code===0】
+//注册提交
 registerForm.onsubmit = async e => {
     e.preventDefault();
     const username = document.getElementById("registerUsername").value.trim();
@@ -957,7 +957,7 @@ uploadBtn.onclick = async ()=>{
     alert("上传接口待后端实现");
 }
 
-//发送评论【修复接口地址为 /addcomment，和Worker后端匹配】
+//发送评论
 sendCommentBtn.onclick = async ()=>{
     if(!loginUser){
         alert("登录后才能发送评论");
@@ -1044,6 +1044,34 @@ function toggleLyricPanel(){
 }
 lyricBarBtn.addEventListener("click",toggleLyricPanel);
 
+//【补齐】歌词更新高亮滚动函数
+function updateLyric(nowSecond){
+    if(lyricData.length===0) return;
+    let activeIdx = 0;
+    for(let i=0;i<lyricData.length;i++){
+        if(lyricData[i].time <= nowSecond){
+            activeIdx = i;
+        }else{
+            break;
+        }
+    }
+    const allLines = document.querySelectorAll('.lyric-line');
+    allLines.forEach((el,index)=>{
+        if(index === activeIdx){
+            el.classList.add('active-line');
+        }else{
+            el.classList.remove('active-line');
+        }
+    })
+    const currentItem = allLines[activeIdx];
+    if(currentItem && lyricScrollContainer){
+        lyricScrollContainer.scrollTo({
+            top: currentItem.offsetTop - lyricScrollContainer.clientHeight / 2,
+            behavior:"smooth"
+        })
+    }
+}
+
 //自动云端搜索歌词
 async function autoSearchLyric(fileFullName){
     let fileName = fileFullName.replace("music/","");
@@ -1051,11 +1079,38 @@ async function autoSearchLyric(fileFullName){
     console.log("自动搜索歌词，歌名：",baseName);
 }
 
-//加载R2云端列表
+//【补齐】对接Worker /list接口 获取R2云端列表
 async function loadCloudList(prefix){
     currentCloudPrefix = prefix;
     cloudBox.innerHTML = `<div style="color:#777;text-align:center;">加载中...</div>`;
-    cloudBox.innerHTML = `<div style="color:#777;text-align:center;">文件列表接口待后端开发</div>`;
+    try{
+        const res = await fetch(`${API_BASE}/list?prefix=${encodeURIComponent(prefix)}`);
+        const json = await res.json();
+        if(json.code!==0){
+            cloudBox.innerHTML = `<div style="color:#777;text-align:center;">读取资源失败</div>`;
+            return;
+        }
+        playList = json.objects;
+        if(playList.length===0){
+            cloudBox.innerHTML = `<div style="color:#777;text-align:center;">该分类暂无文件</div>`;
+            return;
+        }
+        cloudBox.innerHTML = "";
+        playList.forEach((obj,idx)=>{
+            const div = document.createElement("div");
+            div.className = "cloud-item";
+            div.innerText = obj.key;
+            div.onclick = ()=>{
+                currentIndex = idx;
+                const url = `${API_BASE}/getmusic?key=${encodeURIComponent(obj.key)}`;
+                loadCloudMedia(url,obj.key);
+            }
+            cloudBox.appendChild(div);
+        })
+    }catch(err){
+        console.error(err);
+        cloudBox.innerHTML = `<div style="color:#777;text-align:center;">网络请求异常</div>`;
+    }
 }
 
 //切换云端标签
@@ -1066,6 +1121,18 @@ tabCloudList.forEach(tab=>{
         loadCloudList(tab.dataset.prefix);
     }
 })
+
+//本地加载歌词文件
+lrcBtn.onclick = ()=>{
+    lrcFileInput.click();
+}
+lrcFileInput.onchange = async e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const text = await file.text();
+    lyricData = parseSimpleLrc(text);
+    renderLyric();
+}
 
 //关闭图片弹窗
 imgModal.onclick = ()=>{
@@ -1086,6 +1153,13 @@ function loadCloudMedia(url,fileName){
     collectBtn.innerText = favList.includes(fileName)?"★已收藏":"⭐收藏";
 
     const isVideo = /\.(mp4|mov)$/i.test(fileName);
+    const isImage = /\.(jpg|png|jpeg|gif|webp)$/i.test(fileName);
+    if(isImage){
+        previewImg.src = url;
+        imgModal.style.display = "flex";
+        loadCommentList(fileName);
+        return;
+    }
     mediaEl = document.createElement(isVideo?"video":"audio");
     mediaEl.src = url;
     mediaBox.insertBefore(mediaEl, bigPlayBtn);
@@ -1115,8 +1189,8 @@ prevBtn.onclick = ()=>{
     currentIndex--;
     if(currentIndex<0) currentIndex = playList.length-1;
     const item = playList[currentIndex];
-    const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.name)}`;
-    loadCloudMedia(url,item.name);
+    const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.key)}`;
+    loadCloudMedia(url,item.key);
 }
 //下一首
 nextBtn.onclick = nextMedia;
@@ -1126,8 +1200,8 @@ function nextMedia(){
     currentIndex++;
     if(currentIndex>=playList.length) currentIndex = 0;
     const item = playList[currentIndex];
-    const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.name)}`;
-    loadCloudMedia(url,item.name);
+    const url = `${API_BASE}/getmusic?key=${encodeURIComponent(item.key)}`;
+    loadCloudMedia(url,item.key);
 }
 
 function formatTime(s){
@@ -1171,7 +1245,7 @@ function renderHistory(){
     })
 }
 
-//LRC KRC解析
+//LRC解析
 function parseSimpleLrc(text){
     const reg = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/g;
     const arr = [];
@@ -1202,3 +1276,15 @@ function renderLyric(){
     })
 }
 
+//进度条点击跳转
+progressBar.onclick = function(e){
+    if(!mediaEl || !mediaEl.duration) return;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percent = clickX / rect.width;
+    mediaEl.currentTime = percent * mediaEl.duration;
+}
+
+//页面初始化加载音乐分类
+loadCloudList("music/");
+</script>
