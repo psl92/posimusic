@@ -566,7 +566,7 @@
         <div class="tab-group-cloud">
             <div class="tab-cloud active" data-prefix="music/">音乐</div>
             <div class="tab-cloud" data-prefix="video/">视频</div>
-            <div class="tab-cloud" data-prefix="image/">图片</div>
+            <div class="tab-cloud" data-prefix="images/">图片</div>
         </div>
 
         <div class="cloud-resource-box" id="cloudBox">
@@ -639,6 +639,29 @@ function toggleLyricPanel(){
 }
 lyricBarBtn.addEventListener("click",toggleLyricPanel);
 
+//自动云端搜索歌词
+async function autoSearchLyric(fileFullName){
+    //去掉路径前缀 music/
+    let fileName = fileFullName.replace("music/","");
+    //切掉后缀 .mp3 .wav
+    let baseName = fileName.substring(0,fileName.lastIndexOf('.'));
+    const lyricUrl = `${API_BASE}/r2file/lyric/${encodeURIComponent(baseName)}.lrc`;
+    try{
+        const res = await fetch(lyricUrl);
+        if(res.ok){
+            const text = await res.text();
+            let temp = parseKrc(text);
+            if(temp.length===0){
+                temp = parseSimpleLrc(text);
+            }
+            lyricData = temp;
+            renderLyric();
+        }
+    }catch(e){
+        console.log("无匹配云端歌词");
+    }
+}
+
 //加载R2云端列表
 async function loadCloudList(prefix){
     currentCloudPrefix = prefix;
@@ -663,7 +686,7 @@ async function loadCloudList(prefix){
             div.dataset.key = item.key;
             div.onclick = ()=>{
                 const fileUrl = `${API_BASE}/r2file/${encodeURIComponent(item.key)}`;
-                if(prefix === "image/"){
+                if(prefix === "images/"){
                     //图片打开预览弹窗
                     previewImg.src = fileUrl;
                     imgModal.style.display = "flex";
@@ -716,6 +739,8 @@ function loadCloudMedia(url,fileName){
     };
     mediaEl.play();
     playPauseBtn.innerText = "⏸";
+    //自动搜索云端歌词
+    autoSearchLyric(fileName);
 }
 
 function formatTime(s){
@@ -943,7 +968,7 @@ function renderHistoryLocal(){
         `;
         div.onclick = ()=>{
             currentIndex = idx;
-            createMedia(f);
+            createMedia(playList[currentIndex]);
             togglePlay();
         }
         historyWrap.appendChild(div);
