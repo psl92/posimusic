@@ -1200,14 +1200,97 @@ function updateLyric(nowSec){
         else break;
     }
     const lineDomList = lyricScroll.querySelectorAll(".lyric-line");
-lineDomList.forEach(d=>d.classList.remove("active-line"));
-if(activeLine<0) return;
-const curLineItem = lyricData[activeLine];
-const curLineDom = lineDomList[activeLine];
-curLineDom.classList.add("active-line");
-// 居中滚动
-curLineDom.scrollIntoView({
-    behavior:"smooth",
-    block:"center"
-})
+    lineDomList.forEach(d=>d.classList.remove("active-line"));
+    if(activeLine<0) return;
+    const curLineItem = lyricData[activeLine];
+    const curLineDom = lineDomList[activeLine];
+    curLineDom.classList.add("active-line");
+    curLineDom.scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+    })
+    //KRC逐字变色
+    if(curLineItem.type === "krc"){
+        const spans = curLineDom.querySelectorAll("span");
+        spans.forEach((sp,idx)=>{
+            const charTime = curLineItem.time + curLineItem.chars[idx].offset;
+            if(nowSec >= charTime){
+                sp.className = "char-light";
+            }else{
+                sp.className = "char-normal";
+            }
+        })
+    }
+}
 
+//播放暂停
+playPauseBtn.onclick = ()=>{
+    if(!mediaEl) return;
+    if(mediaEl.paused){
+        mediaEl.play();
+        playPauseBtn.innerText = "⏸";
+    }else{
+        mediaEl.pause();
+        playPauseBtn.innerText = "▶";
+    }
+}
+
+//进度条点击跳转
+progressBar.onclick = (e)=>{
+    if(!mediaEl) return;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percent = clickX / rect.width;
+    mediaEl.currentTime = percent * mediaEl.duration;
+}
+
+//全屏按钮
+fullBtn.onclick = async ()=>{
+    if(!mediaEl) return;
+    if(mediaEl.requestFullscreen){
+        await mediaEl.requestFullscreen();
+    }
+}
+
+//本地加载歌词
+lrcBtn.onclick = ()=>{
+    lrcFileInput.click();
+}
+lrcFileInput.onchange = async e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const text = await file.text();
+    let res = parseKrc(text);
+    if(res.length===0) res = parseSimpleLrc(text);
+    lyricData = res;
+    renderLyric();
+}
+
+//空函数（后端接口占位）
+async function loadCommentList(key){
+    commentListBox.innerHTML = `<div style="color:#777;text-align:center;">加载评论...</div>`;
+    try{
+        const r = await fetch(`${API_BASE}/comment/get?key=${encodeURIComponent(key)}`);
+        const json = await r.json();
+        if(json.code!==200){
+            commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
+            return;
+        }
+        commentListBox.innerHTML = "";
+        json.data.forEach(c=>{
+            const div = document.createElement("div");
+            div.className = "comment-item";
+            div.innerHTML = `<span class="comment-name">${c.username}</span>：${c.content}`;
+            commentListBox.appendChild(div);
+        })
+    }catch(err){
+        commentListBox.innerHTML = `<div style="color:#777;text-align:center;">暂无评论</div>`;
+    }
+}
+async function sendPlayCount(key){
+    //播放计数接口占位
+}
+
+//页面初始化加载音乐列表
+loadCloudList("music/");
+</script>
