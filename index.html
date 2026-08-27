@@ -391,6 +391,7 @@ let playCountTimer = null;
 let currentCategory = "music";
 const coverCache = {};
 
+
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -421,6 +422,7 @@ const dom = {
     btnFullScreen:document.getElementById("btnFullScreen")
 };
 
+
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -430,15 +432,18 @@ function escapeHtml(str){
         .replace(/"/g,"&quot;");
 }
 
+
 // 封面自动搜索（改成调用自己Worker，解决CORS）
 async function autoFetchCover(title, author){
     const cacheKey = `${title}_${author||""}`;
     if(coverCache[cacheKey] !== undefined) return coverCache[cacheKey];
 
+
     try{
         const kw = encodeURIComponent(`${title} ${author||""}`);
         const res = await fetch(`${API_BASE}/searchCover?kw=${kw}`);
         const json = await res.json();
+
 
         if(json.results && json.results.length > 0){
             let imgUrl = json.results[0].artworkUrl100;
@@ -450,9 +455,11 @@ async function autoFetchCover(title, author){
         console.log("自动封面获取失败", e);
     }
 
+
     coverCache[cacheKey] = null;
     return null;
 }
+
 
 function getRandomPlayCount(){
     const min = 120000, max = 8000000;
@@ -667,10 +674,12 @@ function formatWan(num){
     return res + "万";
 }
 
+
 // 单张卡片渲染
 async function renderOneCard(item){
     const div = document.createElement("div");
     div.className = "card-item";
+
 
     div.innerHTML = `
         <div class="card-cover">
@@ -679,7 +688,9 @@ async function renderOneCard(item){
             <span class="card-play">▶</span>
         </div>
         <div class="card-info">
-            <div class="card-title">${escapeHtml(item.name)}</div>
+            <div class="card-title-wrap">
+                <div class="card-title">${escapeHtml(item.name)}</div>
+            </div>
             <div class="card-author">${escapeHtml(item.author||"未知")}</div>
             <div class="card-stat">
                 <span>播放:${formatWan(item.playCount)}</span>
@@ -689,9 +700,12 @@ async function renderOneCard(item){
         <button class="btn-card-download">${currentCategory==="image"?"查看":"播放"}</button>
     `;
 
+
     div.dataset.key = item.resourceKey;
 
+
     const coverImg = div.querySelector(".card-cover img");
+
 
     // 音乐分类才自动搜索封面
     if(currentCategory === "music"){
@@ -701,9 +715,11 @@ async function renderOneCard(item){
         }
     }
 
+
     coverImg.onerror = function(){
         this.src = DEFAULT_COVER;
     };
+
 
     div.querySelector(".card-more").addEventListener("click", e => {
         e.stopPropagation();
@@ -714,6 +730,7 @@ async function renderOneCard(item){
         dom.moreMenu.dataset.cur = JSON.stringify(item);
     });
 
+
     div.querySelector(".btn-card-download").addEventListener("click", e => {
         e.stopPropagation();
         if(currentCategory === "image"){
@@ -723,6 +740,7 @@ async function renderOneCard(item){
         }
     });
 
+
     div.addEventListener("click", () => {
         if(currentCategory === "image"){
             window.open(`${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`,"_blank");
@@ -731,8 +749,10 @@ async function renderOneCard(item){
         }
     });
 
+
     dom.cardWrap.appendChild(div);
 }
+
 
 function renderCard(list){
     dom.cardWrap.innerHTML = "";
@@ -743,6 +763,7 @@ function renderCard(list){
         renderOneCard(item);
     });
 }
+
 
 function openPopupPlayer(item){
     stopAutoPlayCount();
@@ -868,13 +889,22 @@ async function loadResourceList(category="music"){
     else if(category === "video") fetchUrl = `${API_BASE}/videoList`;
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
 
+
     try{
         const res = await fetch(fetchUrl);
         const listRaw = await res.json();
 
+
         playQueue = listRaw.map(obj=>{
             const filename = obj.key;
-            const name = filename.replace(/\.[^/.]+$/,"");
+            // 去除路径前缀 music/ video/ images/
+            let name = filename;
+            const lastSlash = name.lastIndexOf("/");
+            if (lastSlash !== -1) {
+                name = name.substring(lastSlash + 1);
+            }
+            // 去掉文件后缀
+            name = name.replace(/\.[^/.]+$/,"");
             return {
                 resourceKey: obj.key,
                 name: name,
@@ -884,6 +914,7 @@ async function loadResourceList(category="music"){
                 favCount:getRandomFavCount()
             };
         });
+
 
         renderCard(playQueue);
         renderHistory();
