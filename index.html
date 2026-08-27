@@ -425,9 +425,21 @@ function escapeHtml(str){
         .replace(/"/g,"&quot;");
 }
 async function autoFetchCover(title, author){
+    const exts = [".jpg",".jpeg",".png",".webp",".avif"];
+    const baseKey = `cover/${encodeURIComponent(title)}`;
+    for(let ext of exts){
+        const url = `${API_BASE}/file?key=${baseKey}${ext}`;
+        try{
+            const resp = await fetch(url,{method:"HEAD"});
+            if(resp.ok){
+                return url;
+            }
+        }catch(e){
+            continue;
+        }
+    }
     return null;
 }
-
 function getRandomPlayCount(){
     const min = 120000, max = 8000000;
     return Math.floor(Math.random()*(max - min + 1)) + min;
@@ -820,8 +832,11 @@ document.querySelectorAll(".tab-item").forEach(tab => {
     });
 });
 document.querySelector(".search-box").addEventListener("input", e => {
-    const kw = e.target.value.trim();
-    const filtered = playQueue.filter(item => item.name.includes(kw));
+    const kw = e.target.value.trim().toLowerCase();
+    const filtered = playQueue.filter(item => {
+        const name = (item.name || "").toLowerCase();
+        return name.includes(kw);
+    });
     renderCard(filtered);
 });
 async function loadResourceList(category="music"){
