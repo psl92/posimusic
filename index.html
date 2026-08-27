@@ -12,11 +12,6 @@ body{
     font-family:system-ui,-apple-system,BlinkMacSystemFont,"Microsoft Yahei",sans-serif;
     overflow:hidden;
 }
-
-
-
-
-
 /* 顶部导航 */
 .top-header{
     height:72px;
@@ -40,11 +35,6 @@ body{
 .tab-group{display:flex;gap:32px;}
 .tab-item{cursor:pointer;font-size:15px;color:#666;}
 .tab-item.active{color:#7b42d8;font-weight:bold;}
-
-
-
-
-
 /* 左侧历史侧边栏 */
 .left-sidebar{
     width:190px;
@@ -64,11 +54,6 @@ body{
     cursor:pointer;
 }
 .history-item:hover{background:#f1ecfa;}
-
-
-
-
-
 /* 主卡片区域 */
 .main-content{
     margin-top:72px;
@@ -145,11 +130,6 @@ body{
     cursor:pointer;
     font-size:12px;
 }
-
-
-
-
-
 /* 底部常驻播放器 */
 .bottom-player{
     height:88px;
@@ -162,10 +142,6 @@ body{
     gap:14px;
     z-index:99999 !important;
 }
-
-
-
-
 .bottom-player button{
     background:none;border:none;
     font-size:20px;
@@ -189,11 +165,6 @@ body{
     border-radius:50%;
     top:-4px;
 }
-
-
-
-
-
 /* 弹窗播放器遮罩 */
 .popup-mask{
     position:fixed;
@@ -238,11 +209,6 @@ body{
     cursor:pointer;
     color:#7b42d8;
 }
-
-
-
-
-
 /* 卡片更多弹出菜单 */
 .card-more-menu{
     position:fixed;
@@ -261,11 +227,6 @@ body{
     font-size:13px;
 }
 .card-more-menu div:hover{background:#f3f0fa;}
-
-
-
-
-
 /* 可拖拽悬浮歌词 */
 .float-lyric{
     position:absolute;
@@ -324,11 +285,6 @@ body{
 .lyric-char.unsung{
     color:#44444480;
 }
-
-
-
-
-
 /* 响应式适配 */
 @media (max-width:1400px){
     .card-wrap{grid-template-columns:repeat(6,1fr);}
@@ -344,8 +300,6 @@ body{
 </style>
 </head>
 <body>
-
-
 <!--顶部导航-->
 <div class="top-header">
     <input class="search-box" placeholder="搜索作品、作者"/>
@@ -355,30 +309,15 @@ body{
         <div class="tab-item" data-type="image">图片</div>
     </div>
 </div>
-
-
-
-
-
 <!--左侧历史播放侧边栏-->
 <div class="left-sidebar">
     <div class="sidebar-title">历史播放</div>
     <div id="historyList"></div>
 </div>
-
-
-
-
-
 <!--主卡片区域-->
 <div class="main-content">
     <div class="card-wrap" id="cardWrap"></div>
 </div>
-
-
-
-
-
 <!--底部常驻播放器-->
 <div class="bottom-player">
     <button id="btnPrev">◀</button>
@@ -396,11 +335,6 @@ body{
     <button id="btnBottomPause">⏸</button>
     <button id="btnFullScreen">⛶全屏</button>
 </div>
-
-
-
-
-
 <!--弹窗播放器遮罩-->
 <div class="popup-mask" id="popupMask">
     <div class="popup-player-box">
@@ -418,53 +352,33 @@ body{
         </div>
     </div>
 </div>
-
-
-
-
-
 <!--卡片更多菜单-->
 <div class="card-more-menu" id="moreMenu">
     <div data-act="share">分享</div>
     <div data-act="addToCollect">加入收藏</div>
     <div data-act="copyKey">复制资源Key</div>
 </div>
-
-
-
-
-
 <!--可拖拽悬浮歌词面板-->
 <div class="float-lyric" id="floatLyric">
     <div class="lyric-search-row">
-        <input class="lyric-search-input" id="lyricSearchInput" placeholder="输入歌词文件名"/>
+        <input class="lyric-search-input" id="lyricSearchInput" placeholder="输入R2桶内的歌词文件名，例：lyric/朝歌.lrc"/>
         <button class="lyric-btn" id="lyricSearchBtn">加载歌词</button>
         <button class="lyric-btn" id="lyricImportBtn">本地导入</button>
         <input type="file" accept=".lrc,.krc,.qrc,.trc" id="lyricFileInput" style="display:none;">
     </div>
     <div class="lyric-container" id="lyricContainer"></div>
 </div>
-
-
-
-
-
 <script>
 // =========对接你部署好的Worker地址=========
 const API_BASE = "https://api.busisi.com";
-
 // 默认封面占位图
 const DEFAULT_COVER = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect fill='%23ddd' width='300' height='300'/><text x='50%' y='50%' font-size='22' text-anchor='middle' fill='%23888'>暂无封面</text></svg>";
-
-
 //支持格式
 const AUDIO_EXTS = [".mp3",".flac",".wav",".m4a",".ogg"];
 const VIDEO_EXTS = [".mp4",".mov",".webm"];
 const LYRIC_EXTS = [".lrc",".krc",".qrc",".trc"];
 const MAX_SHOW_LINES = 7;
 const MAX_HISTORY_COUNT = 50;
-
-
 let playQueue = [];
 let currentIndex = 0;
 let playMode = 0;
@@ -472,8 +386,6 @@ let lyricArr = [];
 let currentPlayItem = null;
 let currentLyricLine = -1;
 let playCountTimer = null;
-
-
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -503,15 +415,12 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
-
-
 //播放数：12万 ~ 800万随机保底
 function getRandomPlayCount(){
     const min = 120000;
     const max = 8000000;
     return Math.floor(Math.random()*(max - min + 1)) + min;
 }
-
 //每分钟自动累加播放次数
 function startAutoPlayCount() {
     if(!currentPlayItem) return;
@@ -522,14 +431,12 @@ function startAutoPlayCount() {
         currentPlayItem.playCount += 1;
     }, 60000);
 }
-
 function stopAutoPlayCount() {
     if(playCountTimer){
         clearInterval(playCountTimer);
         playCountTimer = null;
     }
 }
-
 //========播放历史 localStorage持久化========
 function getPlayHistory(){
     const raw = localStorage.getItem("posiPlayHistory");
@@ -540,11 +447,9 @@ function getPlayHistory(){
         return [];
     }
 }
-
 function savePlayHistory(arr){
     localStorage.setItem("posiPlayHistory",JSON.stringify(arr));
 }
-
 //新增播放历史，重复播放移到最前面
 function addPlayHistory(item){
     let list = getPlayHistory();
@@ -559,7 +464,6 @@ function addPlayHistory(item){
     savePlayHistory(list);
     renderHistory();
 }
-
 //渲染历史，带序号1,2,3...
 function renderHistory() {
     dom.historyList.innerHTML = "";
@@ -576,13 +480,11 @@ function renderHistory() {
         dom.historyList.appendChild(div);
     })
 }
-
 function getExt(filename){
     const idx = filename.lastIndexOf(".");
     if(idx === -1) return "";
     return filename.slice(idx).toLowerCase();
 }
-
 // 多格式歌词解析：lrc / krc / qrc / trc
 function parseLyricAll(text, ext) {
     ext = (ext || 'lrc').toLowerCase();
@@ -649,7 +551,6 @@ function parseLyricAll(text, ext) {
     list.sort((a, b) => a.time - b.time);
     return list;
 }
-
 // 渲染单行歌词：有words则逐字变色，无words则整行
 function renderLyricLine(lineData, isActive, currentTime) {
     const div = document.createElement("div");
@@ -672,7 +573,6 @@ function renderLyricLine(lineData, isActive, currentTime) {
     }
     return div;
 }
-
 // 渲染7行歌词视图
 function renderLyricView(activeIdx, currentTime) {
     if (currentTime === undefined) currentTime = 0;
@@ -695,7 +595,6 @@ function renderLyricView(activeIdx, currentTime) {
         dom.lyricContainer.appendChild(lineDiv);
     }
 }
-
 // 加载歌词入口
 function loadLyricRaw(lrcRawText, filename) {
     const ext = getExt(filename);
@@ -703,7 +602,6 @@ function loadLyricRaw(lrcRawText, filename) {
     currentLyricLine = -1;
     renderLyricView(-1, 0);
 }
-
 // 悬浮歌词：本地导入多格式
 dom.lyricImportBtn.addEventListener("click", () => dom.lyricFileInput.click());
 dom.lyricFileInput.addEventListener("change", e => {
@@ -716,13 +614,12 @@ dom.lyricFileInput.addEventListener("change", e => {
     };
     reader.readAsText(file);
 });
-
-// 悬浮歌词：从Worker读取R2桶歌词
+// 悬浮歌词：从Worker读取R2桶歌词【修复接口路径】
 dom.lyricSearchBtn.addEventListener("click", async () => {
     const lyricKey = dom.lyricSearchInput.value.trim();
-    if (!lyricKey) { alert("输入R2桶内的歌词文件名，例如：朝歌.lrc"); return; }
+    if (!lyricKey) { alert("输入R2桶内的歌词文件名，例如：lyric/朝歌.lrc"); return; }
     try{
-        const resp = await fetch(`${API_BASE}/getLyric/${encodeURIComponent(lyricKey)}`);
+        const resp = await fetch(`${API_BASE}/lrc?key=${encodeURIComponent(lyricKey)}`);
         if(!resp.ok) throw new Error("未找到歌词文件");
         const text = await resp.text();
         loadLyricRaw(text, lyricKey);
@@ -730,7 +627,6 @@ dom.lyricSearchBtn.addEventListener("click", async () => {
         alert("加载歌词失败："+err.message);
     }
 });
-
 // 全屏切换
 function toggleFullscreen() {
     if (document.fullscreenElement) {
@@ -739,7 +635,6 @@ function toggleFullscreen() {
         dom.popMedia.requestFullscreen?.() || dom.popMedia.webkitRequestFullscreen?.();
     }
 }
-
 // 键盘全局快捷键
 document.addEventListener("keydown", function (e) {
     if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
@@ -781,7 +676,6 @@ document.addEventListener("keydown", function (e) {
             break;
     }
 });
-
 /**
  * 数字转为万单位，去除.0后缀
  * @param {number} num
@@ -799,7 +693,6 @@ function formatWan(num) {
     }
     return res + "万";
 }
-
 /**
  * 收藏随机：保底33万，上限900万，返回原始整数
  */
@@ -808,7 +701,6 @@ function getRandomFavCount() {
     const max = 9000000;
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 // 渲染卡片
 function renderCard(list) {
     dom.cardWrap.innerHTML = "";
@@ -846,14 +738,13 @@ function renderCard(list) {
         });
         div.querySelector(".btn-card-download").addEventListener("click", e => {
             e.stopPropagation();
-            alert("下载地址："+`${API_BASE}/file/${encodeURIComponent(item.resourceKey)}`);
+            alert("下载地址："+`${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`);
         });
         div.addEventListener("click", () => openPopupPlayer(item));
         dom.cardWrap.appendChild(div);
     });
 }
-
-// 打开弹窗播放器
+// 打开弹窗播放器【修复媒体访问路径】
 function openPopupPlayer(item) {
     stopAutoPlayCount();
     currentPlayItem = item;
@@ -861,27 +752,22 @@ function openPopupPlayer(item) {
     dom.popAuthor.innerText = item.author||"未知";
     dom.popupMask.classList.add("show");
     dom.floatLyric.classList.add("show");
-
     lyricArr = [];
     currentLyricLine = -1;
     renderLyricView(-1, 0);
-
-    // 对接Worker媒体代理接口
-    dom.popMedia.src = `${API_BASE}/file/${encodeURIComponent(item.resourceKey)}`;
+    // 修复：使用查询参数 ?key=xxx
+    dom.popMedia.src = `${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`;
     dom.popMedia.currentTime = 0;
     dom.popPlay.innerText = "播放";
-
     addPlayHistory(item);
     currentIndex = playQueue.findIndex(p => p.resourceKey === item.resourceKey);
 }
-
 dom.popupClose.addEventListener("click", () => {
     dom.popupMask.classList.remove("show");
     dom.floatLyric.classList.remove("show");
     dom.popMedia.pause();
     stopAutoPlayCount();
 });
-
 dom.popPlay.addEventListener("click", () => {
     if (dom.popMedia.paused) {
         dom.popMedia.play();
@@ -893,10 +779,8 @@ dom.popPlay.addEventListener("click", () => {
         stopAutoPlayCount();
     }
 });
-
 dom.popFull.addEventListener("click", toggleFullscreen);
 dom.btnFullScreen.addEventListener("click", toggleFullscreen);
-
 function playPrev() {
     if (playMode === 2) {
         currentIndex = Math.floor(Math.random() * playQueue.length);
@@ -915,10 +799,8 @@ function playNext() {
     }
     openPopupPlayer(playQueue[currentIndex]);
 }
-
 document.getElementById("popPrev").addEventListener("click", playPrev);
 document.getElementById("popNext").addEventListener("click", playNext);
-
 dom.btnPrev.onclick = playPrev;
 dom.btnNext.onclick = playNext;
 dom.btnPlay.onclick = () => {
@@ -950,7 +832,6 @@ dom.btnMode.onclick = () => {
 dom.btnBottomFav.onclick = () => {
     alert("收藏逻辑，对接后端收藏接口");
 };
-
 // 媒体时间更新：7行歌词同步 + 逐字变色 + 底部进度条
 dom.popMedia.addEventListener("timeupdate", () => {
     const t = dom.popMedia.currentTime;
@@ -962,13 +843,11 @@ dom.popMedia.addEventListener("timeupdate", () => {
         currentLyricLine = active;
     }
     renderLyricView(currentLyricLine, t);
-
     if (dom.popMedia.duration) {
         const pct = t / dom.popMedia.duration;
         dom.bottomDot.style.left = (pct * 100) + "%";
     }
 });
-
 dom.popMedia.addEventListener("ended", () => {
     stopAutoPlayCount();
     if (playMode === 1) {
@@ -979,7 +858,6 @@ dom.popMedia.addEventListener("ended", () => {
         playNext();
     }
 });
-
 // 悬浮歌词拖拽 z-index提升
 (function initLyricDrag() {
     const wrap = dom.floatLyric;
@@ -1003,7 +881,6 @@ dom.popMedia.addEventListener("ended", () => {
     });
     document.addEventListener("mouseup", () => { dragging = false; });
 })();
-
 // 卡片更多菜单
 dom.moreMenu.addEventListener("click", e => {
     const act = e.target.dataset.act;
@@ -1017,7 +894,6 @@ dom.moreMenu.addEventListener("click", e => {
     dom.moreMenu.classList.remove("show");
 });
 document.addEventListener("click", () => dom.moreMenu.classList.remove("show"));
-
 // 标签切换
 document.querySelectorAll(".tab-item").forEach(tab => {
     tab.addEventListener("click", function () {
@@ -1027,13 +903,11 @@ document.querySelectorAll(".tab-item").forEach(tab => {
         console.log("切换分类：", type);
     });
 });
-
 // 搜索框
 document.querySelector(".search-box").addEventListener("input", e => {
     const kw = e.target.value.trim();
     console.log("搜索关键词：", kw);
 });
-
 // 无限滚动
 let page = 1;
 document.querySelector(".main-content").addEventListener("scroll", async function (e) {
@@ -1043,11 +917,10 @@ document.querySelector(".main-content").addEventListener("scroll", async functio
         console.log("触底加载下一页 page=", page);
     }
 });
-
-// 从Worker拉取R2资源列表
+// 从Worker拉取R2资源列表【修复接口地址】
 async function loadResourceList(){
     try{
-        const res = await fetch(`${API_BASE}/getResourceList`);
+        const res = await fetch(`${API_BASE}/list`);
         const listRaw = await res.json();
         playQueue = listRaw.map(obj=>{
             const filename = obj.key;
@@ -1068,7 +941,6 @@ async function loadResourceList(){
         console.error(err);
     }
 }
-
 // 初始化
 loadResourceList();
 </script>
