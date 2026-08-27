@@ -425,24 +425,9 @@ function escapeHtml(str){
         .replace(/"/g,"&quot;");
 }
 async function autoFetchCover(title, author){
-    const cacheKey = `${title}_${author||""}`;
-    if(coverCache[cacheKey] !== undefined) return coverCache[cacheKey];
-    try{
-        const kw = encodeURIComponent(`${title}`);
-        const res = await fetch(`${API_BASE}/searchCover?kw=${kw}`);
-        const json = await res.json();
-        if(json.results && json.results.length > 0){
-            let imgUrl = json.results[0].artworkUrl100;
-            imgUrl = imgUrl.replace("100x100bb","600x600bb");
-            coverCache[cacheKey] = imgUrl;
-            return imgUrl;
-        }
-    }catch(e){
-        console.log("自动封面获取失败", e);
-    }
-    coverCache[cacheKey] = null;
     return null;
 }
+
 function getRandomPlayCount(){
     const min = 120000, max = 8000000;
     return Math.floor(Math.random()*(max - min + 1)) + min;
