@@ -73,7 +73,6 @@ body{
     border:1px solid #e9e4f2;
     cursor:pointer;
     transition:0.2s;
-    /* 固定短高度 */
     height:230px;
     display:flex;
     flex-direction:column;
@@ -126,7 +125,6 @@ body{
     overflow:hidden;
     min-width:0;
 }
-/* 标题外层容器，用于滚动 */
 .card-title-wrap{
     width:100%;
     overflow:hidden;
@@ -137,7 +135,6 @@ body{
     display:inline-block;
     white-space:nowrap;
 }
-/* 悬浮滚动动画 */
 .card-title-wrap:hover .card-title{
     animation: scrollText 6s linear infinite;
 }
@@ -145,7 +142,7 @@ body{
     0% { transform: translateX(0); }
     100% { transform: translateX(-100%); }
 }
-.card-author{font-size:12px;color:#777;margin:3px 0;}
+.card-author{font-size:12px;color:#777;margin:3px 0;display:none;}
 .card-stat{
     font-size:11px;color:#888;
     display:flex;gap:8px;flex-wrap:wrap;
@@ -217,7 +214,7 @@ body{
 }
 .popup-info{margin-bottom:12px;}
 .popup-title{font-size:20px;font-weight:bold;}
-.popup-author{font-size:14px;color:#777;margin-top:4px;}
+.popup-author{font-size:14px;color:#777;margin-top:4px;display:none;}
 .popup-media{
     width:100%;
     max-height:320px;
@@ -390,8 +387,6 @@ let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
 const coverCache = {};
-
-
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -421,8 +416,6 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
-
-
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -431,20 +424,13 @@ function escapeHtml(str){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;");
 }
-
-
-// 封面自动搜索（改成调用自己Worker，解决CORS）
 async function autoFetchCover(title, author){
     const cacheKey = `${title}_${author||""}`;
     if(coverCache[cacheKey] !== undefined) return coverCache[cacheKey];
-
-
     try{
-        const kw = encodeURIComponent(`${title} ${author||""}`);
+        const kw = encodeURIComponent(`${title}`);
         const res = await fetch(`${API_BASE}/searchCover?kw=${kw}`);
         const json = await res.json();
-
-
         if(json.results && json.results.length > 0){
             let imgUrl = json.results[0].artworkUrl100;
             imgUrl = imgUrl.replace("100x100bb","600x600bb");
@@ -454,13 +440,9 @@ async function autoFetchCover(title, author){
     }catch(e){
         console.log("自动封面获取失败", e);
     }
-
-
     coverCache[cacheKey] = null;
     return null;
 }
-
-
 function getRandomPlayCount(){
     const min = 120000, max = 8000000;
     return Math.floor(Math.random()*(max - min + 1)) + min;
@@ -673,14 +655,9 @@ function formatWan(num){
     if (res.endsWith(".0")) res = res.slice(0, -2);
     return res + "万";
 }
-
-
-// 单张卡片渲染
 async function renderOneCard(item){
     const div = document.createElement("div");
     div.className = "card-item";
-
-
     div.innerHTML = `
         <div class="card-cover">
             <img src="${DEFAULT_COVER}" loading="lazy" alt="封面">
@@ -691,7 +668,7 @@ async function renderOneCard(item){
             <div class="card-title-wrap">
                 <div class="card-title">${escapeHtml(item.name)}</div>
             </div>
-            <div class="card-author">${escapeHtml(item.author||"未知")}</div>
+            <div class="card-author"></div>
             <div class="card-stat">
                 <span>播放:${formatWan(item.playCount)}</span>
                 <span>收藏:${formatWan(item.favCount)}</span>
@@ -699,28 +676,17 @@ async function renderOneCard(item){
         </div>
         <button class="btn-card-download">${currentCategory==="image"?"查看":"播放"}</button>
     `;
-
-
     div.dataset.key = item.resourceKey;
-
-
     const coverImg = div.querySelector(".card-cover img");
-
-
-    // 音乐分类才自动搜索封面
     if(currentCategory === "music"){
         const coverSrc = await autoFetchCover(item.name, item.author);
         if(coverSrc){
             coverImg.src = coverSrc;
         }
     }
-
-
     coverImg.onerror = function(){
         this.src = DEFAULT_COVER;
     };
-
-
     div.querySelector(".card-more").addEventListener("click", e => {
         e.stopPropagation();
         const rect = e.target.getBoundingClientRect();
@@ -729,8 +695,6 @@ async function renderOneCard(item){
         dom.moreMenu.classList.add("show");
         dom.moreMenu.dataset.cur = JSON.stringify(item);
     });
-
-
     div.querySelector(".btn-card-download").addEventListener("click", e => {
         e.stopPropagation();
         if(currentCategory === "image"){
@@ -739,8 +703,6 @@ async function renderOneCard(item){
             openPopupPlayer(item);
         }
     });
-
-
     div.addEventListener("click", () => {
         if(currentCategory === "image"){
             window.open(`${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`,"_blank");
@@ -748,12 +710,8 @@ async function renderOneCard(item){
             openPopupPlayer(item);
         }
     });
-
-
     dom.cardWrap.appendChild(div);
 }
-
-
 function renderCard(list){
     dom.cardWrap.innerHTML = "";
     list.forEach(item => {
@@ -763,13 +721,11 @@ function renderCard(list){
         renderOneCard(item);
     });
 }
-
-
 function openPopupPlayer(item){
     stopAutoPlayCount();
     currentPlayItem = item;
     dom.popTitle.innerText = item.name;
-    dom.popAuthor.innerText = item.author||"未知";
+    dom.popAuthor.innerText = "";
     dom.popupMask.classList.add("show");
     dom.floatLyric.classList.add("show");
     lyricArr = [];
@@ -888,34 +844,26 @@ async function loadResourceList(category="music"){
     if(category === "music") fetchUrl = `${API_BASE}/list`;
     else if(category === "video") fetchUrl = `${API_BASE}/videoList`;
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
-
-
     try{
         const res = await fetch(fetchUrl);
         const listRaw = await res.json();
-
-
         playQueue = listRaw.map(obj=>{
             const filename = obj.key;
-            // 去除路径前缀 music/ video/ images/
             let name = filename;
             const lastSlash = name.lastIndexOf("/");
             if (lastSlash !== -1) {
                 name = name.substring(lastSlash + 1);
             }
-            // 去掉文件后缀
             name = name.replace(/\.[^/.]+$/,"");
             return {
                 resourceKey: obj.key,
                 name: name,
-                author:"R2文件",
+                author:"",
                 coverImg:"",
                 playCount:getRandomPlayCount(),
                 favCount:getRandomFavCount()
             };
         });
-
-
         renderCard(playQueue);
         renderHistory();
     }catch(err){
