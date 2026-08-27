@@ -485,6 +485,26 @@ function getExt(filename){
     if(idx === -1) return "";
     return filename.slice(idx).toLowerCase();
 }
+//【新增】播放歌曲自动匹配lyric目录下同名lrc歌词
+async function autoLoadLyric(audioKey){
+    let fileName = audioKey.split('/').pop();
+    let pureName = fileName.substring(0,fileName.lastIndexOf('.'));
+    const lyricPath = `lyric/${pureName}.lrc`;
+    dom.lyricSearchInput.value = lyricPath;
+    try{
+        const res = await fetch(`${API_BASE}/lrc?key=${encodeURIComponent(lyricPath)}`);
+        if(!res.ok){
+            lyricArr = [];
+            renderLyricView(-1,0);
+            return;
+        }
+        const lrcText = await res.text();
+        loadLyricRaw(lrcText, lyricPath);
+    }catch(err){
+        lyricArr = [];
+        renderLyricView(-1,0);
+    }
+}
 // 多格式歌词解析：lrc / krc / qrc / trc
 function parseLyricAll(text, ext) {
     ext = (ext || 'lrc').toLowerCase();
@@ -614,7 +634,7 @@ dom.lyricFileInput.addEventListener("change", e => {
     };
     reader.readAsText(file);
 });
-// 悬浮歌词：从Worker读取R2桶歌词【修复接口路径】
+// 悬浮歌词：从Worker读取R2桶歌词【修复接口路径，移除prompt弹窗】
 dom.lyricSearchBtn.addEventListener("click", async () => {
     const lyricKey = dom.lyricSearchInput.value.trim();
     if (!lyricKey) { alert("输入R2桶内的歌词文件名，例如：lyric/朝歌.lrc"); return; }
@@ -744,7 +764,7 @@ function renderCard(list) {
         dom.cardWrap.appendChild(div);
     });
 }
-// 打开弹窗播放器【修复媒体访问路径】
+// 打开弹窗播放器【修复媒体访问路径 + 自动调用自动歌词】
 function openPopupPlayer(item) {
     stopAutoPlayCount();
     currentPlayItem = item;
@@ -761,6 +781,8 @@ function openPopupPlayer(item) {
     dom.popPlay.innerText = "播放";
     addPlayHistory(item);
     currentIndex = playQueue.findIndex(p => p.resourceKey === item.resourceKey);
+    // 切歌自动搜索匹配歌词
+    autoLoadLyric(item.resourceKey);
 }
 dom.popupClose.addEventListener("click", () => {
     dom.popupMask.classList.remove("show");
