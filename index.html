@@ -64,6 +64,7 @@ body{
     display:grid;
     grid-template-columns:repeat(9,1fr);
     gap:18px;
+    align-items:stretch;
 }
 .card-item{
     background:#fff;
@@ -75,6 +76,7 @@ body{
     min-height:260px;
     display:flex;
     flex-direction:column;
+    width:100%;
 }
 .card-item:hover{transform:translateY(-3px);box-shadow:0 6px 14px #00000012;}
 .card-cover{
@@ -84,11 +86,13 @@ body{
     position:relative;
     overflow:hidden;
     background:#eee;
+    flex-shrink:0;
 }
 .card-cover img{
     width:100%;
     height:100%;
     object-fit:cover;
+    display:block;
 }
 .card-more{
     position:absolute;
@@ -112,6 +116,10 @@ body{
 .card-info{
     margin-top:10px;
     flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:hidden;
 }
 .card-title{
     font-weight:bold;font-size:14px;
@@ -132,6 +140,7 @@ body{
     border-radius:6px;
     cursor:pointer;
     font-size:12px;
+    flex-shrink:0;
 }
 .bottom-player{
     height:88px;
@@ -364,7 +373,6 @@ let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
 const coverCache = {};
-
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -394,7 +402,6 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
-
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -404,23 +411,26 @@ function escapeHtml(str){
         .replace(/"/g,"&quot;");
 }
 
-// 封面自动搜索（iTunes公开接口）
+// 封面自动搜索
 async function autoFetchCover(title, author){
     const cacheKey = `${title}_${author||""}`;
     if(coverCache[cacheKey] !== undefined) return coverCache[cacheKey];
+
     try{
         const kw = encodeURIComponent(`${title} ${author||""}`);
         const res = await fetch(`https://itunes.apple.com/search?term=${kw}&media=music&limit=1`);
         const json = await res.json();
-        if(json.results && json.results.length>0){
+
+        if(json.results && json.results.length > 0){
             let imgUrl = json.results[0].artworkUrl100;
             imgUrl = imgUrl.replace("100x100bb","600x600bb");
             coverCache[cacheKey] = imgUrl;
             return imgUrl;
         }
     }catch(e){
-        console.log("自动封面获取失败",e);
+        console.log("自动封面获取失败", e);
     }
+
     coverCache[cacheKey] = null;
     return null;
 }
@@ -491,8 +501,7 @@ async function autoLoadLyric(audioKey){
         const lrcText = await res.text();
         loadLyricRaw(lrcText, lyricPath);
     }catch(err){
-        lyricArr = [];
-        renderLyricView(-1,0);
+        lyricArr = []; renderLyricView(-1,0);
     }
 }
 function parseLyricAll(text, ext){
@@ -639,20 +648,14 @@ function formatWan(num){
     return res + "万";
 }
 
-// 渲染单张卡片（异步加载封面）
+// 单张卡片渲染：先创建DOM，再异步加载封面，避免卡片宽度抖动
 async function renderOneCard(item){
     const div = document.createElement("div");
     div.className = "card-item";
-    let coverSrc = item.coverImg || "";
-    if(!coverSrc && currentCategory === "music"){
-        coverSrc = await autoFetchCover(item.name, item.author);
-    }
-    const coverHtml = coverSrc
-        ? `<img src="${escapeHtml(coverSrc)}" loading="lazy" onerror="this.remove()">`
-        : "";
+
     div.innerHTML = `
         <div class="card-cover">
-            ${coverHtml}
+            <img src="${DEFAULT_COVER}" loading="lazy" alt="封面">
             <span class="card-more">●</span>
             <span class="card-play">▶</span>
         </div>
@@ -666,7 +669,23 @@ async function renderOneCard(item){
         </div>
         <button class="btn-card-download">${currentCategory==="image"?"查看":"播放"}</button>
     `;
+
     div.dataset.key = item.resourceKey;
+
+    const coverImg = div.querySelector(".card-cover img");
+
+    // 音乐分类才自动搜索封面
+    if(currentCategory === "music"){
+        const coverSrc = await autoFetchCover(item.name, item.author);
+        if(coverSrc){
+            coverImg.src = coverSrc;
+        }
+    }
+
+    coverImg.onerror = function(){
+        this.src = DEFAULT_COVER;
+    };
+
     div.querySelector(".card-more").addEventListener("click", e => {
         e.stopPropagation();
         const rect = e.target.getBoundingClientRect();
@@ -675,6 +694,7 @@ async function renderOneCard(item){
         dom.moreMenu.classList.add("show");
         dom.moreMenu.dataset.cur = JSON.stringify(item);
     });
+
     div.querySelector(".btn-card-download").addEventListener("click", e => {
         e.stopPropagation();
         if(currentCategory === "image"){
@@ -683,6 +703,7 @@ async function renderOneCard(item){
             openPopupPlayer(item);
         }
     });
+
     div.addEventListener("click", () => {
         if(currentCategory === "image"){
             window.open(`${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`,"_blank");
@@ -690,13 +711,19 @@ async function renderOneCard(item){
             openPopupPlayer(item);
         }
     });
+
     dom.cardWrap.appendChild(div);
 }
 
+// 先清空列表，再同步渲染所有卡片，保证卡片宽度一致
 function renderCard(list){
     dom.cardWrap.innerHTML = "";
+
     list.forEach(item => {
-        if (item.favCount === null || item.favCount === undefined) item.favCount = getRandomFavCount();
+        if (item.favCount === null || item.favCount === undefined) {
+            item.favCount = getRandomFavCount();
+        }
+
         renderOneCard(item);
     });
 }
@@ -819,15 +846,16 @@ document.querySelector(".search-box").addEventListener("input", e => {
     const filtered = playQueue.filter(item => item.name.includes(kw));
     renderCard(filtered);
 });
-
 async function loadResourceList(category="music"){
     let fetchUrl;
     if(category === "music") fetchUrl = `${API_BASE}/list`;
     else if(category === "video") fetchUrl = `${API_BASE}/videoList`;
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
+
     try{
         const res = await fetch(fetchUrl);
         const listRaw = await res.json();
+
         playQueue = listRaw.map(obj=>{
             const filename = obj.key;
             const name = filename.replace(/\.[^/.]+$/,"");
@@ -837,9 +865,10 @@ async function loadResourceList(category="music"){
                 author:"R2文件",
                 coverImg:"",
                 playCount:getRandomPlayCount(),
-                favCount:getRandomFavCount(),
-            }
-        })
+                favCount:getRandomFavCount()
+            };
+        });
+
         renderCard(playQueue);
         renderHistory();
     }catch(err){
