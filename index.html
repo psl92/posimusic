@@ -386,6 +386,8 @@ let lyricArr = [];
 let currentPlayItem = null;
 let currentLyricLine = -1;
 let playCountTimer = null;
+let currentCategory = "music";
+
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -415,6 +417,18 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
+
+// 根据资源key 获取cover文件夹封面地址
+function getCoverUrl(key) {
+    const api = `${API_BASE}/r2proxy/`;
+    const [folder, fullName] = key.split("/");
+    const fileName = fullName.replace(/\.[^.]+$/,"");
+    return {
+        jpg: `${api}cover/${folder}_${fileName}.jpg`,
+        png: `${api}cover/${folder}_${fileName}.png`
+    }
+}
+
 //播放数：12万 ~ 800万随机保底
 function getRandomPlayCount(){
     const min = 120000;
@@ -634,7 +648,7 @@ dom.lyricFileInput.addEventListener("change", e => {
     };
     reader.readAsText(file);
 });
-// 悬浮歌词：从Worker读取R2桶歌词【修复接口路径，移除prompt弹窗】
+// 悬浮歌词：从Worker读取R2桶歌词
 dom.lyricSearchBtn.addEventListener("click", async () => {
     const lyricKey = dom.lyricSearchInput.value.trim();
     if (!lyricKey) { alert("输入R2桶内的歌词文件名，例如：lyric/朝歌.lrc"); return; }
@@ -730,10 +744,10 @@ function renderCard(list) {
         }
         const div = document.createElement("div");
         div.className = "card-item";
-        const coverSrc = item.coverImg ? item.coverImg : DEFAULT_COVER;
+        const {jpg,png} = getCoverUrl(item.resourceKey);
         div.innerHTML = `
             <div class="card-cover">
-                <img src="${coverSrc}" alt="封面">
+                <img src="${jpg}" onerror="this.src='${png}';this.onerror=null;this.src='${DEFAULT_COVER}';" alt="封面">
                 <span class="card-more">●</span>
                 <span class="card-play">▶</span>
             </div>
@@ -916,13 +930,13 @@ dom.moreMenu.addEventListener("click", e => {
     dom.moreMenu.classList.remove("show");
 });
 document.addEventListener("click", () => dom.moreMenu.classList.remove("show"));
-// 标签切换
+// 标签切换真正加载对应分类
 document.querySelectorAll(".tab-item").forEach(tab => {
     tab.addEventListener("click", function () {
         document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
         this.classList.add("active");
-        const type = this.dataset.type;
-        console.log("切换分类：", type);
+        currentCategory = this.dataset.type;
+        loadResourceList(currentCategory);
     });
 });
 // 搜索框
@@ -939,10 +953,10 @@ document.querySelector(".main-content").addEventListener("scroll", async functio
         console.log("触底加载下一页 page=", page);
     }
 });
-// 从Worker拉取R2资源列表【修复接口地址】
-async function loadResourceList(){
+// 从Worker拉取R2资源列表，带category分类参数
+async function loadResourceList(category="music"){
     try{
-        const res = await fetch(`${API_BASE}/list`);
+        const res = await fetch(`${API_BASE}/list?category=${encodeURIComponent(category)}`);
         const listRaw = await res.json();
         playQueue = listRaw.map(obj=>{
             const filename = obj.key;
@@ -964,7 +978,7 @@ async function loadResourceList(){
     }
 }
 // 初始化
-loadResourceList();
+loadResourceList("music");
 </script>
 </body>
 </html>
