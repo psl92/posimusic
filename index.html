@@ -374,9 +374,7 @@ body{
     <div class="lyric-container" id="lyricContainer"></div>
 </div>
 <script>
-// API_BASE二选一
-// const API_BASE = " https://api.busisi.com/ ";
-const API_BASE = " https://xn--proudtooth4850-962hf.584119887.workers.dev/ ";
+const API_BASE = "https://api.busisi.com";
 const DEFAULT_COVER = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect fill='%23ddd' width='300' height='300'/><text x='50%' y='50%' font-size='22' text-anchor='middle' fill='%23888'>暂无封面</text></svg>";
 const MAX_SHOW_LINES = 7;
 const MAX_HISTORY_COUNT = 50;
@@ -418,15 +416,6 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
-function syncPlayButtonUI(isPlay){
-    if(isPlay){
-        dom.popPlay.innerText = "暂停";
-        dom.btnPlay.innerText = "⏸";
-    }else{
-        dom.popPlay.innerText = "播放";
-        dom.btnPlay.innerText = "▶";
-    }
-}
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -435,18 +424,20 @@ function escapeHtml(str){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;");
 }
-async function autoFetchCover(title, audioKey){
-    if(coverCache[audioKey] !== undefined) return coverCache[audioKey];
-    try{
-        const resp = await fetch(`${API_BASE}/getCover?key=${encodeURIComponent(audioKey)}`);
-        const json = await resp.json();
-        if(json.cover){
-            const url = `${API_BASE}/file?key=${encodeURIComponent(json.cover)}`;
-            coverCache[audioKey] = url;
-            return url;
+async function autoFetchCover(title, author){
+    const exts = [".jpg",".jpeg",".png",".webp",".avif"];
+    const baseKey = `cover/${encodeURIComponent(title)}`;
+    for(let ext of exts){
+        const url = `${API_BASE}/file?key=${baseKey}${ext}`;
+        try{
+            const resp = await fetch(url,{method:"HEAD"});
+            if(resp.ok){
+                return url;
+            }
+        }catch(e){
+            continue;
         }
-    }catch(e){}
-    coverCache[audioKey] = null;
+    }
     return null;
 }
 function getRandomPlayCount(){
@@ -642,15 +633,8 @@ document.addEventListener("keydown", function (e) {
     switch (e.key) {
         case " ":
             e.preventDefault();
-            if (dom.popMedia.paused) { 
-                dom.popMedia.play().catch(()=>{}); 
-                syncPlayButtonUI(true);
-                startAutoPlayCount(); 
-            }else { 
-                dom.popMedia.pause(); 
-                syncPlayButtonUI(false);
-                stopAutoPlayCount(); 
-            }
+            if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
+            else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
             break;
         case "ArrowLeft": e.preventDefault(); dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); break;
         case "ArrowRight": e.preventDefault(); dom.popMedia.currentTime += 5; break;
@@ -692,7 +676,7 @@ async function renderOneCard(item){
     div.dataset.key = item.resourceKey;
     const coverImg = div.querySelector(".card-cover img");
     if(currentCategory === "music"){
-        const coverSrc = await autoFetchCover(item.name, item.resourceKey);
+        const coverSrc = await autoFetchCover(item.name, item.author);
         if(coverSrc){
             coverImg.src = coverSrc;
         }
@@ -746,7 +730,7 @@ function openPopupPlayer(item){
     renderLyricView(-1, 0);
     dom.popMedia.src = `${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`;
     dom.popMedia.currentTime = 0;
-    syncPlayButtonUI(false);
+    dom.popPlay.innerText = "播放";
     addPlayHistory(item);
     currentIndex = playQueue.findIndex(p => p.resourceKey === item.resourceKey);
     if(currentCategory === "music") autoLoadLyric(item.resourceKey);
@@ -755,19 +739,11 @@ dom.popupClose.addEventListener("click", () => {
     dom.popupMask.classList.remove("show");
     dom.floatLyric.classList.remove("show");
     dom.popMedia.pause();
-    syncPlayButtonUI(false);
     stopAutoPlayCount();
 });
 dom.popPlay.addEventListener("click", () => {
-    if (dom.popMedia.paused) { 
-        dom.popMedia.play().catch(()=>{}); 
-        syncPlayButtonUI(true);
-        startAutoPlayCount(); 
-    }else { 
-        dom.popMedia.pause(); 
-        syncPlayButtonUI(false);
-        stopAutoPlayCount(); 
-    }
+    if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
+    else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
 });
 dom.popFull.addEventListener("click", toggleFullscreen);
 dom.btnFullScreen.addEventListener("click", toggleFullscreen);
@@ -786,21 +762,10 @@ document.getElementById("popNext").addEventListener("click", playNext);
 dom.btnPrev.onclick = playPrev;
 dom.btnNext.onclick = playNext;
 dom.btnPlay.onclick = () => {
-    if (dom.popMedia.paused) { 
-        dom.popMedia.play().catch(()=>{}); 
-        syncPlayButtonUI(true);
-        startAutoPlayCount(); 
-    }else { 
-        dom.popMedia.pause(); 
-        syncPlayButtonUI(false);
-        stopAutoPlayCount(); 
-    }
+    if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
+    else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
 };
-dom.btnBottomPause.onclick = () => { 
-    dom.popMedia.pause(); 
-    syncPlayButtonUI(false);
-    stopAutoPlayCount(); 
-};
+dom.btnBottomPause.onclick = () => { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); };
 dom.btnRewind.onclick = () => { dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); };
 dom.btnForward.onclick = () => { dom.popMedia.currentTime = dom.popMedia.currentTime + 5; };
 dom.bottomProgressBar.addEventListener("click", e => {
@@ -828,13 +793,8 @@ dom.popMedia.addEventListener("timeupdate", () => {
 });
 dom.popMedia.addEventListener("ended", () => {
     stopAutoPlayCount();
-    if (playMode === 1) { 
-        dom.popMedia.currentTime = 0; 
-        dom.popMedia.play().catch(()=>{}); 
-        startAutoPlayCount(); 
-    }else {
-        playNext();
-    }
+    if (playMode === 1) { dom.popMedia.currentTime = 0; dom.popMedia.play(); startAutoPlayCount(); }
+    else playNext();
 });
 (function initLyricDrag(){
     const wrap = dom.floatLyric;
