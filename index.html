@@ -69,24 +69,28 @@ body{
 .card-item{
     background:#fff;
     border-radius:12px;
-    padding:12px;
+    padding:10px;
     border:1px solid #e9e4f2;
     cursor:pointer;
     transition:0.2s;
-    min-height:260px;
+    /* 固定短高度 */
+    height:230px;
     display:flex;
     flex-direction:column;
     width:100%;
+    min-width:0;
+    flex-shrink:0;
 }
 .card-item:hover{transform:translateY(-3px);box-shadow:0 6px 14px #00000012;}
 .card-cover{
     width:100%;
-    aspect-ratio:1/1;
+    height:126px;
     border-radius:8px;
     position:relative;
     overflow:hidden;
     background:#eee;
     flex-shrink:0;
+    min-width:0;
 }
 .card-cover img{
     width:100%;
@@ -114,26 +118,42 @@ body{
     display:flex;align-items:center;justify-content:center;
 }
 .card-info{
-    margin-top:10px;
+    margin-top:8px;
     flex:1;
     display:flex;
     flex-direction:column;
     justify-content:flex-start;
     overflow:hidden;
+    min-width:0;
+}
+/* 标题外层容器，用于滚动 */
+.card-title-wrap{
+    width:100%;
+    overflow:hidden;
+    position:relative;
 }
 .card-title{
     font-weight:bold;font-size:14px;
-    overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+    display:inline-block;
+    white-space:nowrap;
 }
-.card-author{font-size:12px;color:#777;margin:4px 0;}
+/* 悬浮滚动动画 */
+.card-title-wrap:hover .card-title{
+    animation: scrollText 6s linear infinite;
+}
+@keyframes scrollText {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+.card-author{font-size:12px;color:#777;margin:3px 0;}
 .card-stat{
     font-size:11px;color:#888;
     display:flex;gap:8px;flex-wrap:wrap;
-    margin:6px 0;
+    margin:4px 0;
 }
 .btn-card-download{
     width:100%;
-    padding:5px 0;
+    padding:4px 0;
     border:none;
     background:#ede6f9;
     color:#7b42d8;
@@ -359,9 +379,6 @@ body{
 <script>
 const API_BASE = "https://api.busisi.com";
 const DEFAULT_COVER = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect fill='%23ddd' width='300' height='300'/><text x='50%' y='50%' font-size='22' text-anchor='middle' fill='%23888'>暂无封面</text></svg>";
-const AUDIO_EXTS = [".mp3",".flac",".wav",".m4a",".ogg"];
-const VIDEO_EXTS = [".mp4",".mov",".webm"];
-const LYRIC_EXTS = [".lrc",".krc",".qrc",".trc"];
 const MAX_SHOW_LINES = 7;
 const MAX_HISTORY_COUNT = 50;
 let playQueue = [];
@@ -373,6 +390,7 @@ let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
 const coverCache = {};
+
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -402,6 +420,7 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
+
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -411,14 +430,14 @@ function escapeHtml(str){
         .replace(/"/g,"&quot;");
 }
 
-// 封面自动搜索
+// 封面自动搜索（改成调用自己Worker，解决CORS）
 async function autoFetchCover(title, author){
     const cacheKey = `${title}_${author||""}`;
     if(coverCache[cacheKey] !== undefined) return coverCache[cacheKey];
 
     try{
         const kw = encodeURIComponent(`${title} ${author||""}`);
-        const res = await fetch(`https://itunes.apple.com/search?term=${kw}&media=music&limit=1`);
+        const res = await fetch(`${API_BASE}/searchCover?kw=${kw}`);
         const json = await res.json();
 
         if(json.results && json.results.length > 0){
@@ -648,7 +667,7 @@ function formatWan(num){
     return res + "万";
 }
 
-// 单张卡片渲染：先创建DOM，再异步加载封面，避免卡片宽度抖动
+// 单张卡片渲染
 async function renderOneCard(item){
     const div = document.createElement("div");
     div.className = "card-item";
@@ -715,15 +734,12 @@ async function renderOneCard(item){
     dom.cardWrap.appendChild(div);
 }
 
-// 先清空列表，再同步渲染所有卡片，保证卡片宽度一致
 function renderCard(list){
     dom.cardWrap.innerHTML = "";
-
     list.forEach(item => {
         if (item.favCount === null || item.favCount === undefined) {
             item.favCount = getRandomFavCount();
         }
-
         renderOneCard(item);
     });
 }
