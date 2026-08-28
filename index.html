@@ -169,6 +169,7 @@ body{
     padding:0 24px;
     gap:14px;
     z-index:99999 !important;
+    cursor:pointer;
 }
 .bottom-player button{
     background:none;border:none;
@@ -196,7 +197,6 @@ body{
     inset:0;
     background:#00000070;
     z-index:200;
-    display:none;
     align-items:center;justify-content:center;
 }
 .popup-mask.show{display:flex;}
@@ -359,7 +359,7 @@ body{
 <div class="main-content">
     <div class="card-wrap" id="cardWrap"></div>
 </div>
-<div class="bottom-player">
+<div class="bottom-player" id="bottomPlayerWrap">
     <button id="btnPrev">◀</button>
     <button id="btnPlay">▶</button>
     <button id="btnNext">▶▶</button>
@@ -451,8 +451,30 @@ const dom = {
     btnBottomFav:document.getElementById("btnBottomFav"),
     btnMode:document.getElementById("btnMode"),
     btnBottomPause:document.getElementById("btnBottomPause"),
-    btnFullScreen:document.getElementById("btnFullScreen")
+    btnFullScreen:document.getElementById("btnFullScreen"),
+    bottomPlayerWrap:document.getElementById("bottomPlayerWrap")
 };
+function syncPlayButtonState(){
+    if(dom.popMedia.paused){
+        dom.popPlay.innerText = "播放";
+        dom.btnPlay.innerText = "▶";
+        dom.btnBottomPause.innerText = "▶";
+    }else{
+        dom.popPlay.innerText = "暂停";
+        dom.btnPlay.innerText = "⏸";
+        dom.btnBottomPause.innerText = "⏸";
+    }
+}
+function openPopupMask(){
+    popupIsMini = false;
+    dom.popupMask.classList.remove("mini");
+    dom.popupMask.classList.add("show");
+}
+function closePopupMask(){
+    dom.popupMask.classList.remove("show");
+    dom.popupMask.classList.remove("mini");
+    popupIsMini = false;
+}
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -670,8 +692,9 @@ document.addEventListener("keydown", function (e) {
     switch (e.key) {
         case " ":
             e.preventDefault();
-            if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
-            else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
+            if (dom.popMedia.paused) { dom.popMedia.play(); startAutoPlayCount(); }
+            else { dom.popMedia.pause(); stopAutoPlayCount(); }
+            syncPlayButtonState();
             break;
         case "ArrowLeft": e.preventDefault(); dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); break;
         case "ArrowRight": e.preventDefault(); dom.popMedia.currentTime += 5; break;
@@ -789,52 +812,66 @@ function openPopupPlayer(item){
     currentPlayItem = item;
     dom.popTitle.innerText = item.name;
     dom.popAuthor.innerText = "";
-    popupIsMini = false;
-    dom.popupMask.classList.remove("mini");
-    dom.popupMask.classList.add("show");
+    openPopupMask();
     dom.floatLyric.classList.add("show");
     lyricArr = [];
     currentLyricLine = -1;
     renderLyricView(-1, 0);
     dom.popMedia.src = `${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`;
     dom.popMedia.currentTime = 0;
-    dom.popPlay.innerText = "播放";
     addPlayHistory(item);
     currentIndex = playQueue.findIndex(p => p.resourceKey === item.resourceKey);
     if(currentCategory === "music") autoLoadLyric(item.resourceKey);
+    dom.popMedia.play().then(()=>{
+        syncPlayButtonState();
+        startAutoPlayCount();
+    }).catch(()=>{
+        syncPlayButtonState();
+    });
 }
 
 dom.popupMini.addEventListener("click",()=>{
-    popupIsMini = !popupIsMini;
-    if(popupIsMini){
-        dom.popupMask.classList.add("mini");
-        dom.popupMask.classList.remove("show");
-    }else{
-        dom.popupMask.classList.remove("mini");
-        dom.popupMask.classList.add("show");
-    }
+    popupIsMini = true;
+    dom.popupMask.classList.add("mini");
+    dom.popupMask.classList.remove("show");
 });
 
 dom.popupClose.addEventListener("click", () => {
-    dom.popupMask.classList.remove("show");
-    dom.popupMask.classList.remove("mini");
-    popupIsMini = false;
+    closePopupMask();
     dom.floatLyric.classList.remove("show");
     dom.popMedia.pause();
     stopAutoPlayCount();
+    syncPlayButtonState();
 });
+
+dom.bottomPlayerWrap.addEventListener("click",(e)=>{
+    if(e.target.tagName === "BUTTON") return;
+    if(currentPlayItem && popupIsMini){
+        openPopupMask();
+    }
+});
+
 dom.popPlay.addEventListener("click", () => {
-    if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
-    else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
+    if (dom.popMedia.paused) {
+        dom.popMedia.play();
+        startAutoPlayCount();
+    } else {
+        dom.popMedia.pause();
+        stopAutoPlayCount();
+    }
+    syncPlayButtonState();
 });
 dom.popFull.addEventListener("click", toggleFullscreen);
 dom.btnFullScreen.addEventListener("click", toggleFullscreen);
+
 function playPrev(){
+    if(playQueue.length===0)return;
     if (playMode === 2) currentIndex = Math.floor(Math.random() * playQueue.length);
     else { currentIndex--; if (currentIndex < 0) currentIndex = playQueue.length - 1; }
     openPopupPlayer(playQueue[currentIndex]);
 }
 function playNext(){
+    if(playQueue.length===0)return;
     if (playMode === 2) currentIndex = Math.floor(Math.random() * playQueue.length);
     else { currentIndex++; if (currentIndex >= playQueue.length) currentIndex = 0; }
     openPopupPlayer(playQueue[currentIndex]);
@@ -844,13 +881,14 @@ document.getElementById("popNext").addEventListener("click", playNext);
 dom.btnPrev.onclick = playPrev;
 dom.btnNext.onclick = playNext;
 dom.btnPlay.onclick = () => {
-    if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
-    else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
+    if (dom.popMedia.paused) { dom.popMedia.play(); startAutoPlayCount(); }
+    else { dom.popMedia.pause(); stopAutoPlayCount(); }
+    syncPlayButtonState();
 };
 dom.btnBottomPause.onclick = () => {
-    dom.popMedia.pause();
-    dom.popPlay.innerText = "播放";
-    stopAutoPlayCount();
+    if (dom.popMedia.paused) { dom.popMedia.play(); startAutoPlayCount(); }
+    else { dom.popMedia.pause(); stopAutoPlayCount(); }
+    syncPlayButtonState();
 };
 dom.btnRewind.onclick = () => { dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); };
 dom.btnForward.onclick = () => { dom.popMedia.currentTime = dom.popMedia.currentTime + 5; };
@@ -866,6 +904,8 @@ dom.btnMode.onclick = () => {
     dom.btnMode.innerText = modeText[playMode];
 };
 dom.btnBottomFav.onclick = () => { alert("收藏逻辑，对接后端收藏接口"); };
+dom.popMedia.addEventListener("play",()=>{syncPlayButtonState();startAutoPlayCount();});
+dom.popMedia.addEventListener("pause",()=>{syncPlayButtonState();stopAutoPlayCount();});
 dom.popMedia.addEventListener("timeupdate", () => {
     const t = dom.popMedia.currentTime;
     let active = -1;
@@ -879,7 +919,11 @@ dom.popMedia.addEventListener("timeupdate", () => {
 });
 dom.popMedia.addEventListener("ended", () => {
     stopAutoPlayCount();
-    if (playMode === 1) { dom.popMedia.currentTime = 0; dom.popMedia.play(); startAutoPlayCount(); }
+    if (playMode === 1) {
+        dom.popMedia.currentTime = 0;
+        dom.popMedia.play();
+        startAutoPlayCount();
+    }
     else playNext();
 });
 (function initLyricDrag(){
