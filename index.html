@@ -60,6 +60,22 @@ body{
     height:calc(100vh - 72px - 88px);
     overflow-y:auto;
 }
+.back-bar{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+}
+.btn-back{
+    border:none;
+    background:#ede6f9;
+    color:#7b42d8;
+    padding:6px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+}
+.back-bar-text{font-size:16px;font-weight:bold;}
 .card-wrap{
     display:grid;
     grid-template-columns:repeat(9,1fr);
@@ -325,6 +341,10 @@ body{
     <div id="historyList"></div>
 </div>
 <div class="main-content">
+    <div class="back-bar" id="backBar" style="display:none;">
+        <button class="btn-back" id="btnBack">← 返回专辑列表</button>
+        <div class="back-bar-text" id="albumTitle"></div>
+    </div>
     <div class="card-wrap" id="cardWrap"></div>
 </div>
 <div class="bottom-player">
@@ -386,6 +406,8 @@ let currentPlayItem = null;
 let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
+let viewMode = "album"; // album=专辑列表，item=资源列表
+let currentAlbumKey = null;
 const coverCache = {};
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
@@ -414,7 +436,16 @@ const dom = {
     btnBottomFav:document.getElementById("btnBottomFav"),
     btnMode:document.getElementById("btnMode"),
     btnBottomPause:document.getElementById("btnBottomPause"),
-    btnFullScreen:document.getElementById("btnFullScreen")
+    btnFullScreen:document.getElementById("btnFullScreen"),
+    backBar:document.getElementById("backBar"),
+    btnBack:document.getElementById("btnBack"),
+    albumTitle:document.getElementById("albumTitle")
+};
+dom.btnBack.onclick = ()=>{
+    viewMode = "album";
+    currentAlbumKey = null;
+    dom.backBar.style.display = "none";
+    loadAlbumList();
 };
 function escapeHtml(str){
     if(!str)return "";
@@ -424,20 +455,18 @@ function escapeHtml(str){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;");
 }
-async function autoFetchCover(title, author){
-    const exts = [".jpg",".jpeg",".png",".webp",".avif"];
-    const baseKey = `cover/${encodeURIComponent(title)}`;
-    for(let ext of exts){
-        const url = `${API_BASE}/file?key=${baseKey}${ext}`;
-        try{
-            const resp = await fetch(url,{method:"HEAD"});
-            if(resp.ok){
-                return url;
-            }
-        }catch(e){
-            continue;
+async function fetchCoverByKey(resourceKey){
+    if(coverCache[resourceKey]) return coverCache[resourceKey];
+    try{
+        const resp = await fetch(`${API_BASE}/getCover?key=${encodeURIComponent(resourceKey)}`);
+        const json = await resp.json();
+        if(json.cover){
+            const url = `${API_BASE}/file?key=${encodeURIComponent(json.cover)}`;
+            coverCache[resourceKey] = url;
+            return url;
         }
-    }
+    }catch(e){}
+    coverCache[resourceKey] = null;
     return null;
 }
 function getRandomPlayCount(){
@@ -675,11 +704,9 @@ async function renderOneCard(item){
     `;
     div.dataset.key = item.resourceKey;
     const coverImg = div.querySelector(".card-cover img");
-    if(currentCategory === "music"){
-        const coverSrc = await autoFetchCover(item.name, item.author);
-        if(coverSrc){
-            coverImg.src = coverSrc;
-        }
+    const coverSrc = await fetchCoverByKey(item.resourceKey);
+    if(coverSrc){
+        coverImg.src = coverSrc;
     }
     coverImg.onerror = function(){
         this.src = DEFAULT_COVER;
@@ -708,6 +735,60 @@ async function renderOneCard(item){
         }
     });
     dom.cardWrap.appendChild(div);
+}
+async function renderAlbumCard(albumItem){
+    const div = document.createElement("div");
+    div.className = "card-item";
+    div.innerHTML = `
+        <div class="card-cover">
+            <img src="${DEFAULT_COVER}" loading="lazy" alt="专辑封面">
+        </div>
+        <div class="card-info">
+            <div class="card-title-wrap">
+                <div class="card-title">${escapeHtml(albumItem.name)}</div>
+            </div>
+            <div class="card-stat">
+                <span>专辑</span>
+            </div>
+        </div>
+        <button class="btn-card-download">进入专辑</button>
+    `;
+    div.dataset.albumKey = albumItem.key;
+    const img = div.querySelector("img");
+    // 尝试拿专辑cover.jpg
+    const coverKey = albumItem.key + "cover.jpg";
+    const coverUrl = `${API_BASE}/file?key=${encodeURIComponent(coverKey)}`;
+    img.src = coverUrl;
+    img.onerror = ()=>{img.src = DEFAULT_COVER;};
+    div.querySelector(".btn-card-download").onclick = (e)=>{
+        e.stopPropagation();
+        openAlbum(albumItem);
+    };
+    div.onclick = ()=>{openAlbum(albumItem);};
+    dom.cardWrap.appendChild(div);
+}
+async function openAlbum(albumObj){
+    viewMode = "item";
+    currentAlbumKey = albumObj.key;
+    dom.backBar.style.display = "flex";
+    dom.albumTitle.innerText = albumObj.name;
+    await loadResourceList(currentCategory, albumObj.key);
+}
+async function loadAlbumList(){
+    dom.cardWrap.innerHTML = "";
+    dom.backBar.style.display = "none";
+    try{
+        const resp = await fetch(`${API_BASE}/albumList`);
+        const albumListRaw = await resp.json();
+        // 虚拟根目录专辑
+        albumListRaw.unshift({key:"",name:"根目录文件"});
+        for(const alb of albumListRaw){
+            await renderAlbumCard(alb);
+        }
+    }catch(err){
+        alert("加载专辑列表失败："+err.message);
+        console.error(err);
+    }
 }
 function renderCard(list){
     dom.cardWrap.innerHTML = "";
@@ -828,7 +909,9 @@ document.querySelectorAll(".tab-item").forEach(tab => {
         document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
         this.classList.add("active");
         currentCategory = this.dataset.type;
-        loadResourceList(currentCategory);
+        viewMode = "album";
+        currentAlbumKey = null;
+        loadAlbumList();
     });
 });
 document.querySelector(".search-box").addEventListener("input", e => {
@@ -839,10 +922,16 @@ document.querySelector(".search-box").addEventListener("input", e => {
     });
     renderCard(filtered);
 });
-async function loadResourceList(category="music"){
+async function loadResourceList(category="music", albumKey=null){
     let fetchUrl;
-    if(category === "music") fetchUrl = `${API_BASE}/list`;
-    else if(category === "video") fetchUrl = `${API_BASE}/videoList`;
+    if(category === "music"){
+        fetchUrl = `${API_BASE}/list`;
+        if(albumKey) fetchUrl += `?album=${encodeURIComponent(albumKey)}`;
+    }
+    else if(category === "video"){
+        fetchUrl = `${API_BASE}/videoList`;
+        if(albumKey) fetchUrl += `?album=${encodeURIComponent(albumKey)}`;
+    }
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
     try{
         const res = await fetch(fetchUrl);
@@ -871,7 +960,8 @@ async function loadResourceList(category="music"){
         console.error(err);
     }
 }
-loadResourceList("music");
+// 初始化加载专辑列表
+loadAlbumList();
 </script>
 </body>
 </html>
