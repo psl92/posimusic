@@ -312,6 +312,7 @@ body{
 </style>
 </head>
 <body>
+<audio id="popAudio">
 <div class="top-header">
     <input class="search-box" placeholder="搜索作品、作者"/>
     <div class="tab-group">
@@ -401,6 +402,7 @@ const dom = {
     popTitle:document.getElementById("popTitle"),
     popAuthor:document.getElementById("popAuthor"),
     popMedia:document.getElementById("popMedia"),
+    popAudio:document.getElementById("popAudio"),
     popPlay:document.getElementById("popPlay"),
     popFull:document.getElementById("popFull"),
     moreMenu:document.getElementById("moreMenu"),
@@ -416,6 +418,11 @@ const dom = {
     btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen")
 };
+// 获取当前活动媒体实例
+function getActiveMedia(){
+    if(currentCategory === "music") return dom.popAudio;
+    return dom.popMedia;
+}
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -449,11 +456,12 @@ function getRandomFavCount(){
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function startAutoPlayCount(){
+    const media = getActiveMedia();
     if(!currentPlayItem) return;
     if(playCountTimer) clearInterval(playCountTimer);
     playCountTimer = setInterval(()=>{
         if(!currentPlayItem) return;
-        if(dom.popMedia.paused) return;
+        if(media.paused) return;
         currentPlayItem.playCount += 1;
     }, 60000);
 }
@@ -625,21 +633,23 @@ dom.lyricSearchBtn.addEventListener("click", async () => {
     }catch(err){ alert("加载歌词失败："+err.message); }
 });
 function toggleFullscreen(){
+    if(currentCategory === "music") return;
     if (document.fullscreenElement) document.exitFullscreen();
     else dom.popMedia.requestFullscreen?.() || dom.popMedia.webkitRequestFullscreen?.();
 }
 document.addEventListener("keydown", function (e) {
     if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+    const media = getActiveMedia();
     switch (e.key) {
         case " ":
             e.preventDefault();
-            if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
-            else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
+            if (media.paused) { media.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
+            else { media.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
             break;
-        case "ArrowLeft": e.preventDefault(); dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); break;
-        case "ArrowRight": e.preventDefault(); dom.popMedia.currentTime += 5; break;
-        case "ArrowUp": e.preventDefault(); dom.popMedia.volume = Math.min(1, dom.popMedia.volume + 0.1); break;
-        case "ArrowDown": e.preventDefault(); dom.popMedia.volume = Math.max(0, dom.popMedia.volume - 0.1); break;
+        case "ArrowLeft": e.preventDefault(); media.currentTime = Math.max(0, media.currentTime - 5); break;
+        case "ArrowRight": e.preventDefault(); media.currentTime += 5; break;
+        case "ArrowUp": e.preventDefault(); media.volume = Math.min(1, media.volume + 0.1); break;
+        case "ArrowDown": e.preventDefault(); media.volume = Math.max(0, media.volume - 0.1); break;
         case "f": case "F": toggleFullscreen(); break;
         case "Escape": if (document.fullscreenElement) document.exitFullscreen(); break;
     }
@@ -720,6 +730,8 @@ function renderCard(list){
 }
 function openPopupPlayer(item){
     stopAutoPlayCount();
+    dom.popAudio.pause();
+    dom.popMedia.pause();
     currentPlayItem = item;
     dom.popTitle.innerText = item.name;
     dom.popAuthor.innerText = "";
@@ -728,8 +740,15 @@ function openPopupPlayer(item){
     lyricArr = [];
     currentLyricLine = -1;
     renderLyricView(-1, 0);
-    dom.popMedia.src = `${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`;
-    dom.popMedia.currentTime = 0;
+    const mediaUrl = `${API_BASE}/file?key=${encodeURIComponent(item.resourceKey)}`;
+    if(currentCategory === "music"){
+        dom.popMedia.style.display = "none";
+        dom.popAudio.src = mediaUrl;
+    }else{
+        dom.popMedia.style.display = "block";
+        dom.popMedia.src = mediaUrl;
+    }
+    getActiveMedia().currentTime = 0;
     dom.popPlay.innerText = "播放";
     addPlayHistory(item);
     currentIndex = playQueue.findIndex(p => p.resourceKey === item.resourceKey);
@@ -738,12 +757,14 @@ function openPopupPlayer(item){
 dom.popupClose.addEventListener("click", () => {
     dom.popupMask.classList.remove("show");
     dom.floatLyric.classList.remove("show");
+    dom.popAudio.pause();
     dom.popMedia.pause();
     stopAutoPlayCount();
 });
 dom.popPlay.addEventListener("click", () => {
-    if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
-    else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
+    const media = getActiveMedia();
+    if (media.paused) { media.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
+    else { media.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
 });
 dom.popFull.addEventListener("click", toggleFullscreen);
 dom.btnFullScreen.addEventListener("click", toggleFullscreen);
@@ -762,16 +783,27 @@ document.getElementById("popNext").addEventListener("click", playNext);
 dom.btnPrev.onclick = playPrev;
 dom.btnNext.onclick = playNext;
 dom.btnPlay.onclick = () => {
-    if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
-    else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
+    const media = getActiveMedia();
+    if (media.paused) { media.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
+    else { media.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
 };
-dom.btnBottomPause.onclick = () => { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); };
-dom.btnRewind.onclick = () => { dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); };
-dom.btnForward.onclick = () => { dom.popMedia.currentTime = dom.popMedia.currentTime + 5; };
+dom.btnBottomPause.onclick = () => {
+    const media = getActiveMedia();
+    media.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount();
+};
+dom.btnRewind.onclick = () => {
+    const media = getActiveMedia();
+    media.currentTime = Math.max(0, media.currentTime - 5);
+};
+dom.btnForward.onclick = () => {
+    const media = getActiveMedia();
+    media.currentTime = media.currentTime + 5;
+};
 dom.bottomProgressBar.addEventListener("click", e => {
+    const media = getActiveMedia();
     const rect = dom.bottomProgressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
-    if (dom.popMedia.duration) dom.popMedia.currentTime = percent * dom.popMedia.duration;
+    if (media.duration) media.currentTime = percent * media.duration;
 });
 dom.btnMode.onclick = () => {
     playMode++;
@@ -780,22 +812,33 @@ dom.btnMode.onclick = () => {
     dom.btnMode.innerText = modeText[playMode];
 };
 dom.btnBottomFav.onclick = () => { alert("收藏逻辑，对接后端收藏接口"); };
-dom.popMedia.addEventListener("timeupdate", () => {
-    const t = dom.popMedia.currentTime;
+// 统一timeupdate，audio/video共用一套
+function onMediaTimeUpdate(){
+    const media = getActiveMedia();
+    const t = media.currentTime;
     let active = -1;
     for (let i = 0; i < lyricArr.length; i++) { if (lyricArr[i].time <= t) active = i; }
     if (active !== currentLyricLine) currentLyricLine = active;
     renderLyricView(currentLyricLine, t);
-    if (dom.popMedia.duration) {
-        const pct = t / dom.popMedia.duration;
+    if (media.duration) {
+        const pct = t / media.duration;
         dom.bottomDot.style.left = (pct * 100) + "%";
     }
-});
-dom.popMedia.addEventListener("ended", () => {
+}
+function onMediaEnded(){
     stopAutoPlayCount();
-    if (playMode === 1) { dom.popMedia.currentTime = 0; dom.popMedia.play(); startAutoPlayCount(); }
-    else playNext();
-});
+    if (playMode === 1) {
+        const media = getActiveMedia();
+        media.currentTime = 0;
+        media.play();
+        startAutoPlayCount();
+    } else playNext();
+}
+dom.popMedia.addEventListener("timeupdate", onMediaTimeUpdate);
+dom.popAudio.addEventListener("timeupdate", onMediaTimeUpdate);
+dom.popMedia.addEventListener("ended", onMediaEnded);
+dom.popAudio.addEventListener("ended", onMediaEnded);
+
 (function initLyricDrag(){
     const wrap = dom.floatLyric;
     let dragging = false, startX, startY, initLeft, initTop;
