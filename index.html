@@ -205,7 +205,7 @@ body{
     width:620px;
     background:#fff;
     border-radius:16px;
-    padding:24px;
+    padding:32px 24px 24px 24px;
     position:absolute;
     left:50%;
     top:50%;
@@ -213,6 +213,7 @@ body{
     box-shadow:0 8px 30px #00000033;
     transition: all 0.24s ease;
     pointer-events:auto;
+    position:relative;
 }
 .popup-mask.mini .popup-player-box{
     transform: translate(20px,calc(100vh - 220px)) scale(0.32);
@@ -223,11 +224,12 @@ body{
     justify-content:space-between;
     align-items:center;
     position:absolute;
-    top:14px;
-    right:14px;
-    left:14px;
+    top:8px;
+    right:16px;
+    left:16px;
     cursor:move;
     z-index:10;
+    height:32px;
 }
 .popup-mini{
     border:none;background:none;font-size:22px;cursor:pointer;
@@ -235,7 +237,7 @@ body{
 .popup-close{
     border:none;background:none;font-size:24px;cursor:pointer;
 }
-.popup-info{margin-bottom:12px;margin-top:24px;}
+.popup-info{margin-bottom:12px;margin-top:8px;}
 .popup-title{font-size:20px;font-weight:bold;}
 .popup-author{font-size:14px;color:#777;margin-top:4px;display:none;}
 .popup-media{
@@ -327,7 +329,6 @@ body{
 }
 .lyric-char.sung{color:#7b42d8;font-weight:bold;}
 .lyric-char.unsung{color:#44444480;}
-
 .donate-card-wrap{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -437,7 +438,6 @@ let popupIsMini = false;
 //弹窗拖拽变量
 let popupDragging = false;
 let dragStartX, dragStartY, boxStartLeft, boxStartTop;
-
 const coverCache = {};
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
@@ -472,7 +472,6 @@ const dom = {
     btnFullScreen:document.getElementById("btnFullScreen"),
     bottomPlayerWrap:document.getElementById("bottomPlayerWrap")
 };
-
 //弹窗拖拽初始化
 (function initPopupDrag(){
     dom.popupDragBar.addEventListener("mousedown",e=>{
@@ -500,7 +499,6 @@ const dom = {
     })
     document.addEventListener("mouseup",()=>{popupDragging=false;})
 })();
-
 function syncPlayButtonState(){
     if(dom.popMedia.paused){
         dom.popPlay.innerText = "播放";
@@ -816,7 +814,6 @@ async function renderOneCard(item){
     });
     dom.cardWrap.appendChild(div);
 }
-
 function renderDonateView(list){
     dom.cardWrap.innerHTML = "";
     let wechatItem = null;
@@ -840,7 +837,6 @@ function renderDonateView(list){
     `;
     dom.cardWrap.innerHTML = html;
 }
-
 function renderCard(list){
     if(currentCategory === "image"){
         renderDonateView(list);
@@ -876,7 +872,6 @@ function openPopupPlayer(item){
         syncPlayButtonState();
     });
 }
-
 dom.popupMini.addEventListener("click",()=>{
     popupIsMini = !popupIsMini;
     if(popupIsMini){
@@ -885,7 +880,6 @@ dom.popupMini.addEventListener("click",()=>{
         dom.popupMask.classList.remove("mini");
     }
 });
-
 dom.popupClose.addEventListener("click", () => {
     closePopupMask();
     dom.floatLyric.classList.remove("show");
@@ -893,7 +887,6 @@ dom.popupClose.addEventListener("click", () => {
     stopAutoPlayCount();
     syncPlayButtonState();
 });
-
 dom.bottomPlayerWrap.addEventListener("click",(e)=>{
     if(e.target.tagName === "BUTTON") return;
     if(currentPlayItem && popupIsMini){
@@ -901,7 +894,6 @@ dom.bottomPlayerWrap.addEventListener("click",(e)=>{
         dom.popupMask.classList.remove("mini");
     }
 });
-
 dom.popPlay.addEventListener("click", () => {
     if (dom.popMedia.paused) {
         dom.popMedia.play();
@@ -914,7 +906,6 @@ dom.popPlay.addEventListener("click", () => {
 });
 dom.popFull.addEventListener("click", toggleFullscreen);
 dom.btnFullScreen.addEventListener("click", toggleFullscreen);
-
 function playPrev(){
     if(playQueue.length===0)return;
     if (playMode === 2) currentIndex = Math.floor(Math.random() * playQueue.length);
