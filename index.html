@@ -273,6 +273,7 @@ body{
     transition: all 0.24s ease;
     pointer-events:auto;
 }
+/*修复：mini模式右下角悬浮，无scale，按钮点击正常*/
 .popup-mask.mini .popup-player-box{
     left:auto;
     top:auto;
@@ -353,40 +354,26 @@ body{
     color:#1b1b1b;
 }
 .card-more-menu div:hover{background:rgba(255,255,255,0.35);}
-
-/*====版本6 歌词弹窗修复====*/
+/*重点修复：歌词弹窗开启点击穿透，只允许内部控件接收点击，不遮挡下方卡片*/
 .float-lyric{
     position:absolute;
     width:420px;
-    left:100px;top:120px;
-    z-index:210;
-    display:none;
-}
-.float-lyric.show{display:block;}
-/*独立背景层，背景层穿透点击*/
-.lyric-bg{
-    position:absolute;
-    inset:0;
     background:rgba(255,255,255,0.14);
     backdrop-filter:blur(18px) saturate(120%);
     border:1px solid rgba(255,255,255,0.32);
     border-radius:14px;
+    padding:14px;
+    left:100px;top:120px;
+    cursor:move;
+    z-index:210;
+    display:none;
     pointer-events:none;
 }
-.lyric-inner{
-    position:relative;
-    padding:14px;
-}
-/*拖拽句柄：整个inner区域允许拖拽鼠标事件*/
-.lyric-drag-handle{
-    cursor:move;
-}
-/*只有输入框、按钮开启交互，歌词文本区域继续穿透点击*/
-.lyric-search-row input,
-.lyric-search-row button{
+.float-lyric.show{display:block;}
+/*内部子元素恢复鼠标事件，按钮、文字可以正常交互*/
+.float-lyric > *{
     pointer-events:auto;
 }
-
 .lyric-search-row{
     display:flex;gap:8px;margin-bottom:10px;
 }
@@ -415,7 +402,6 @@ body{
 .lyric-container{
     min-height:220px;
     overflow:hidden;
-    pointer-events:none;
 }
 .lyric-item{
     text-align:center;
@@ -515,18 +501,14 @@ body{
     <div data-act="addToCollect">加入收藏</div>
     <div data-act="copyKey">复制资源Key</div>
 </div>
-<!--版本6 HTML结构改动：拆分背景层与拖拽句柄-->
 <div class="float-lyric" id="floatLyric">
-    <div class="lyric-bg"></div>
-    <div class="lyric-inner lyric-drag-handle" id="lyricDragHandle">
-        <div class="lyric-search-row">
-            <input class="lyric-search-input" id="lyricSearchInput" placeholder="输入R2桶内的歌词文件名，例：lyric/朝歌.lrc"/>
-            <button class="lyric-btn" id="lyricSearchBtn">加载歌词</button>
-            <button class="lyric-btn" id="lyricImportBtn">本地导入</button>
-            <input type="file" accept=".lrc,.krc,.qrc,.trc" id="lyricFileInput" style="display:none;">
-        </div>
-        <div class="lyric-container" id="lyricContainer"></div>
+    <div class="lyric-search-row">
+        <input class="lyric-search-input" id="lyricSearchInput" placeholder="输入R2桶内的歌词文件名，例：lyric/朝歌.lrc"/>
+        <button class="lyric-btn" id="lyricSearchBtn">加载歌词</button>
+        <button class="lyric-btn" id="lyricImportBtn">本地导入</button>
+        <input type="file" accept=".lrc,.krc,.qrc,.trc" id="lyricFileInput" style="display:none;">
     </div>
+    <div class="lyric-container" id="lyricContainer"></div>
 </div>
 <script>
 const API_BASE = "https://api.busisi.com";
@@ -547,7 +529,6 @@ let dragStartX, dragStartY, boxStartLeft, boxStartTop;
 const coverCache = {};
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
-    lyricDragHandle:document.getElementById("lyricDragHandle"),
     lyricContainer:document.getElementById("lyricContainer"),
     lyricSearchInput:document.getElementById("lyricSearchInput"),
     lyricSearchBtn:document.getElementById("lyricSearchBtn"),
@@ -1083,12 +1064,10 @@ dom.popMedia.addEventListener("ended", () => {
     }
     else playNext();
 });
-//版本6 拖拽绑定到lyricDragHandle
 (function initLyricDrag(){
     const wrap = dom.floatLyric;
-    const handle = dom.lyricDragHandle;
     let dragging = false, startX, startY, initLeft, initTop;
-    handle.addEventListener("mousedown", e => {
+    wrap.addEventListener("mousedown", e => {
         dragging = true;
         startX = e.clientX; startY = e.clientY;
         const rect = wrap.getBoundingClientRect();
@@ -1135,4 +1114,32 @@ async function loadResourceList(category="music"){
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
     try{
         const res = await fetch(fetchUrl);
-        const
+        const listRaw = await res.json();
+        playQueue = listRaw.map(obj=>{
+            const filename = obj.key;
+            let name = filename;
+            const lastSlash = name.lastIndexOf("/");
+            if (lastSlash !== -1) {
+                name = name.substring(lastSlash + 1);
+            }
+            name = name.replace(/\.[^/.]+$/,"");
+            return {
+                resourceKey: obj.key,
+                name: name,
+                author:"",
+                coverImg:"",
+                playCount:getRandomPlayCount(),
+                favCount:getRandomFavCount()
+            };
+        });
+        renderCard(playQueue);
+        renderHistory();
+    }catch(err){
+        alert("拉取R2资源失败："+err.message);
+        console.error(err);
+    }
+}
+loadResourceList("music");
+</script>
+</body>
+</html>
