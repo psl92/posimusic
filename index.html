@@ -78,7 +78,7 @@ body{
 .back-bar-text{font-size:16px;font-weight:bold;}
 .card-wrap{
     display:grid;
-    grid-template-columns:repeat(9,1fr);
+    grid-template-columns:repeat(7,1fr);
     gap:18px;
     align-items:stretch;
 }
@@ -318,8 +318,9 @@ body{
 }
 .lyric-char.sung{color:#7b42d8;font-weight:bold;}
 .lyric-char.unsung{color:#44444480;}
-@media (max-width:1400px){.card-wrap{grid-template-columns:repeat(6,1fr);}}
-@media (max-width:1000px){.card-wrap{grid-template-columns:repeat(4,1fr);}}
+@media (max-width:1500px){.card-wrap{grid-template-columns:repeat(5,1fr);}}
+@media (max-width:1200px){.card-wrap{grid-template-columns:repeat(4,1fr);}}
+@media (max-width:1000px){.card-wrap{grid-template-columns:repeat(3,1fr);}}
 @media (max-width:720px){
     .left-sidebar{display:none;}
     .main-content{margin-left:0;}
@@ -755,7 +756,6 @@ async function renderAlbumCard(albumItem){
     `;
     div.dataset.albumKey = albumItem.key;
     const img = div.querySelector("img");
-    // 尝试拿专辑cover.jpg
     const coverKey = albumItem.key + "cover.jpg";
     const coverUrl = `${API_BASE}/file?key=${encodeURIComponent(coverKey)}`;
     img.src = coverUrl;
@@ -778,10 +778,14 @@ async function loadAlbumList(){
     dom.cardWrap.innerHTML = "";
     dom.backBar.style.display = "none";
     try{
-        const resp = await fetch(`${API_BASE}/albumList`);
-        const albumListRaw = await resp.json();
-        // 虚拟根目录专辑
-        albumListRaw.unshift({key:"",name:"根目录文件"});
+        // 请求/list拿根目录，只筛选 isFolder=true 的专辑文件夹
+        const resp = await fetch(`${API_BASE}/list`);
+        const rootRaw = await resp.json();
+        const albumListRaw = rootRaw.filter(item => item.isFolder === true);
+        if(albumListRaw.length === 0){
+            dom.cardWrap.innerHTML = `<div style="text-align:center;padding:60px 0;color:#888;">暂无专辑</div>`;
+            return;
+        }
         for(const alb of albumListRaw){
             await renderAlbumCard(alb);
         }
