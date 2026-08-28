@@ -215,8 +215,8 @@ body{
     pointer-events:auto;
 }
 .popup-mask.mini .popup-player-box{
-    transform: translate(20px,20px) scale(0.32);
-    transform-origin: left top;
+    transform: translate(20px,calc(100vh - 220px)) scale(0.32);
+    transform-origin: left bottom;
 }
 .popup-header-bar{
     display:flex;
@@ -227,6 +227,7 @@ body{
     right:14px;
     left:14px;
     cursor:move;
+    z-index:10;
 }
 .popup-mini{
     border:none;background:none;font-size:22px;cursor:pointer;
@@ -243,6 +244,8 @@ body{
     background:#000;
     border-radius:8px;
     margin-bottom:14px;
+    position:relative;
+    z-index:1;
 }
 .popup-control{
     display:flex;gap:16px;justify-content:center;
@@ -344,7 +347,7 @@ body{
 }
 
 @media (max-width:1400px){.card-wrap{grid-template-columns:repeat(5,1fr);}}
-@media (max-width:1000px){.card-wrap{grid-template-columns:repeat(4,1fr);}}
+@media (max:1000px){.card-wrap{grid-template-columns:repeat(4,1fr);}}
 @media (max:720px){
     .left-sidebar{display:none;}
     .main-content{margin-left:0;}
@@ -487,8 +490,13 @@ const dom = {
     })
     document.addEventListener("mousemove",e=>{
         if(!popupDragging) return;
-        dom.popupBox.style.left = (boxStartLeft + e.clientX - dragStartX) + "px";
-        dom.popupBox.style.top = (boxStartTop + e.clientY - dragStartY) + "px";
+        let newX = boxStartLeft + e.clientX - dragStartX;
+        let newY = boxStartTop + e.clientY - dragStartY;
+        //边界限制，不能拖出屏幕
+        if(newX < 0) newX = 0;
+        if(newY < 0) newY = 0;
+        dom.popupBox.style.left = newX + "px";
+        dom.popupBox.style.top = newY + "px";
     })
     document.addEventListener("mouseup",()=>{popupDragging=false;})
 })();
