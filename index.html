@@ -407,7 +407,7 @@ let currentPlayItem = null;
 let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
-let viewMode = "album"; // album=专辑列表，item=资源列表
+let viewMode = "album";
 let currentAlbumKey = null;
 const coverCache = {};
 const dom = {
@@ -778,7 +778,6 @@ async function loadAlbumList(){
     dom.cardWrap.innerHTML = "";
     dom.backBar.style.display = "none";
     try{
-        // 请求/list拿根目录，只筛选 isFolder=true 的专辑文件夹
         const resp = await fetch(`${API_BASE}/list`);
         const rootRaw = await resp.json();
         const albumListRaw = rootRaw.filter(item => item.isFolder === true);
@@ -964,7 +963,6 @@ async function loadResourceList(category="music", albumKey=null){
         console.error(err);
     }
 }
-// 初始化加载专辑列表
 loadAlbumList();
 </script>
 </body>
