@@ -60,22 +60,6 @@ body{
     height:calc(100vh - 72px - 88px);
     overflow-y:auto;
 }
-.back-bar{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:16px;
-}
-.btn-back{
-    border:none;
-    background:#ede6f9;
-    color:#7b42d8;
-    padding:6px 12px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:14px;
-}
-.back-bar-text{font-size:16px;font-weight:bold;}
 .card-wrap{
     display:grid;
     grid-template-columns:repeat(7,1fr);
@@ -206,7 +190,6 @@ body{
     background:#7b42d8;
     border-radius:50%;
     top:-4px;
-    transform:translateX(-50%);
 }
 .popup-mask{
     position:fixed;
@@ -217,6 +200,9 @@ body{
     align-items:center;justify-content:center;
 }
 .popup-mask.show{display:flex;}
+.popup-mask.mini{
+    display:none;
+}
 .popup-player-box{
     width:620px;
     background:#fff;
@@ -224,12 +210,22 @@ body{
     padding:24px;
     position:relative;
 }
-.popup-close{
+.popup-header-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
     position:absolute;
-    top:14px;right:14px;
+    top:14px;
+    right:14px;
+    left:14px;
+}
+.popup-mini{
+    border:none;background:none;font-size:22px;cursor:pointer;
+}
+.popup-close{
     border:none;background:none;font-size:24px;cursor:pointer;
 }
-.popup-info{margin-bottom:12px;}
+.popup-info{margin-bottom:12px;margin-top:24px;}
 .popup-title{font-size:20px;font-weight:bold;}
 .popup-author{font-size:14px;color:#777;margin-top:4px;display:none;}
 .popup-media{
@@ -279,7 +275,6 @@ body{
     cursor:move;
     z-index:210;
     display:none;
-    box-shadow:0 4px 16px rgba(0,0,0,0.12);
 }
 .float-lyric.show{display:block;}
 .lyric-search-row{
@@ -320,14 +315,31 @@ body{
 }
 .lyric-char.sung{color:#7b42d8;font-weight:bold;}
 .lyric-char.unsung{color:#44444480;}
-@media (max-width:1500px){.card-wrap{grid-template-columns:repeat(5,1fr);}}
-@media (max-width:1200px){.card-wrap{grid-template-columns:repeat(4,1fr);}}
-@media (max-width:1000px){.card-wrap{grid-template-columns:repeat(3,1fr);}}
-@media (max-width:720px){
+
+.donate-card-wrap{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    margin-top:20px;
+}
+.donate-item{
+    text-align:center;
+}
+.donate-item img{
+    max-width:260px;
+    border-radius:10px;
+}
+.donate-name{
+    margin:8px 0;
+    font-size:14px;
+}
+
+@media (max-width:1400px){.card-wrap{grid-template-columns:repeat(5,1fr);}}
+@media (max-width:1000px){.card-wrap{grid-template-columns:repeat(4,1fr);}}
+@media (max:720px){
     .left-sidebar{display:none;}
     .main-content{margin-left:0;}
     .card-wrap{grid-template-columns:repeat(2,1fr);}
-    .float-lyric{width:calc(100% - 40px);left:20px;}
 }
 </style>
 </head>
@@ -337,7 +349,7 @@ body{
     <div class="tab-group">
         <div class="tab-item active" data-type="music">音乐</div>
         <div class="tab-item" data-type="video">视频</div>
-        <div class="tab-item" data-type="image">图片</div>
+        <div class="tab-item" data-type="image">赞赏</div>
     </div>
 </div>
 <div class="left-sidebar">
@@ -345,10 +357,6 @@ body{
     <div id="historyList"></div>
 </div>
 <div class="main-content">
-    <div class="back-bar" id="backBar" style="display:none;">
-        <button class="btn-back" id="btnBack">← 返回专辑列表</button>
-        <div class="back-bar-text" id="albumTitle"></div>
-    </div>
     <div class="card-wrap" id="cardWrap"></div>
 </div>
 <div class="bottom-player">
@@ -369,7 +377,10 @@ body{
 </div>
 <div class="popup-mask" id="popupMask">
     <div class="popup-player-box">
-        <button class="popup-close" id="popupClose">×</button>
+        <div class="popup-header-bar">
+            <button class="popup-mini" id="popupMini">−</button>
+            <button class="popup-close" id="popupClose">×</button>
+        </div>
         <div class="popup-info">
             <div class="popup-title" id="popTitle"></div>
             <div class="popup-author" id="popAuthor"></div>
@@ -402,7 +413,6 @@ const API_BASE = "https://api.busisi.com";
 const DEFAULT_COVER = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect fill='%23ddd' width='300' height='300'/><text x='50%' y='50%' font-size='22' text-anchor='middle' fill='%23888'>暂无封面</text></svg>";
 const MAX_SHOW_LINES = 7;
 const MAX_HISTORY_COUNT = 50;
-
 let playQueue = [];
 let currentIndex = 0;
 let playMode = 0;
@@ -411,10 +421,8 @@ let currentPlayItem = null;
 let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
-let viewMode = "album";
-let currentAlbumKey = null;
+let popupIsMini = false;
 const coverCache = {};
-
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
@@ -426,6 +434,7 @@ const dom = {
     historyList:document.getElementById("historyList"),
     popupMask:document.getElementById("popupMask"),
     popupClose:document.getElementById("popupClose"),
+    popupMini:document.getElementById("popupMini"),
     popTitle:document.getElementById("popTitle"),
     popAuthor:document.getElementById("popAuthor"),
     popMedia:document.getElementById("popMedia"),
@@ -442,19 +451,8 @@ const dom = {
     btnBottomFav:document.getElementById("btnBottomFav"),
     btnMode:document.getElementById("btnMode"),
     btnBottomPause:document.getElementById("btnBottomPause"),
-    btnFullScreen:document.getElementById("btnFullScreen"),
-    backBar:document.getElementById("backBar"),
-    btnBack:document.getElementById("btnBack"),
-    albumTitle:document.getElementById("albumTitle")
+    btnFullScreen:document.getElementById("btnFullScreen")
 };
-
-dom.btnBack.onclick = ()=>{
-    viewMode = "album";
-    currentAlbumKey = null;
-    dom.backBar.style.display = "none";
-    loadAlbumList();
-};
-
 function escapeHtml(str){
     if(!str)return "";
     return String(str)
@@ -463,22 +461,22 @@ function escapeHtml(str){
         .replace(/>/g,"&gt;")
         .replace(/"/g,"&quot;");
 }
-
-async function fetchCoverByKey(resourceKey){
-    if(coverCache[resourceKey]) return coverCache[resourceKey];
-    try{
-        const resp = await fetch(`${API_BASE}/getCover?key=${encodeURIComponent(resourceKey)}`);
-        const json = await resp.json();
-        if(json.cover){
-            const url = `${API_BASE}/file?key=${encodeURIComponent(json.cover)}`;
-            coverCache[resourceKey] = url;
-            return url;
+async function autoFetchCover(title, author){
+    const exts = [".jpg",".jpeg",".png",".webp",".avif"];
+    const baseKey = `cover/${encodeURIComponent(title)}`;
+    for(let ext of exts){
+        const url = `${API_BASE}/file?key=${baseKey}${ext}`;
+        try{
+            const resp = await fetch(url,{method:"HEAD"});
+            if(resp.ok){
+                return url;
+            }
+        }catch(e){
+            continue;
         }
-    }catch(e){}
-    coverCache[resourceKey] = null;
+    }
     return null;
 }
-
 function getRandomPlayCount(){
     const min = 120000, max = 8000000;
     return Math.floor(Math.random()*(max - min + 1)) + min;
@@ -487,7 +485,6 @@ function getRandomFavCount(){
     const min = 330000, max = 9000000;
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
 function startAutoPlayCount(){
     if(!currentPlayItem) return;
     if(playCountTimer) clearInterval(playCountTimer);
@@ -500,7 +497,6 @@ function startAutoPlayCount(){
 function stopAutoPlayCount(){
     if(playCountTimer){ clearInterval(playCountTimer); playCountTimer = null; }
 }
-
 function getPlayHistory(){
     const raw = localStorage.getItem("posiPlayHistory");
     if(!raw) return [];
@@ -531,13 +527,11 @@ function renderHistory(){
         dom.historyList.appendChild(div);
     })
 }
-
 function getExt(filename){
     const idx = filename.lastIndexOf(".");
     if(idx === -1) return "";
     return filename.slice(idx).toLowerCase();
 }
-
 async function autoLoadLyric(audioKey){
     let fileName = audioKey.split('/').pop();
     let pureName = fileName.substring(0,fileName.lastIndexOf('.'));
@@ -552,7 +546,6 @@ async function autoLoadLyric(audioKey){
         lyricArr = []; renderLyricView(-1,0);
     }
 }
-
 function parseLyricAll(text, ext){
     ext = (ext || 'lrc').toLowerCase();
     let list = [];
@@ -605,7 +598,6 @@ function parseLyricAll(text, ext){
     list.sort((a, b) => a.time - b.time);
     return list;
 }
-
 function renderLyricLine(lineData, isActive, currentTime){
     const div = document.createElement("div");
     div.className = "lyric-item" + (isActive ? " active" : "");
@@ -624,7 +616,6 @@ function renderLyricLine(lineData, isActive, currentTime){
     }
     return div;
 }
-
 function renderLyricView(activeIdx, currentTime){
     if (currentTime === undefined) currentTime = 0;
     dom.lyricContainer.innerHTML = "";
@@ -646,14 +637,12 @@ function renderLyricView(activeIdx, currentTime){
         dom.lyricContainer.appendChild(lineDiv);
     }
 }
-
 function loadLyricRaw(lrcRawText, filename){
     const ext = getExt(filename);
     lyricArr = parseLyricAll(lrcRawText, ext);
     currentLyricLine = -1;
     renderLyricView(-1, 0);
 }
-
 dom.lyricImportBtn.addEventListener("click", () => dom.lyricFileInput.click());
 dom.lyricFileInput.addEventListener("change", e => {
     const file = e.target.files[0];
@@ -662,7 +651,6 @@ dom.lyricFileInput.addEventListener("change", e => {
     reader.onload = ev => { loadLyricRaw(ev.target.result, file.name); };
     reader.readAsText(file);
 });
-
 dom.lyricSearchBtn.addEventListener("click", async () => {
     const lyricKey = dom.lyricSearchInput.value.trim();
     if (!lyricKey) { alert("输入R2桶内的歌词文件名，例如：lyric/朝歌.lrc"); return; }
@@ -673,12 +661,10 @@ dom.lyricSearchBtn.addEventListener("click", async () => {
         loadLyricRaw(text, lyricKey);
     }catch(err){ alert("加载歌词失败："+err.message); }
 });
-
 function toggleFullscreen(){
     if (document.fullscreenElement) document.exitFullscreen();
     else dom.popMedia.requestFullscreen?.() || dom.popMedia.webkitRequestFullscreen?.();
 }
-
 document.addEventListener("keydown", function (e) {
     if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
     switch (e.key) {
@@ -695,7 +681,6 @@ document.addEventListener("keydown", function (e) {
         case "Escape": if (document.fullscreenElement) document.exitFullscreen(); break;
     }
 });
-
 function formatWan(num){
     if (!num || isNaN(num)) return "0";
     const n = Number(num);
@@ -704,7 +689,6 @@ function formatWan(num){
     if (res.endsWith(".0")) res = res.slice(0, -2);
     return res + "万";
 }
-
 async function renderOneCard(item){
     const div = document.createElement("div");
     div.className = "card-item";
@@ -728,9 +712,11 @@ async function renderOneCard(item){
     `;
     div.dataset.key = item.resourceKey;
     const coverImg = div.querySelector(".card-cover img");
-    const coverSrc = await fetchCoverByKey(item.resourceKey);
-    if(coverSrc){
-        coverImg.src = coverSrc;
+    if(currentCategory === "music"){
+        const coverSrc = await autoFetchCover(item.name, item.author);
+        if(coverSrc){
+            coverImg.src = coverSrc;
+        }
     }
     coverImg.onerror = function(){
         this.src = DEFAULT_COVER;
@@ -761,66 +747,35 @@ async function renderOneCard(item){
     dom.cardWrap.appendChild(div);
 }
 
-async function renderAlbumCard(albumItem){
-    const div = document.createElement("div");
-    div.className = "card-item";
-    div.innerHTML = `
-        <div class="card-cover">
-            <img src="${DEFAULT_COVER}" loading="lazy" alt="专辑封面">
-        </div>
-        <div class="card-info">
-            <div class="card-title-wrap">
-                <div class="card-title">${escapeHtml(albumItem.name)}</div>
-            </div>
-            <div class="card-stat">
-                <span>专辑</span>
-            </div>
-        </div>
-        <button class="btn-card-download">进入专辑</button>
-    `;
-    div.dataset.albumKey = albumItem.key;
-    const img = div.querySelector("img");
-    const coverKey = albumItem.key + "cover.jpg";
-    const coverUrl = `${API_BASE}/file?key=${encodeURIComponent(coverKey)}`;
-    img.src = coverUrl;
-    img.onerror = ()=>{img.src = DEFAULT_COVER;};
-    div.querySelector(".btn-card-download").onclick = (e)=>{
-        e.stopPropagation();
-        openAlbum(albumItem);
-    };
-    div.onclick = ()=>{openAlbum(albumItem);};
-    dom.cardWrap.appendChild(div);
-}
-
-async function openAlbum(albumObj){
-    viewMode = "item";
-    currentAlbumKey = albumObj.key;
-    dom.backBar.style.display = "flex";
-    dom.albumTitle.innerText = albumObj.name;
-    await loadResourceList(currentCategory, albumObj.key);
-}
-
-async function loadAlbumList(){
+function renderDonateView(list){
     dom.cardWrap.innerHTML = "";
-    dom.backBar.style.display = "none";
-    try{
-        const resp = await fetch(`${API_BASE}/list`);
-        const rootRaw = await resp.json();
-        const albumListRaw = rootRaw.filter(item => item.isFolder === true);
-        if(albumListRaw.length === 0){
-            dom.cardWrap.innerHTML = `<div style="text-align:center;padding:60px 0;color:#888;">暂无专辑</div>`;
-            return;
-        }
-        for(const alb of albumListRaw){
-            await renderAlbumCard(alb);
-        }
-    }catch(err){
-        alert("加载专辑列表失败："+err.message);
-        console.error(err);
+    let wechatItem = null;
+    let alipayItem = null;
+    for(const it of list){
+        const lower = it.name.toLowerCase();
+        if(lower.includes("微信")) wechatItem = it;
+        if(lower.includes("支付宝")) alipayItem = it;
     }
+    const html = `
+    <div class="donate-card-wrap">
+        <div class="donate-item">
+            <img src="${wechatItem ? `${API_BASE}/file?key=${encodeURIComponent(wechatItem.resourceKey)}` : DEFAULT_COVER}">
+            <div class="donate-name">${wechatItem ? escapeHtml(wechatItem.name) : "微信赞赏(未找到资源)"}</div>
+        </div>
+        <div class="donate-item">
+            <img src="${alipayItem ? `${API_BASE}/file?key=${encodeURIComponent(alipayItem.resourceKey)}` : DEFAULT_COVER}">
+            <div class="donate-name">${alipayItem ? escapeHtml(alipayItem.name) : "支付宝赞赏(未找到资源)"}</div>
+        </div>
+    </div>
+    `;
+    dom.cardWrap.innerHTML = html;
 }
 
 function renderCard(list){
+    if(currentCategory === "image"){
+        renderDonateView(list);
+        return;
+    }
     dom.cardWrap.innerHTML = "";
     list.forEach(item => {
         if (item.favCount === null || item.favCount === undefined) {
@@ -829,12 +784,13 @@ function renderCard(list){
         renderOneCard(item);
     });
 }
-
 function openPopupPlayer(item){
     stopAutoPlayCount();
     currentPlayItem = item;
     dom.popTitle.innerText = item.name;
     dom.popAuthor.innerText = "";
+    popupIsMini = false;
+    dom.popupMask.classList.remove("mini");
     dom.popupMask.classList.add("show");
     dom.floatLyric.classList.add("show");
     lyricArr = [];
@@ -848,52 +804,61 @@ function openPopupPlayer(item){
     if(currentCategory === "music") autoLoadLyric(item.resourceKey);
 }
 
+dom.popupMini.addEventListener("click",()=>{
+    popupIsMini = !popupIsMini;
+    if(popupIsMini){
+        dom.popupMask.classList.add("mini");
+        dom.popupMask.classList.remove("show");
+    }else{
+        dom.popupMask.classList.remove("mini");
+        dom.popupMask.classList.add("show");
+    }
+});
+
 dom.popupClose.addEventListener("click", () => {
     dom.popupMask.classList.remove("show");
+    dom.popupMask.classList.remove("mini");
+    popupIsMini = false;
     dom.floatLyric.classList.remove("show");
     dom.popMedia.pause();
     stopAutoPlayCount();
 });
-
 dom.popPlay.addEventListener("click", () => {
     if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
     else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
 });
 dom.popFull.addEventListener("click", toggleFullscreen);
 dom.btnFullScreen.addEventListener("click", toggleFullscreen);
-
 function playPrev(){
-    if(playQueue.length === 0) return;
     if (playMode === 2) currentIndex = Math.floor(Math.random() * playQueue.length);
     else { currentIndex--; if (currentIndex < 0) currentIndex = playQueue.length - 1; }
     openPopupPlayer(playQueue[currentIndex]);
 }
 function playNext(){
-    if(playQueue.length === 0) return;
     if (playMode === 2) currentIndex = Math.floor(Math.random() * playQueue.length);
     else { currentIndex++; if (currentIndex >= playQueue.length) currentIndex = 0; }
     openPopupPlayer(playQueue[currentIndex]);
 }
-
 document.getElementById("popPrev").addEventListener("click", playPrev);
 document.getElementById("popNext").addEventListener("click", playNext);
 dom.btnPrev.onclick = playPrev;
 dom.btnNext.onclick = playNext;
-
 dom.btnPlay.onclick = () => {
     if (dom.popMedia.paused) { dom.popMedia.play(); dom.popPlay.innerText = "暂停"; startAutoPlayCount(); }
     else { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); }
 };
-dom.btnBottomPause.onclick = () => { dom.popMedia.pause(); dom.popPlay.innerText = "播放"; stopAutoPlayCount(); };
+dom.btnBottomPause.onclick = () => {
+    dom.popMedia.pause();
+    dom.popPlay.innerText = "播放";
+    stopAutoPlayCount();
+};
 dom.btnRewind.onclick = () => { dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); };
 dom.btnForward.onclick = () => { dom.popMedia.currentTime = dom.popMedia.currentTime + 5; };
-
 dom.bottomProgressBar.addEventListener("click", e => {
     const rect = dom.bottomProgressBar.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     if (dom.popMedia.duration) dom.popMedia.currentTime = percent * dom.popMedia.duration;
 });
-
 dom.btnMode.onclick = () => {
     playMode++;
     if (playMode > 2) playMode = 0;
@@ -901,7 +866,6 @@ dom.btnMode.onclick = () => {
     dom.btnMode.innerText = modeText[playMode];
 };
 dom.btnBottomFav.onclick = () => { alert("收藏逻辑，对接后端收藏接口"); };
-
 dom.popMedia.addEventListener("timeupdate", () => {
     const t = dom.popMedia.currentTime;
     let active = -1;
@@ -913,13 +877,11 @@ dom.popMedia.addEventListener("timeupdate", () => {
         dom.bottomDot.style.left = (pct * 100) + "%";
     }
 });
-
 dom.popMedia.addEventListener("ended", () => {
     stopAutoPlayCount();
     if (playMode === 1) { dom.popMedia.currentTime = 0; dom.popMedia.play(); startAutoPlayCount(); }
     else playNext();
 });
-
 (function initLyricDrag(){
     const wrap = dom.floatLyric;
     let dragging = false, startX, startY, initLeft, initTop;
@@ -938,7 +900,6 @@ dom.popMedia.addEventListener("ended", () => {
     });
     document.addEventListener("mouseup", () => { dragging = false; });
 })();
-
 dom.moreMenu.addEventListener("click", e => {
     const act = e.target.dataset.act;
     const item = JSON.parse(dom.moreMenu.dataset.cur);
@@ -948,18 +909,14 @@ dom.moreMenu.addEventListener("click", e => {
     dom.moreMenu.classList.remove("show");
 });
 document.addEventListener("click", () => dom.moreMenu.classList.remove("show"));
-
 document.querySelectorAll(".tab-item").forEach(tab => {
     tab.addEventListener("click", function () {
         document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
         this.classList.add("active");
         currentCategory = this.dataset.type;
-        viewMode = "album";
-        currentAlbumKey = null;
-        loadAlbumList();
+        loadResourceList(currentCategory);
     });
 });
-
 document.querySelector(".search-box").addEventListener("input", e => {
     const kw = e.target.value.trim().toLowerCase();
     const filtered = playQueue.filter(item => {
@@ -968,17 +925,10 @@ document.querySelector(".search-box").addEventListener("input", e => {
     });
     renderCard(filtered);
 });
-
-async function loadResourceList(category="music", albumKey=null){
+async function loadResourceList(category="music"){
     let fetchUrl;
-    if(category === "music"){
-        fetchUrl = `${API_BASE}/list`;
-        if(albumKey) fetchUrl += `?album=${encodeURIComponent(albumKey)}`;
-    }
-    else if(category === "video"){
-        fetchUrl = `${API_BASE}/videoList`;
-        if(albumKey) fetchUrl += `?album=${encodeURIComponent(albumKey)}`;
-    }
+    if(category === "music") fetchUrl = `${API_BASE}/list`;
+    else if(category === "video") fetchUrl = `${API_BASE}/videoList`;
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
     try{
         const res = await fetch(fetchUrl);
@@ -1007,8 +957,7 @@ async function loadResourceList(category="music", albumKey=null){
         console.error(err);
     }
 }
-
-loadAlbumList();
+loadResourceList("music");
 </script>
 </body>
 </html>
