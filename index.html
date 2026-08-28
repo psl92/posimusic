@@ -195,20 +195,28 @@ body{
 .popup-mask{
     position:fixed;
     inset:0;
-    background:#00000070;
     z-index:200;
-    align-items:center;justify-content:center;
+    pointer-events:none;
 }
-.popup-mask.show{display:flex;}
-.popup-mask.mini{
-    display:none;
+.popup-mask.show{
+    pointer-events:auto;
 }
 .popup-player-box{
     width:620px;
     background:#fff;
     border-radius:16px;
     padding:24px;
-    position:relative;
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    box-shadow:0 8px 30px #00000033;
+    transition: all 0.24s ease;
+    pointer-events:auto;
+}
+.popup-mask.mini .popup-player-box{
+    transform: translate(20px,20px) scale(0.32);
+    transform-origin: left top;
 }
 .popup-header-bar{
     display:flex;
@@ -218,6 +226,7 @@ body{
     top:14px;
     right:14px;
     left:14px;
+    cursor:move;
 }
 .popup-mini{
     border:none;background:none;font-size:22px;cursor:pointer;
@@ -376,8 +385,8 @@ body{
     <button id="btnFullScreen">⛶全屏</button>
 </div>
 <div class="popup-mask" id="popupMask">
-    <div class="popup-player-box">
-        <div class="popup-header-bar">
+    <div class="popup-player-box" id="popupBox">
+        <div class="popup-header-bar" id="popupDragBar">
             <button class="popup-mini" id="popupMini">−</button>
             <button class="popup-close" id="popupClose">×</button>
         </div>
@@ -422,6 +431,10 @@ let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
 let popupIsMini = false;
+//弹窗拖拽变量
+let popupDragging = false;
+let dragStartX, dragStartY, boxStartLeft, boxStartTop;
+
 const coverCache = {};
 const dom = {
     floatLyric:document.getElementById("floatLyric"),
@@ -435,6 +448,8 @@ const dom = {
     popupMask:document.getElementById("popupMask"),
     popupClose:document.getElementById("popupClose"),
     popupMini:document.getElementById("popupMini"),
+    popupBox:document.getElementById("popupBox"),
+    popupDragBar:document.getElementById("popupDragBar"),
     popTitle:document.getElementById("popTitle"),
     popAuthor:document.getElementById("popAuthor"),
     popMedia:document.getElementById("popMedia"),
@@ -454,6 +469,30 @@ const dom = {
     btnFullScreen:document.getElementById("btnFullScreen"),
     bottomPlayerWrap:document.getElementById("bottomPlayerWrap")
 };
+
+//弹窗拖拽初始化
+(function initPopupDrag(){
+    dom.popupDragBar.addEventListener("mousedown",e=>{
+        if(e.target.tagName === "BUTTON") return;
+        popupDragging = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        const rect = dom.popupBox.getBoundingClientRect();
+        boxStartLeft = rect.left;
+        boxStartTop = rect.top;
+        dom.popupBox.style.transform = "none";
+        dom.popupBox.style.left = boxStartLeft + "px";
+        dom.popupBox.style.top = boxStartTop + "px";
+        e.preventDefault();
+    })
+    document.addEventListener("mousemove",e=>{
+        if(!popupDragging) return;
+        dom.popupBox.style.left = (boxStartLeft + e.clientX - dragStartX) + "px";
+        dom.popupBox.style.top = (boxStartTop + e.clientY - dragStartY) + "px";
+    })
+    document.addEventListener("mouseup",()=>{popupDragging=false;})
+})();
+
 function syncPlayButtonState(){
     if(dom.popMedia.paused){
         dom.popPlay.innerText = "播放";
@@ -831,9 +870,12 @@ function openPopupPlayer(item){
 }
 
 dom.popupMini.addEventListener("click",()=>{
-    popupIsMini = true;
-    dom.popupMask.classList.add("mini");
-    dom.popupMask.classList.remove("show");
+    popupIsMini = !popupIsMini;
+    if(popupIsMini){
+        dom.popupMask.classList.add("mini");
+    }else{
+        dom.popupMask.classList.remove("mini");
+    }
 });
 
 dom.popupClose.addEventListener("click", () => {
@@ -847,7 +889,8 @@ dom.popupClose.addEventListener("click", () => {
 dom.bottomPlayerWrap.addEventListener("click",(e)=>{
     if(e.target.tagName === "BUTTON") return;
     if(currentPlayItem && popupIsMini){
-        openPopupMask();
+        popupIsMini = false;
+        dom.popupMask.classList.remove("mini");
     }
 });
 
