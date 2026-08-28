@@ -84,7 +84,6 @@ body{
     border-radius:8px;
     cursor:pointer;
     color:#1b1b1b;
-    /* 文件名过长省略号 */
     white-space: nowrap;
     overflow:hidden;
     text-overflow: ellipsis;
@@ -273,11 +272,22 @@ body{
     box-shadow:0 10px 35px rgba(110,70,200,0.18);
     transition: all 0.24s ease;
     pointer-events:auto;
-    position:relative;
 }
+/*修复：mini模式移除scale缩放，改为右下角悬浮，解决点击错位失效*/
 .popup-mask.mini .popup-player-box{
-    transform: translate(20px,calc(100vh - 220px)) scale(0.32);
-    transform-origin: left bottom;
+    left:auto;
+    top:auto;
+    right:12px;
+    bottom:100px;
+    transform:none;
+    width:260px;
+    padding:10px 12px;
+    opacity:0.85;
+}
+.popup-mask.mini .popup-media,
+.popup-mask.mini .popup-control,
+.popup-mask.mini .popup-info{
+    display:none;
 }
 .popup-header-bar{
     display:flex;
@@ -508,7 +518,6 @@ let currentLyricLine = -1;
 let playCountTimer = null;
 let currentCategory = "music";
 let popupIsMini = false;
-//弹窗拖拽变量
 let popupDragging = false;
 let dragStartX, dragStartY, boxStartLeft, boxStartTop;
 const coverCache = {};
@@ -545,7 +554,6 @@ const dom = {
     btnFullScreen:document.getElementById("btnFullScreen"),
     bottomPlayerWrap:document.getElementById("bottomPlayerWrap")
 };
-//弹窗拖拽初始化
 (function initPopupDrag(){
     dom.popupDragBar.addEventListener("mousedown",e=>{
         if(e.target.tagName === "BUTTON") return;
@@ -564,7 +572,6 @@ const dom = {
         if(!popupDragging) return;
         let newX = boxStartLeft + e.clientX - dragStartX;
         let newY = boxStartTop + e.clientY - dragStartY;
-        //边界限制，不能拖出屏幕
         if(newX < 0) newX = 0;
         if(newY < 0) newY = 0;
         dom.popupBox.style.left = newX + "px";
@@ -587,11 +594,17 @@ function openPopupMask(){
     popupIsMini = false;
     dom.popupMask.classList.remove("mini");
     dom.popupMask.classList.add("show");
+    dom.popupBox.style.left = "";
+    dom.popupBox.style.top = "";
+    dom.popupBox.style.transform = "";
 }
 function closePopupMask(){
     dom.popupMask.classList.remove("show");
     dom.popupMask.classList.remove("mini");
     popupIsMini = false;
+    dom.popupBox.style.left = "";
+    dom.popupBox.style.top = "";
+    dom.popupBox.style.transform = "";
 }
 function escapeHtml(str){
     if(!str)return "";
@@ -951,6 +964,8 @@ dom.popupMini.addEventListener("click",()=>{
         dom.popupMask.classList.add("mini");
     }else{
         dom.popupMask.classList.remove("mini");
+        dom.popupBox.style.left = "";
+        dom.popupBox.style.top = "";
     }
 });
 dom.popupClose.addEventListener("click", () => {
@@ -965,6 +980,8 @@ dom.bottomPlayerWrap.addEventListener("click",(e)=>{
     if(currentPlayItem && popupIsMini){
         popupIsMini = false;
         dom.popupMask.classList.remove("mini");
+        dom.popupBox.style.left = "";
+        dom.popupBox.style.top = "";
     }
 });
 dom.popPlay.addEventListener("click", () => {
