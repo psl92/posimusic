@@ -228,6 +228,7 @@ body{
     padding:14px;
     display:flex;
     flex-direction:column;
+    touch-action:pan-y;
 }
 .inline-lyric-panel.show{
     transform:translateY(0);
@@ -271,6 +272,7 @@ body{
     line-height:2.2;
     color:rgba(30,30,60,0.55);
     transition:all 0.3s ease;
+    cursor:pointer;
 }
 .lyric-item.active{
     color:#6b3fc9;
@@ -322,6 +324,7 @@ body{
     background:#8364e8;
     border-radius:50%;
     top:-3.5px;
+    transform:translateX(-50%);
 }
 .popup-mask{
     position:fixed;
@@ -500,7 +503,6 @@ body{
         </div>
         <button id="btnBottomFav">♡</button>
         <button id="btnMode">🔁</button>
-        <button id="btnBottomPause">⏸</button>
         <button id="btnOpenLyric">🎤歌词</button>
         <button id="btnFullScreen">⛶全屏</button>
     </div>
@@ -548,6 +550,7 @@ let popupIsMini = false;
 let popupDragging = false;
 let dragStartX, dragStartY, boxStartLeft, boxStartTop;
 const coverCache = {};
+let touchStartY = 0;
 const dom = {
     inlineLyricPanel:document.getElementById("inlineLyricPanel"),
     lyricCloseBtn:document.getElementById("lyricCloseBtn"),
@@ -579,7 +582,6 @@ const dom = {
     bottomDot:document.getElementById("bottomDot"),
     btnBottomFav:document.getElementById("btnBottomFav"),
     btnMode:document.getElementById("btnMode"),
-    btnBottomPause:document.getElementById("btnBottomPause"),
     btnFullScreen:document.getElementById("btnFullScreen"),
     bottomPlayerWrap:document.getElementById("bottomPlayerWrap")
 };
@@ -593,6 +595,17 @@ function closeLyricPanel(){
 }
 dom.btnOpenLyric.onclick = openLyricPanel;
 dom.lyricCloseBtn.onclick = closeLyricPanel;
+
+//移动端向下滑动关闭歌词
+dom.inlineLyricPanel.addEventListener("touchstart",e=>{
+    touchStartY = e.touches[0].clientY;
+})
+dom.inlineLyricPanel.addEventListener("touchmove",e=>{
+    const moveY = e.touches[0].clientY - touchStartY;
+    if(moveY>100){
+        closeLyricPanel();
+    }
+})
 
 (function initPopupDrag(){
     dom.popupDragBar.addEventListener("mousedown",e=>{
@@ -623,11 +636,9 @@ function syncPlayButtonState(){
     if(dom.popMedia.paused){
         dom.popPlay.innerText = "播放";
         dom.btnPlay.innerText = "▶";
-        dom.btnBottomPause.innerText = "▶";
     }else{
         dom.popPlay.innerText = "暂停";
         dom.btnPlay.innerText = "⏸";
-        dom.btnBottomPause.innerText = "⏸";
     }
 }
 function openPopupMask(){
@@ -656,6 +667,8 @@ function escapeHtml(str){
         .replace(/"/g,"&quot;");
 }
 async function autoFetchCover(title, author){
+    const cacheKey = title+"_"+author;
+    if(coverCache[cacheKey]) return coverCache[cacheKey];
     const exts = [".jpg",".jpeg",".png",".webp",".avif"];
     const baseKey = `cover/${encodeURIComponent(title)}`;
     for(let ext of exts){
@@ -663,12 +676,14 @@ async function autoFetchCover(title, author){
         try{
             const resp = await fetch(url,{method:"HEAD"});
             if(resp.ok){
+                coverCache[cacheKey] = url;
                 return url;
             }
         }catch(e){
             continue;
         }
     }
+    coverCache[cacheKey] = null;
     return null;
 }
 function getRandomPlayCount(){
@@ -795,6 +810,8 @@ function parseLyricAll(text, ext){
 function renderLyricLine(lineData, isActive, currentTime){
     const div = document.createElement("div");
     div.className = "lyric-item" + (isActive ? " active" : "");
+    div.dataset.lineTime = lineData.time;
+    div.onclick = ()=>{ dom.popMedia.currentTime = lineData.time; };
     if (lineData.words && lineData.words.length > 0) {
         lineData.words.forEach(w => {
             const span = document.createElement("span");
@@ -1056,16 +1073,12 @@ dom.btnPlay.onclick = () => {
     else { dom.popMedia.pause(); stopAutoPlayCount(); }
     syncPlayButtonState();
 };
-dom.btnBottomPause.onclick = () => {
-    if (dom.popMedia.paused) { dom.popMedia.play(); startAutoPlayCount(); }
-    else { dom.popMedia.pause(); stopAutoPlayCount(); }
-    syncPlayButtonState();
-};
 dom.btnRewind.onclick = () => { dom.popMedia.currentTime = Math.max(0, dom.popMedia.currentTime - 5); };
 dom.btnForward.onclick = () => { dom.popMedia.currentTime = dom.popMedia.currentTime + 5; };
 dom.bottomProgressBar.addEventListener("click", e => {
     const rect = dom.bottomProgressBar.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
+    let percent = (e.clientX - rect.left) / rect.width;
+    percent = Math.max(0,Math.min(1,percent));
     if (dom.popMedia.duration) dom.popMedia.currentTime = percent * dom.popMedia.duration;
 });
 dom.btnMode.onclick = () => {
@@ -1081,8 +1094,30 @@ dom.popMedia.addEventListener("timeupdate", () => {
     const t = dom.popMedia.currentTime;
     let active = -1;
     for (let i = 0; i < lyricArr.length; i++) { if (lyricArr[i].time <= t) active = i; }
-    if (active !== currentLyricLine) currentLyricLine = active;
-    renderLyricView(currentLyricLine, t);
+    //仅歌词行切换才重渲染DOM，降低CPU
+    if (active !== currentLyricLine) {
+        currentLyricLine = active;
+        renderLyricView(currentLyricLine, t);
+    }else{
+        //逐字变色更新
+        const items = dom.lyricContainer.querySelectorAll(".lyric-item.active .lyric-char");
+        items.forEach(sp=>{
+            const lineIdx = currentLyricLine;
+            if(lineIdx<0||!lyricArr[lineIdx]||!lyricArr[lineIdx].words) return;
+            const wordList = lyricArr[lineIdx].words;
+            const charIdx = Array.from(sp.parentNode.children).indexOf(sp);
+            const w = wordList[charIdx];
+            if(!w) return;
+            const wordEnd = w.offset + w.duration;
+            if(t >= wordEnd){
+                sp.classList.add("sung");
+                sp.classList.remove("unsung");
+            }else{
+                sp.classList.remove("sung");
+                sp.classList.add("unsung");
+            }
+        })
+    }
     if (dom.popMedia.duration) {
         const pct = t / dom.popMedia.duration;
         dom.bottomDot.style.left = (pct * 100) + "%";
@@ -1106,39 +1141,4 @@ dom.moreMenu.addEventListener("click", e => {
     if (act === "copyKey") { navigator.clipboard.writeText(item.resourceKey); alert("已复制资源key"); }
     dom.moreMenu.classList.remove("show");
 });
-document.addEventListener("click", () => dom.moreMenu.classList.remove("show"));
-document.querySelectorAll(".tab-item").forEach(tab => {
-    tab.addEventListener("click", function () {
-        document.querySelectorAll(".tab-item").forEach(t => t.classList.remove("active"));
-        this.classList.add("active");
-        currentCategory = this.dataset.type;
-        loadResourceList(currentCategory);
-    });
-});
-document.querySelector(".search-box").addEventListener("input", e => {
-    const kw = e.target.value.trim().toLowerCase();
-    const filtered = playQueue.filter(item => {
-        const name = (item.name || "").toLowerCase();
-        return name.includes(kw);
-    });
-    renderCard(filtered);
-});
-async function loadResourceList(category="music"){
-    let fetchUrl;
-    if(category === "music") fetchUrl = `${API_BASE}/list`;
-    else if(category === "video") fetchUrl = `${API_BASE}/videoList`;
-    else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
-    try{
-        const res = await fetch(fetchUrl);
-        const list = await res.json();
-        playQueue = list;
-        renderCard(list);
-        renderHistory();
-    }catch(err){
-        console.error(err);
-    }
-}
-loadResourceList(currentCategory);
-</script>
-</body>
-</html>
+document.addEventListener("click", () => dom.m
