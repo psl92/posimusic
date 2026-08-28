@@ -204,17 +204,91 @@ body{
     font-size:12px;
     flex-shrink:0;
 }
-.bottom-player{
-    height:88px;
+/*底部播放器容器（歌词面板嵌套于此）*/
+#bottomPlayerWrap{
     position:fixed;
     bottom:0;left:0;right:0;
+    z-index:99999 !important;
+}
+/*一体化歌词面板：从播放器向上滑出*/
+.inline-lyric-panel{
+    width:100%;
+    height:52vh;
+    background:rgba(255,255,255,0.14);
+    backdrop-filter:blur(18px) saturate(120%);
+    border:1px solid rgba(255,255,255,0.32);
+    border-bottom:none;
+    border-top-left-radius:14px;
+    border-top-right-radius:14px;
+    position:absolute;
+    left:0;
+    bottom:100%;
+    transform:translateY(100%);
+    transition:transform 0.32s ease;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+}
+.inline-lyric-panel.show{
+    transform:translateY(0);
+}
+.lyric-search-row{
+    display:flex;gap:8px;margin-bottom:10px;
+}
+.lyric-search-input{
+    flex:1;
+    padding:6px 10px;
+    border:1px solid rgba(255,255,255,0.4);
+    background:rgba(255,255,255,0.28);
+    border-radius:8px;
+    outline:none;
+    color:#111;
+}
+.lyric-btn{
+    padding:6px 10px;
+    border:1px solid rgba(255,255,255,0.4);
+    background:rgba(255,255,255,0.3);
+    border-radius:8px;
+    cursor:pointer;
+    color:#6b3fc9;
+    font-size:13px;
+    transition:0.2s;
+}
+.lyric-btn:hover{
+    background:rgba(255,255,255,0.45);
+}
+.lyric-close-row{
+    display:flex;justify-content:flex-end;margin-bottom:8px;
+}
+.lyric-container{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+}
+.lyric-item{
+    text-align:center;
+    font-size:15px;
+    line-height:2.2;
+    color:rgba(30,30,60,0.55);
+    transition:all 0.3s ease;
+}
+.lyric-item.active{
+    color:#6b3fc9;
+    font-weight:bold;
+    font-size:18px;
+    opacity:1;
+}
+.lyric-char.sung{color:#6b3fc9;font-weight:bold;}
+.lyric-char.unsung{color:rgba(30,30,60,0.55);}
+
+.bottom-player{
+    height:88px;
     background:rgba(255,255,255,0.12);
     backdrop-filter: blur(18px) saturate(120%);
     border-top:1px solid rgba(255,255,255,0.2);
     display:flex;align-items:center;
     padding:0 24px;
     gap:14px;
-    z-index:99999 !important;
     cursor:pointer;
 }
 .bottom-player button{
@@ -273,7 +347,6 @@ body{
     transition: all 0.24s ease;
     pointer-events:auto;
 }
-/*修复：mini模式移除scale缩放，改为右下角悬浮，解决点击错位失效*/
 .popup-mask.mini .popup-player-box{
     left:auto;
     top:auto;
@@ -354,64 +427,6 @@ body{
     color:#1b1b1b;
 }
 .card-more-menu div:hover{background:rgba(255,255,255,0.35);}
-.float-lyric{
-    position:absolute;
-    width:420px;
-    background:rgba(255,255,255,0.14);
-    backdrop-filter:blur(18px) saturate(120%);
-    border:1px solid rgba(255,255,255,0.32);
-    border-radius:14px;
-    padding:14px;
-    left:100px;top:120px;
-    cursor:move;
-    z-index:210;
-    display:none;
-}
-.float-lyric.show{display:block;}
-.lyric-search-row{
-    display:flex;gap:8px;margin-bottom:10px;
-}
-.lyric-search-input{
-    flex:1;
-    padding:6px 10px;
-    border:1px solid rgba(255,255,255,0.4);
-    background:rgba(255,255,255,0.28);
-    border-radius:8px;
-    outline:none;
-    color:#111;
-}
-.lyric-btn{
-    padding:6px 10px;
-    border:1px solid rgba(255,255,255,0.4);
-    background:rgba(255,255,255,0.3);
-    border-radius:8px;
-    cursor:pointer;
-    color:#6b3fc9;
-    font-size:13px;
-    transition:0.2s;
-}
-.lyric-btn:hover{
-    background:rgba(255,255,255,0.45);
-}
-.lyric-container{
-    min-height:220px;
-    overflow:hidden;
-}
-.lyric-item{
-    text-align:center;
-    font-size:15px;
-    line-height:2.2;
-    color:rgba(30,30,60,0.55);
-    transition:all 0.3s ease;
-}
-.lyric-item.active{
-    color:#6b3fc9;
-    font-weight:bold;
-    font-size:18px;
-    opacity:1;
-}
-.lyric-char.sung{color:#6b3fc9;font-weight:bold;}
-.lyric-char.unsung{color:rgba(30,30,60,0.55);}
 .donate-card-wrap{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -455,22 +470,42 @@ body{
 <div class="main-content">
     <div class="card-wrap" id="cardWrap"></div>
 </div>
-<div class="bottom-player" id="bottomPlayerWrap">
-    <button id="btnPrev">◀</button>
-    <button id="btnPlay">▶</button>
-    <button id="btnNext">▶▶</button>
-    <button id="btnRewind">⏪</button>
-    <button id="btnForward">⏩</button>
-    <div class="progress-wrap">
-        <div class="progress-bar" id="bottomProgressBar">
-            <div class="progress-dot" id="bottomDot"></div>
+
+<!--底部播放器一体化容器：歌词面板在内部-->
+<div id="bottomPlayerWrap">
+    <!--一体化歌词面板，向上滑出-->
+    <div class="inline-lyric-panel" id="inlineLyricPanel">
+        <div class="lyric-close-row">
+            <button class="lyric-btn" id="lyricCloseBtn">✕关闭歌词</button>
         </div>
+        <div class="lyric-search-row">
+            <input class="lyric-search-input" id="lyricSearchInput" placeholder="输入R2桶内的歌词文件名，例：lyric/朝歌.lrc"/>
+            <button class="lyric-btn" id="lyricSearchBtn">加载歌词</button>
+            <button class="lyric-btn" id="lyricImportBtn">本地导入</button>
+            <input type="file" accept=".lrc,.krc,.qrc,.trc" id="lyricFileInput" style="display:none;">
+        </div>
+        <div class="lyric-container" id="lyricContainer"></div>
     </div>
-    <button id="btnBottomFav">♡</button>
-    <button id="btnMode">🔁</button>
-    <button id="btnBottomPause">⏸</button>
-    <button id="btnFullScreen">⛶全屏</button>
+    <!--底部播放条-->
+    <div class="bottom-player">
+        <button id="btnPrev">◀</button>
+        <button id="btnPlay">▶</button>
+        <button id="btnNext">▶▶</button>
+        <button id="btnRewind">⏪</button>
+        <button id="btnForward">⏩</button>
+        <div class="progress-wrap">
+            <div class="progress-bar" id="bottomProgressBar">
+                <div class="progress-dot" id="bottomDot"></div>
+            </div>
+        </div>
+        <button id="btnBottomFav">♡</button>
+        <button id="btnMode">🔁</button>
+        <button id="btnBottomPause">⏸</button>
+        <button id="btnOpenLyric">🎤歌词</button>
+        <button id="btnFullScreen">⛶全屏</button>
+    </div>
 </div>
+
 <div class="popup-mask" id="popupMask">
     <div class="popup-player-box" id="popupBox">
         <div class="popup-header-bar" id="popupDragBar">
@@ -495,15 +530,7 @@ body{
     <div data-act="addToCollect">加入收藏</div>
     <div data-act="copyKey">复制资源Key</div>
 </div>
-<div class="float-lyric" id="floatLyric">
-    <div class="lyric-search-row">
-        <input class="lyric-search-input" id="lyricSearchInput" placeholder="输入R2桶内的歌词文件名，例：lyric/朝歌.lrc"/>
-        <button class="lyric-btn" id="lyricSearchBtn">加载歌词</button>
-        <button class="lyric-btn" id="lyricImportBtn">本地导入</button>
-        <input type="file" accept=".lrc,.krc,.qrc,.trc" id="lyricFileInput" style="display:none;">
-    </div>
-    <div class="lyric-container" id="lyricContainer"></div>
-</div>
+
 <script>
 const API_BASE = "https://api.busisi.com";
 const DEFAULT_COVER = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect fill='%23ddd' width='300' height='300'/><text x='50%' y='50%' font-size='22' text-anchor='middle' fill='%23888'>暂无封面</text></svg>";
@@ -522,7 +549,9 @@ let popupDragging = false;
 let dragStartX, dragStartY, boxStartLeft, boxStartTop;
 const coverCache = {};
 const dom = {
-    floatLyric:document.getElementById("floatLyric"),
+    inlineLyricPanel:document.getElementById("inlineLyricPanel"),
+    lyricCloseBtn:document.getElementById("lyricCloseBtn"),
+    btnOpenLyric:document.getElementById("btnOpenLyric"),
     lyricContainer:document.getElementById("lyricContainer"),
     lyricSearchInput:document.getElementById("lyricSearchInput"),
     lyricSearchBtn:document.getElementById("lyricSearchBtn"),
@@ -554,6 +583,17 @@ const dom = {
     btnFullScreen:document.getElementById("btnFullScreen"),
     bottomPlayerWrap:document.getElementById("bottomPlayerWrap")
 };
+
+//歌词面板开关
+function openLyricPanel(){
+    dom.inlineLyricPanel.classList.add("show");
+}
+function closeLyricPanel(){
+    dom.inlineLyricPanel.classList.remove("show");
+}
+dom.btnOpenLyric.onclick = openLyricPanel;
+dom.lyricCloseBtn.onclick = closeLyricPanel;
+
 (function initPopupDrag(){
     dom.popupDragBar.addEventListener("mousedown",e=>{
         if(e.target.tagName === "BUTTON") return;
@@ -605,6 +645,7 @@ function closePopupMask(){
     dom.popupBox.style.left = "";
     dom.popupBox.style.top = "";
     dom.popupBox.style.transform = "";
+    closeLyricPanel();
 }
 function escapeHtml(str){
     if(!str)return "";
@@ -942,7 +983,6 @@ function openPopupPlayer(item){
     dom.popTitle.innerText = item.name;
     dom.popAuthor.innerText = "";
     openPopupMask();
-    dom.floatLyric.classList.add("show");
     lyricArr = [];
     currentLyricLine = -1;
     renderLyricView(-1, 0);
@@ -970,7 +1010,6 @@ dom.popupMini.addEventListener("click",()=>{
 });
 dom.popupClose.addEventListener("click", () => {
     closePopupMask();
-    dom.floatLyric.classList.remove("show");
     dom.popMedia.pause();
     stopAutoPlayCount();
     syncPlayButtonState();
@@ -1058,24 +1097,7 @@ dom.popMedia.addEventListener("ended", () => {
     }
     else playNext();
 });
-(function initLyricDrag(){
-    const wrap = dom.floatLyric;
-    let dragging = false, startX, startY, initLeft, initTop;
-    wrap.addEventListener("mousedown", e => {
-        dragging = true;
-        startX = e.clientX; startY = e.clientY;
-        const rect = wrap.getBoundingClientRect();
-        initLeft = rect.left; initTop = rect.top;
-        wrap.style.zIndex = 99985;
-        e.preventDefault();
-    });
-    document.addEventListener("mousemove", e => {
-        if (!dragging) return;
-        wrap.style.left = (initLeft + e.clientX - startX) + "px";
-        wrap.style.top = (initTop + e.clientY - startY) + "px";
-    });
-    document.addEventListener("mouseup", () => { dragging = false; });
-})();
+
 dom.moreMenu.addEventListener("click", e => {
     const act = e.target.dataset.act;
     const item = JSON.parse(dom.moreMenu.dataset.cur);
@@ -1108,32 +1130,15 @@ async function loadResourceList(category="music"){
     else if(category === "image") fetchUrl = `${API_BASE}/imageList`;
     try{
         const res = await fetch(fetchUrl);
-        const listRaw = await res.json();
-        playQueue = listRaw.map(obj=>{
-            const filename = obj.key;
-            let name = filename;
-            const lastSlash = name.lastIndexOf("/");
-            if (lastSlash !== -1) {
-                name = name.substring(lastSlash + 1);
-            }
-            name = name.replace(/\.[^/.]+$/,"");
-            return {
-                resourceKey: obj.key,
-                name: name,
-                author:"",
-                coverImg:"",
-                playCount:getRandomPlayCount(),
-                favCount:getRandomFavCount()
-            };
-        });
-        renderCard(playQueue);
+        const list = await res.json();
+        playQueue = list;
+        renderCard(list);
         renderHistory();
     }catch(err){
-        alert("拉取R2资源失败："+err.message);
         console.error(err);
     }
 }
-loadResourceList("music");
+loadResourceList(currentCategory);
 </script>
 </body>
 </html>
